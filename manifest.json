@@ -1,26 +1,21 @@
 {
   "name": "Haalia Sheli",
   "short_name": "Haalia",
-  "description": "האפליקציה הרשמית של חב''ד בעלייה עפולה - שיעורים, אירועים ותוכן יהודי.",
+  "description": "העליה שלי",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
-  "orientation": "portrait",
-  "lang": "he",
-  "dir": "rtl",
   "icons": [
     {
-      "src": "https://raw.githubusercontent.com/williash7/haalia-sheli/main/icon-192.png",
+      "src": "https://www.pwabuilder.com/assets/icons/icon_192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
-      "src": "https://raw.githubusercontent.com/williash7/haalia-sheli/main/icon-512.png",
+      "src": "https://www.pwabuilder.com/assets/icons/icon_512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }
