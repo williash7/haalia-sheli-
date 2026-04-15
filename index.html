@@ -1,0 +1,2124 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+    <script src="firebase-config.js" defer></script>
+    <script src="data_constants.js"></script>
+    <script src="data_functions.js"></script>
+    <script src="data_tasks.js"></script>
+    <script src="data_task_routing.js"></script>
+    <script src="data_task_info.js"></script>
+    <script src="data_task_info_ui.js"></script>
+    <script src="data_stats.js"></script>
+    <script src="data_rewards.js"></script>
+    <script src="boost-day.js" defer></script>
+    <script src="app.js" defer></script>
+
+</head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>העלייה שלי</title>
+<meta name="theme-color" content="#0b0b10">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="העלייה שלי">
+<link rel="manifest" href="data:application/json;charset=utf-8,%7B%22name%22%3A%22%D7%94%D7%A2%D7%9C%D7%99%D7%99%D7%94%20%D7%A9%D7%9C%D7%99%22%2C%22short_name%22%3A%22%D7%94%D7%A2%D7%9C%D7%99%D7%99%D7%94%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230b0b10%22%2C%22theme_color%22%3A%22%230b0b10%22%2C%22orientation%22%3A%22portrait%22%2C%22lang%22%3A%22he%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fpng%3Bbase64%2CiVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAACXBIWXMAAAsTAAALEwEAmpwYAAAF0WlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdFJlZj0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlUmVmIyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6MEY0NkE4RUFCNzU3MTFFOUFDQ0VGRkE5RjNDQzY1QjAiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6MEY0NkE4RUJCNzU3MTFFOUFDQ0VGRkE5RjNDQzY1QjAiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowRjQ2QThFOEI3NTcxMUU5QUNDRUZGQTJGQZDGNUI2IiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjBGNDZBOEU5Qjc1NzExRTlBQ0NFRkZBOUYzQ0M2NUIwIi8%2BIDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY%2BIDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8%2B%22%2C%22type%22%3A%22image%2Fpng%22%2C%22sizes%22%3A%22192x192%22%7D%5D%7D">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <div class="hdr">
+    <div class="hdr-title">העלייה שלי</div><br>
+    <div id="hdr-datetime" style="display:inline-flex;align-items:center;gap:10px;margin-top:4px;margin-bottom:2px;padding:5px 16px;background:var(--sf2);border:1px solid var(--brd2);border-radius:99px;font-size:13px;font-weight:700;color:var(--txt2)">
+      <span id="hdr-heb-date" style="color:var(--txt)"></span>
+      <span style="color:var(--brd3)">|</span>
+      <span id="hdr-clock" style="color:var(--gold);font-variant-numeric:tabular-nums;letter-spacing:.5px"></span>
+    </div>
+    <div class="hdr-sub"><div class="hdr-dot"></div><span id="hdr-lvl">שלב 1 מ-15</span><span style="color:var(--txt3)">•</span><span id="hdr-pct" style="color:var(--txt2)">0% מהחזון</span></div>
+  </div>
+
+  <div class="streak" id="streak-section">
+    <div class="streak-row">
+      <span class="streak-lbl">התקדמות לשלב הבא</span>
+      <span class="streak-val" id="streak-txt"></span>
+    </div>
+    <div class="streak-track"><div class="streak-fill" id="streak-fill" style="width:0%"></div></div>
+    <div id="streak-bonus-wrap"></div>
+  </div>
+<!-- BOTTOM NAV -->
+  <div class="nav" id="main-nav">
+    <button class="ntab on" id="btn-today" onclick="nav('today')">
+      <span class="ntab-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></span>היום
+    </button>
+    <button class="ntab" id="btn-mastery" onclick="nav('mastery')">
+      <span class="ntab-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h7a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h4a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg></span>משימות
+    </button>
+    <button class="ntab" id="btn-rewards" onclick="nav('rewards')">
+      <span class="ntab-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 2a1 1 0 011 1v1h8V3a1 1 0 112 0v1h.5A1.5 1.5 0 0118 5.5v1A2.5 2.5 0 0115.5 9H15v7a1 1 0 01-1 1H6a1 1 0 01-1-1V9h-.5A2.5 2.5 0 012 6.5v-1A1.5 1.5 0 013.5 4H4V3a1 1 0 011-1zm3 7v6h4V9H8z" clip-rule="evenodd"/></svg></span>פרסים
+    </button>
+    <button class="ntab" id="btn-cal" onclick="nav('cal')">
+      <span class="ntab-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h10a2 2 0 002-2V5a1 1 0 100-2H3zm4 4a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm0 3a1 1 0 011-1h2a1 1 0 110 2H8a1 1 0 01-1-1z" clip-rule="evenodd"/></svg></span>מעקב
+    </button>
+    <button class="ntab" id="btn-chat" onclick="nav('chat')">
+      <span class="ntab-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"/></svg></span>עוזר
+    </button>
+    <button class="ntab" id="btn-more" onclick="openDrawer()">
+      <span class="ntab-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"/></svg></span>עוד
+    </button>
+  </div>
+
+  <!-- SIDE DRAWER OVERLAY -->
+  <div id="side-drawer-overlay" onclick="closeDrawer()"></div>
+
+  <!-- SIDE DRAWER -->
+  <div id="side-drawer">
+    <div class="drawer-hd">
+      <div class="drawer-title">תפריט</div>
+      <button class="drawer-close" onclick="closeDrawer()"><svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+    </div>
+    <div class="drawer-item" id="drawer-levels" onclick="navDrawer('levels')">
+      <span class="drawer-item-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"/><path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"/></svg></span>
+      <div><div>מסלול</div><div class="drawer-item-sub">התקדמות ושלבים</div></div>
+    </div>
+    <div class="drawer-item" id="drawer-journal" onclick="navDrawer('journal')">
+      <span class="drawer-item-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/></svg></span>
+      <div><div>יומן</div><div class="drawer-item-sub">רפלקציה יומית</div></div>
+    </div>
+    <div class="drawer-item" id="drawer-settings" onclick="navDrawer('settings')">
+      <span class="drawer-item-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg></span>
+      <div><div>הגדרות</div><div class="drawer-item-sub">ניהול, גיבוי, AI</div></div>
+    </div>
+  </div>
+
+  <!-- TODAY -->
+  <div id="pg-today" class="pg on">
+    <div class="sh"><span class="sh-t">היום</span><span class="sh-s" id="sh-sub"></span></div>
+
+    <!-- STATS CARD -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+      <div class="stat"><div class="stat-n" id="s-today" style="color:var(--blue)">0</div><div class="stat-l">היום</div></div>
+      <div class="stat"><div class="stat-n" id="s-bank" style="color:var(--gold)">0</div><div class="stat-l">בנק</div></div>
+      <div class="stat"><div class="stat-n" id="s-streak" style="color:var(--green)">0</div><div class="stat-l">רצף</div></div>
+    </div>
+
+    <!-- SUMMARY CARD -->
+    <div class="day-summary-card">
+      <div class="day-summary-inner">
+        <!-- Ring -->
+        <div class="day-ring-box" style="flex-shrink:0">
+          <svg width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="var(--sf2)" stroke-width="8"/>
+            <circle id="ring-arc" cx="50" cy="50" r="42" fill="none" stroke="var(--green)" stroke-width="8"
+              stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="264"
+              style="transition:stroke-dashoffset .9s cubic-bezier(.22,1,.36,1)"/>
+          </svg>
+          <div class="day-ring-label">
+            <div class="day-ring-pct" id="ring-pct">0%</div>
+            <div class="day-ring-sub" id="ring-sub">הושלם</div>
+          </div>
+        </div>
+        <!-- hidden elements to keep JS references alive -->
+        <span id="summary-today-pts" style="display:none">0</span>
+        <span id="summary-streak" style="display:none">0</span>
+      </div>
+      <!-- Badges -->
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+        <span class="grace-badge" id="grace-badge" onclick="useGrace()"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:4px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg></span> יום חסד</span>
+<span class="boost-badge" id="boost-day-badge" onclick="openBoostDayModal()">⚡ יום בוסט</span>
+<div id="boost-day-active-wrap"></div>
+        <span class="focus-day-badge" id="focus-day-badge" onclick="openFocusDayModal()"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:4px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/></svg></span> יום עשייה</span>
+      </div>
+      <!-- CTA button -->
+      <button class="start-day-btn" id="start-day-btn" onclick="toggleTodayTasks()"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></span> התחל יום</button>
+    </div>
+
+    <div id="shabbat-mode-wrap"></div>
+    <div id="focus-day-active-wrap"></div>
+    <div id="boost-day-active-wrap"></div>
+
+    <!-- TASKS SECTION — revealed on button click -->
+    <div id="tasks-section" style="display:none;">
+      <!-- Focus mode bar -->
+      <div class="focus-bar">
+        <div>
+          <div class="focus-label">מצב מיקוד</div>
+          <div class="focus-count" id="focus-count">מציג הכל</div>
+        </div>
+        <button class="focus-btn" id="focus-btn" onclick="toggleFocus()"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.381z" clip-rule="evenodd"/></svg></span> מיקוד</button>
+      </div>
+      <!-- Hide completed slots toggle -->
+      <div class="hide-done-bar" style="justify-content:space-between;align-items:center">
+        <div style="display:flex;gap:5px">
+          <button class="hide-done-btn on" id="tv-slot"  onclick="setTodayView('slot')">⏱ סלוטים</button>
+          <button class="hide-done-btn"    id="tv-time"  onclick="setTodayView('time')">🕐 שעה</button>
+          <button class="hide-done-btn"    id="tv-cat"   onclick="setTodayView('cat')">🏷️ קטגוריה</button>
+        </div>
+        <button class="hide-done-btn" id="hide-done-btn" onclick="toggleHideDoneSlots()"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg></span> הסתר הושלמו</button>
+      </div>
+      <div id="today-content"></div>
+    </div>
+  </div>
+
+  <!-- LEVELS -->
+  <div id="pg-levels" class="pg">
+    <div class="sh"><span class="sh-t">מסלול ההתקדמות</span></div>
+    <div id="levels-content"></div>
+  </div>
+
+  <!-- MASTERY / TASKS -->
+  <div id="pg-mastery" class="pg">
+    <div class="sh"><span class="sh-t">משימות</span><span class="sh-s" id="mastery-sub">כל המסלול שלך</span></div>
+    <!-- Quick action buttons -->
+    <div style="display:flex;gap:7px;margin-bottom:16px">
+      <button onclick="openTaskEditor()" style="flex:1;padding:9px 8px;background:var(--surface);border:1px solid rgba(91,141,248,.3);border-radius:10px;color:var(--blue);font-family:\'Heebo\',sans-serif;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg>
+        עורך משימות
+      </button>
+      <button onclick="openAddOneTimeModal()" style="flex:1;padding:9px 8px;background:var(--surface);border:1px solid rgba(240,120,64,.3);border-radius:10px;color:var(--orange);font-family:\'Heebo\',sans-serif;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+        חד פעמית
+      </button>
+      <button onclick="openAddStreakModal()" style="flex:1;padding:9px 8px;background:var(--surface);border:1px solid rgba(56,214,138,.3);border-radius:10px;color:var(--green);font-family:\'Heebo\',sans-serif;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+        עקביות
+      </button>
+    </div>
+    <div id="mastery-content"></div>
+  </div>
+
+  <!-- REWARDS -->
+  <div id="pg-rewards" class="pg">
+    <div class="pts-banner">
+      <div class="pts-big" id="pts-big">0</div>
+      <div class="pts-lbl">נקודות זמינות</div>
+      <div class="pts-tip" id="pts-tip"></div>
+    </div>
+    <div id="dream-banner-wrap"></div>
+    <div id="daily-cap-banner"></div>
+    <div id="purchased-log"></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <div class="sort-bar" style="flex:1;margin-bottom:0">
+        <button class="sort-btn on" id="sort-cat"   onclick="setSort('cat')">קטגוריות</button>
+        <button class="sort-btn"    id="sort-asc"   onclick="setSort('asc')">מחיר ↑</button>
+        <button class="sort-btn"    id="sort-desc"  onclick="setSort('desc')">מחיר ↓</button>
+        <button class="sort-btn"    id="sort-avail" onclick="setSort('avail')">זמין לי</button>
+      </div>
+      <button onclick="openRewardAdd()" style="flex-shrink:0;padding:7px 12px;background:var(--surface);border:1px solid rgba(240,192,64,.35);border-radius:9px;color:var(--gold);font-family:\'Heebo\',sans-serif;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap">+ פרס</button>
+    </div>
+    <div id="rewards-content"></div>
+    <!-- Dream reward section -->
+    <div style="background:var(--surface);border:1px solid rgba(240,192,64,.2);border-radius:var(--r);padding:18px;margin-top:14px">
+      <div style="font-size:11px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" style="vertical-align:middle;margin-left:4px"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> פרס חלום</div>
+      <div id="dream-setting-area"></div>
+    </div>
+    <!-- Custom rewards list (for edit) -->
+    <div style="background:var(--surface);border:1px solid var(--brd);border-radius:var(--r);padding:18px;margin-top:14px">
+      <div style="font-size:11px;font-weight:800;color:var(--txt2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">✏️ פרסים אישיים — עריכה</div>
+      <div id="custom-rewards-list"></div>
+      <div class="custom-r-add" onclick="openRewardAdd()">+ הוסף פרס חדש</div>
+    </div>
+  </div>
+
+  <!-- CALENDAR + ANALYTICS -->
+  <div id="pg-cal" class="pg">
+    <div class="sh"><span class="sh-t">מעקב והיסטוריה</span></div>
+    <div class="chart-box">
+      <div class="chart-title"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:5px"><svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg></span> נקודות — 30 יום אחרונים</div>
+      <div class="pts-chart" id="pts-chart"></div>
+      <div class="pts-chart-labels" id="pts-chart-labels"></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:5px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg></span> הצלחה לפי קטגוריה</div>
+      <div class="cat-chart" id="cat-chart"></div>
+      <div class="insight-row" id="insight-row"></div>
+    </div>
+    <div class="cal-box">
+      <div class="cal-mth" id="cal-mth"></div>
+      <div class="cal-grid" id="cal-dows"></div>
+      <div class="cal-grid" id="cal-grid" style="margin-top:0"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <span style="font-size:11px;display:flex;align-items:center;gap:4px;color:var(--txt2)"><span style="width:10px;height:10px;border-radius:2px;background:var(--green2);display:inline-block"></span>ביצוע מלא</span>
+      <span style="font-size:11px;display:flex;align-items:center;gap:4px;color:var(--txt2)"><span style="width:10px;height:10px;border-radius:2px;background:rgba(45,212,191,.25);display:inline-block"></span>יום עשייה</span>
+      <span style="font-size:11px;display:flex;align-items:center;gap:4px;color:var(--txt2)"><span style="width:10px;height:10px;border-radius:2px;background:rgba(155,126,248,.2);display:inline-block"></span>שבת</span>
+    </div>
+    <div id="hist-list"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="pg-settings" class="pg">
+    <div class="sh"><span class="sh-t">הגדרות</span></div>
+
+    <!-- ── TAB SWITCHER ── -->
+    <div style="display:flex;gap:3px;background:var(--sf2);border:1px solid var(--brd);border-radius:11px;padding:4px;margin-bottom:20px">
+      <button id="stab-config"   onclick="switchSettingsTab('config')"   style="flex:1;padding:8px 4px;border-radius:8px;font-size:11px;font-weight:800;background:var(--surface);border:1px solid var(--brd2);color:var(--txt);transition:all .18s"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:4px"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg></span> כללי</button>
+      <button id="stab-notifs"   onclick="switchSettingsTab('notifs')"   style="flex:1;padding:8px 4px;border-radius:8px;font-size:11px;font-weight:800;background:transparent;border:1px solid transparent;color:var(--txt3);transition:all .18s"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:4px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg></span> תזכורות</button>
+      
+      
+      <button id="stab-info"     onclick="switchSettingsTab('info')"     style="flex:1;padding:8px 4px;border-radius:8px;font-size:11px;font-weight:800;background:transparent;border:1px solid transparent;color:var(--txt3);transition:all .18s"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:4px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg></span> מידע</button>
+
+    </div>
+
+    <!-- ══ TAB: כללי ══ -->
+    <div id="auth-section" style="margin-bottom:8px"></div>
+  <div id="stab-config-panel">
+      <div class="notif-section" style="margin-bottom:14px">
+        <div class="sect-hd"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:5px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg></span> מראה</div>
+        <div class="sound-row">
+          <div class="notif-info">
+            <div class="notif-name" id="theme-label">🌙 מצב כהה</div>
+            <div class="notif-time">לחץ להחלפה</div>
+          </div>
+          <button class="toggle" id="theme-toggle" onclick="toggleTheme()"></button>
+        </div>
+        <div class="sound-row" style="margin-top:8px">
+          <div class="notif-info">
+            <div class="notif-name">🔊 צליל בסימון משימה</div>
+            <div class="notif-time">קליק + ויברציה</div>
+          </div>
+          <button class="toggle" id="sound-toggle" onclick="toggleSound()"></button>
+        </div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--brd);border-radius:var(--r);padding:18px;margin-bottom:14px">
+        <div class="sect-hd"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:5px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></span> גיבוי ושחזור</div>
+        <div class="backup-info" style="margin-bottom:12px">מומלץ לגבות לפני מחיקה או שינוי מכשיר.</div>
+        <div class="backup-row">
+          <button class="backup-btn export" onclick="exportData()"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:4px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></span> ייצא גיבוי</button>
+          <button class="backup-btn import" onclick="document.getElementById('import-file').click()"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:4px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg></span> ייבא גיבוי</button>
+        </div>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+        <div class="backup-info" id="backup-last-export"></div>
+        <button onclick="openPasteImport()" style="margin-top:10px;width:100%;padding:10px;background:rgba(45,212,191,.08);border:1px solid rgba(45,212,191,.3);border-radius:var(--r-sm);color:var(--teal);font-family:'Heebo',sans-serif;font-size:12px;font-weight:800;cursor:pointer">📋 העתק-הדבק JSON (מקובץ ישן)</button>
+      </div>
+      <div style="background:var(--surface);border:1px solid rgba(240,80,80,.15);border-radius:var(--r);padding:18px">
+        <div class="sect-hd" style="color:var(--red)"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:5px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg></span> אזור סכנה</div>
+        <button class="settings-btn" onclick="fixPoints()" style="color:var(--blue);border-color:rgba(91,141,248,.2);margin-bottom:8px"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:4px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></span> תקן נקודות (חישוב מחדש)</button>
+        <button class="settings-btn danger" onclick="resetData()"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:4px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg></span> איפוס כל הנתונים</button>
+      </div>
+    </div><!-- /stab-config-panel -->
+
+    <!-- ══ TAB: תזכורות ══ -->
+    <div id="stab-notifs-panel" style="display:none">
+      <div class="notif-section" style="margin-bottom:14px">
+        <div class="sect-hd"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:5px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg></span> התראות</div>
+        <div id="notif-perm-area"></div>
+        <div id="notif-rows"></div>
+      </div>
+      <div style="background:rgba(240,192,64,.06);border:1px solid rgba(240,192,64,.2);border-radius:var(--r-sm);padding:12px 14px;font-size:12px;color:var(--txt2);line-height:1.6">
+        💡 <strong style="color:var(--gold)">תזכורות אישיות למשימות</strong> — ניתן להוסיף בעורך המשימות (לשונית ✏️ משימות).<br>
+        התזכורות לא נשלחות בשבת לפי זמני HebCal.
+      </div>
+    </div><!-- /stab-notifs-panel -->
+
+
+
+    <!-- ══ TAB: מידע ══ -->
+    <div id="stab-info-panel" style="display:none">
+
+      <!-- כותרת -->
+      <div style="background:linear-gradient(135deg,rgba(240,192,64,.08),rgba(91,141,248,.06));border:1px solid rgba(240,192,64,.2);border-radius:var(--r-lg);padding:18px;margin-bottom:12px;text-align:center">
+        <div style="font-size:18px;font-weight:900;color:var(--gold);margin-bottom:6px">✨ העלייה שלי</div>
+        <div style="font-size:12px;color:var(--txt2);line-height:1.7">אפליקציה לשיפור עצמי יומי עם <strong style="color:var(--txt)">15 שלבים</strong> של התקדמות.<br>בכל יום מבצעים משימות, צוברים נקודות, ומתקדמים לשלב הבא.<br><span style="color:var(--gold)">המטרה:</span> לבנות רצף ימים עקבי שמשנה הרגלים לאמת.</div>
+      </div>
+
+      <style>
+      .info-acc{background:var(--surface);border:1px solid var(--brd2);border-radius:var(--r);margin-bottom:8px;overflow:hidden;}
+      .info-acc-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;user-select:none;}
+      .info-acc-hd:active{background:var(--bg3);}
+      .info-acc-title{font-size:13px;font-weight:800;}
+      .info-acc-arrow{font-size:12px;color:var(--txt3);transition:transform .22s;}
+      .info-acc-body{padding:0 16px;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;}
+      .info-acc.open .info-acc-body{max-height:3000px;padding:0 16px 14px;}
+      .info-acc.open .info-acc-arrow{transform:rotate(180deg);}
+      .info-row{font-size:12px;color:var(--txt2);line-height:1.8;margin-bottom:4px;}
+      .info-row strong{color:var(--txt);}
+      .info-tag{display:inline-block;font-size:10px;font-weight:800;border-radius:99px;padding:2px 8px;margin:1px 2px;}
+      .info-divider{height:1px;background:var(--brd);margin:10px 0;}
+      .info-highlight{background:rgba(240,192,64,.06);border:1px solid rgba(240,192,64,.18);border-radius:9px;padding:10px 12px;margin:8px 0;}
+      .info-tip{background:rgba(56,214,138,.06);border:1px solid rgba(56,214,138,.2);border-radius:9px;padding:10px 12px;margin:8px 0;font-size:11px;color:var(--txt2);line-height:1.7;}
+      </style>
+
+      <!-- 1. ניווט ומסכים -->
+      <div class="info-acc" onclick="toggleAcc(this)">
+        <div class="info-acc-hd">
+          <span class="info-acc-title" style="color:var(--blue)">🗺️ ניווט — מה יש באפליקציה?</span>
+          <span class="info-acc-arrow">▼</span>
+        </div>
+        <div class="info-acc-body">
+          <div class="info-row" style="margin-bottom:6px">האפליקציה מורכבת מ<strong>5 מסכים ראשיים</strong> בתפריט התחתון + <strong>3 מסכים נוספים</strong> במגירה (כפתור "עוד"):</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong style="color:var(--green)">✅ היום</strong> — משימות יומיות, עיגול ביצוע, כפתורי יום חסד / יום עשייה.</div>
+          <div class="info-row"><strong style="color:var(--blue)">📋 משימות</strong> — צפייה בכל המסלול שלך, הוספת משימות חד-פעמיות ועקביות, פתיחת עורך המשימות.</div>
+          <div class="info-row"><strong style="color:var(--gold)">🎁 פרסים</strong> — חנות הצ'ופרים: ממשים נקודות תמורת פינוקים, מנהלים פרס חלום.</div>
+          <div class="info-row"><strong style="color:var(--teal)">📊 מעקב</strong> — גרף נקודות, גרף קטגוריות, לוח שנה, היסטוריה ועריכה רטרואקטיבית.</div>
+          <div class="info-row"><strong>⚙️ הגדרות</strong> — כללי, תזכורות, מידע (ניהול ימי חסד/עשייה).</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong style="color:var(--gold)">📈 מסלול</strong> (מגירה) — מפת כל 15 השלבים: מה משתנה בכל שלב, איפה אתה עומד.</div>
+          <div class="info-row"><strong style="color:var(--blue)">📓 יומן</strong> (מגירה) — רשומה יומית חופשית + ניתוח AI.</div>
+          <div class="info-row"><strong>⚙️ הגדרות</strong> (מגירה) — גישה מהירה לאותו מסך הגדרות.</div>
+        </div>
+      </div>
+
+      <!-- 2. מסך היום -->
+      <div class="info-acc" onclick="toggleAcc(this)">
+        <div class="info-acc-hd">
+          <span class="info-acc-title" style="color:var(--blue)">📋 מסך היום — פירוט מלא</span>
+          <span class="info-acc-arrow">▼</span>
+        </div>
+        <div class="info-acc-body">
+          <div class="info-row">לוחצים "התחל יום" כדי לפתוח את רשימת המשימות. המשימות מאורגנות לפי <strong>4 סלוטי זמן</strong>:</div>
+          <div class="info-row"><span class="info-tag" style="background:rgba(91,141,248,.12);color:var(--blue)">🌅 בוקר</span> קימה, תפילה, מים, סמארטפון — עבודת הבוקר הבסיסית</div>
+          <div class="info-row"><span class="info-tag" style="background:rgba(240,120,64,.12);color:var(--orange)">⚡ עשייה</span> בניין ועשייה פעילה — יציאה, ביצוע, פגישות</div>
+          <div class="info-row"><span class="info-tag" style="background:rgba(56,214,138,.12);color:var(--green)">📖 לימוד</span> עומק ולימוד — לימוד ממוקד, לו"ז, ספורט</div>
+          <div class="info-row"><span class="info-tag" style="background:rgba(155,126,248,.12);color:var(--purple)">🌙 ערב</span> סיום יום — כוסות מים אחרונות, שינה בזמן</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong>3 מצבי תצוגה למשימות:</strong></div>
+          <div class="info-row">• <strong style="color:var(--blue)">⏱ סלוטים</strong> — ברירת מחדל, מחולק לפי 4 תקופות יום</div>
+          <div class="info-row">• <strong style="color:var(--teal)">🕐 שעה</strong> — ממוין לפי שעת ביצוע מוקדם לאיחור</div>
+          <div class="info-row">• <strong style="color:var(--gold)">🏷️ קטגוריה</strong> — מקובץ לפי תחום (זמנים / בריאות / לימוד / בית וכד')</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong style="color:var(--teal)">⚡ מצב מיקוד</strong> — מסתיר משימות שכבר בוצעו, מציג רק מה שנותר. מאפשר להתרכז במה שעדיין חסר.</div>
+          <div class="info-row"><strong>👁 הסתר הושלמו</strong> — מכווץ סלוטים שכל משימותיהם בוצעו — פחות עומס ויזואלי.</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong style="color:var(--gold)">🛡️ יום חסד</strong> — שומר על הרצף ביום קשה (ראה פירוט בהמשך).</div>
+          <div class="info-row"><strong style="color:var(--teal)">🎯 יום עשייה</strong> — הצהרה על יום ייעודי לפרויקט גדול (ראה פירוט בהמשך).</div>
+          <div class="info-row"><strong style="color:var(--purple)">✡️ מוצאי שבת</strong> — מופיע כפתור לעדכון שישי+שבת רטרואקטיבי אחרי השבת.</div>
+        </div>
+      </div>
+
+      <!-- 3. שלבים -->
+      <div class="info-acc" onclick="toggleAcc(this)">
+        <div class="info-acc-hd">
+          <span class="info-acc-title" style="color:var(--gold)">🏆 שלבים והתקדמות</span>
+          <span class="info-acc-arrow">▼</span>
+        </div>
+        <div class="info-acc-body">
+          <div class="info-row">האפליקציה בנויה סביב <strong>15 שלבי התקדמות</strong>. כל שלב מקשה מהשלב הקודם — משימות הופכות דורשניות יותר: שעת קימה מוקדמת יותר, יותר כוסות מים, לימוד ארוך יותר, ועוד. השינויים קורים <strong>אוטומטית</strong> — אין צורך לעדוכן ידנית.</div>
+          <div class="info-divider"></div>
+          <div class="info-row" style="margin-bottom:4px"><strong>איך עולים שלב?</strong> נדרש רצף ימים עם ≥80% ביצוע:</div>
+          <div class="info-row"><span class="info-tag" style="background:rgba(56,214,138,.1);color:var(--green)">שלבים 1–5</span> 5 ימים רצוף ≥80%</div>
+          <div class="info-row"><span class="info-tag" style="background:rgba(240,192,64,.1);color:var(--gold)">שלבים 6–10</span> 7 ימים רצוף ≥80%</div>
+          <div class="info-row"><span class="info-tag" style="background:rgba(240,80,80,.1);color:var(--red)">שלבים 11–15</span> 14 ימים רצוף ≥80%</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong style="color:var(--red)">⬇️ ירידת שלב</strong> — רצף שלילי (ימים רצופים מתחת ל-80%) גורם לירידה חזרה. המערכת בנויה כך שאי-אפשר "לנוח" על ההישגים — השלב צריך להיות מוצדק ביצועית.</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong>📈 מסלול ההתקדמות</strong> (מגירה ← מסלול) — מציג מפה ויזואלית של כל 15 השלבים, מה משתנה בכל שלב, ואיפה אתה עומד כרגע.</div>
+        </div>
+      </div>
+
+      <!-- 4. מבנה נקודות -->
+      <div class="info-acc" onclick="toggleAcc(this)">
+        <div class="info-acc-hd">
+          <span class="info-acc-title" style="color:var(--blue)">💡 מערכת הנקודות</span>
+          <span class="info-acc-arrow">▼</span>
+        </div>
+        <div class="info-acc-body">
+          <div class="info-row"><strong>3 מונים שחשוב להכיר:</strong></div>
+          <div class="info-row">• <strong style="color:var(--blue)">היום</strong> — נקודות שנצברו היום בלבד. מתאפס בחצות.</div>
+          <div class="info-row">• <strong style="color:var(--gold)">בנק</strong> — סה"כ הנקודות הזמינות לרכישת פרסים. קטן רק כשמממשים צ'ופר.</div>
+          <div class="info-row">• <strong style="color:var(--green)">רצף</strong> — מספר ימים רצופים עם ≥80% ביצוע.</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong>כמה מרוויחים לפי סוג משימה?</strong></div>
+          <div class="info-row"><span class="info-tag" style="background:rgba(91,141,248,.1);color:var(--blue)">מדורגת (רגיל)</span> 5–50 נק' לפי שלב ומשימה</div>
+          <div class="info-row"><span class="info-tag" style="background:rgba(56,214,138,.1);color:var(--green)">עקביות</span> 5 נק' (יום 1) עד 90 נק' (יום 180+) — גדל עם הרצף</div>
+          <div class="info-row"><span class="info-tag" style="background:rgba(240,120,64,.1);color:var(--orange)">חד פעמית</span> נקבע ידנית בעת ההוספה (1–500 נק')</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong style="color:var(--green)">🔥 בונוס רצף</strong> — לאחר <strong>7 ימים רצוף</strong> של ≥80%, כל המשימות מקבלות <strong>+15% נקודות</strong> אוטומטית. הסיבה: לתגמל עקביות אמיתית ולא ניקוד חד-פעמי.</div>
+          <div class="info-divider"></div>
+          <div class="info-row" style="color:var(--txt3)">⚠️ מגבלת פדיון יומית: 2–3 פרסים ביום. המטרה: לא לבזבז את כל הנקודות ביום אחד, אלא לשמור על תחושת הישג לאורך זמן.</div>
+        </div>
+      </div>
+
+      <!-- 5. סוגי משימות -->
+      <div class="info-acc" onclick="toggleAcc(this)">
+        <div class="info-acc-hd">
+          <span class="info-acc-title" style="color:var(--teal)">📝 סוגי משימות</span>
+          <span class="info-acc-arrow">▼</span>
+        </div>
+        <div class="info-acc-body">
+          <div class="info-row" style="margin-bottom:6px"><strong style="color:var(--teal)">📶 משימות מדורגות (הליבה)</strong></div>
+          <div class="info-row">המשימות הקבועות של האפליקציה שמשתנות אוטומטית לפי שלב. ניתן לערוך בהגדרות ← ✏️ משימות. ה-AI יכול לבנות מסלול מותאם אישית: הכנס מטרה + מצב נוכחי + מספר שלבים רצויים.</div>
+          <div class="info-divider"></div>
+          <div class="info-row" style="margin-bottom:6px"><strong style="color:var(--orange)">⚡ משימה חד פעמית</strong></div>
+          <div class="info-row">משימה עם <strong>מספר ביצועים קצוב</strong> — לאחר שמשלימים אותם, היא נעלמת אוטומטית. דוגמה: "קרא פרק בספר × 20". כל לחיצה = פעם אחת ביום. <strong>לא משפיעה על אחוז הרצף הכללי</strong> — נקודות בונוס בלבד.</div>
+          <div class="info-divider"></div>
+          <div class="info-row" style="margin-bottom:6px"><strong style="color:var(--green)">➕ משימת עקביות</strong></div>
+          <div class="info-row">משימה שחוזרת כל יום וה<strong>ניקוד שלה גדל ככל שמבצעים ימים יותר רצוף</strong>. הלוגיקה: להנגיש לך את הצלחות הקטנות ולתגמל אותן בהדרגה. ניתן לבחור באילו ימים היא פעילה (חול / שישי / שבת).</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:8px 0;font-size:11px">
+            <div style="background:var(--bg3);border-radius:6px;padding:5px 8px;color:var(--txt2)">ימים 1–4: <strong style="color:var(--green)">5 נק'</strong></div>
+            <div style="background:var(--bg3);border-radius:6px;padding:5px 8px;color:var(--txt2)">ימים 5–9: <strong style="color:var(--green)">8 נק'</strong></div>
+            <div style="background:var(--bg3);border-radius:6px;padding:5px 8px;color:var(--txt2)">ימים 10–19: <strong style="color:var(--green)">12 נק'</strong></div>
+            <div style="background:var(--bg3);border-radius:6px;padding:5px 8px;color:var(--txt2)">ימים 20–29: <strong style="color:var(--green)">18 נק'</strong></div>
+            <div style="background:var(--bg3);border-radius:6px;padding:5px 8px;color:var(--txt2)">ימים 30–44: <strong style="color:var(--green)">25 נק'</strong></div>
+            <div style="background:var(--bg3);border-radius:6px;padding:5px 8px;color:var(--txt2)">ימים 45–59: <strong style="color:var(--green)">33 נק'</strong></div>
+            <div style="background:var(--bg3);border-radius:6px;padding:5px 8px;color:var(--txt2)">ימים 60–89: <strong style="color:var(--green)">42 נק'</strong></div>
+            <div style="background:var(--bg3);border-radius:6px;padding:5px 8px;color:var(--txt2)">ימים 90–119: <strong style="color:var(--green)">52 נק'</strong></div>
+            <div style="background:var(--bg3);border-radius:6px;padding:5px 8px;color:var(--txt2)">ימים 120–179: <strong style="color:var(--green)">63–75 נק'</strong></div>
+            <div style="background:var(--bg3);border-radius:6px;padding:5px 8px;color:var(--txt2)">ימים 180+: <strong style="color:var(--green)">90 נק'</strong> 🏆</div>
+          </div>
+          <div class="info-divider"></div>
+          <div class="info-row" style="margin-bottom:6px"><strong style="color:var(--blue)">🔗 תת-משימות</strong></div>
+          <div class="info-row">ניתן להוסיף לכל משימה <strong>תת-משימות</strong> — צעדים קטנים שמרכיבים את המשימה הגדולה. ניתן לבחור אם הן חלות רק על השלב הנוכחי, שלבים עתידיים, או כולם. שימושי לפירוק משימות מורכבות לחלקים ניהולים.</div>
+        </div>
+      </div>
+
+      <!-- 6. עורך משימות -->
+      <div class="info-acc" onclick="toggleAcc(this)">
+        <div class="info-acc-hd">
+          <span class="info-acc-title" style="color:var(--blue)">⚙️ עורך משימות מתקדם</span>
+          <span class="info-acc-arrow">▼</span>
+        </div>
+        <div class="info-acc-body">
+          <div class="info-row">נמצא בהגדרות ← ✏️ משימות. מאפשר שליטה מלאה בכל משימה:</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong>עריכת פרטים</strong> — שם המשימה, כמות הנקודות, סלוט הזמן, הקטגוריה, ואילו ימים היא פעילה (חול / שישי / שבת).</div>
+          <div class="info-row"><strong style="color:var(--teal)">קבוצות משימות</strong> — אפשר לאחד מספר משימות לקבוצה אחת שמספיק לבצע <strong>אחת מהן</strong> לקבלת הנקודות. שימושי למשימות חלופיות — "ספורט או הליכה", "ספר או פודקאסט".</div>
+          <div class="info-row"><strong>תזכורת אישית</strong> — כל משימה יכולה לקבל שעת התראה ייעודית שלה.</div>
+          <div class="info-row"><strong style="color:var(--txt3)">הסתרת משימה</strong> — להסתיר זמנית מבלי למחוק. שימושי לתקופות מיוחדות (חופשה, מחלה).</div>
+          <div class="info-row"><strong>ציון שעה</strong> — ניתן לציין שעת ביצוע מומלצת, שמשפיעה על המיון בתצוגת "שעה".</div>
+          <div class="info-divider"></div>
+          <div class="info-tip">💡 <strong>טיפ:</strong> ה-AI יכול לבנות מסלול שלם של 5–15 שלבים למשימה מותאמת אישית — מנקודת המוצא שלך עד ליעד שהגדרת.</div>
+        </div>
+      </div>
+
+      <!-- 7. מומחיות -->
+      <div class="info-acc" onclick="toggleAcc(this)">
+        <div class="info-acc-hd">
+          <span class="info-acc-title" style="color:var(--purple)">🧠 שלב אישי למשימה (מומחיות)</span>
+          <span class="info-acc-arrow">▼</span>
+        </div>
+        <div class="info-acc-body">
+          <div class="info-row">בנוסף לשלב הכללי, לכל משימה מדורגת יש <strong>שלב אישי</strong> שמתקדם בקצב שלו. הרציונל: לא כל ההרגלים מתקדמים באותו קצב — משימה אחת יכולה להיות בשלב 8 ואחרת בשלב 3.</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong style="color:var(--green)">⬆️ עלייה</strong> — 3 הצלחות רצופות → שלב המשימה עולה, הגרסה שלה נהיית מאתגרת יותר.</div>
+          <div class="info-row"><strong style="color:var(--red)">⬇️ ירידה</strong> — 3 כישלונות רצופים → שלב המשימה יורד, הגרסה הופכת קלה יותר. כך המשימה נשארת מאתגרת אך אפשרית.</div>
+          <div class="info-divider"></div>
+          <div class="info-row">בלשונית <strong>משימות</strong> (ניווט תחתון) ניתן לראות לכל משימה: שלב נוכחי, גרף 30 יום של ביצועים, ואחוז הצלחה כולל — כדי לזהות איפה אתה חזק ואיפה יש מקום לשיפור.</div>
+        </div>
+      </div>
+
+      <!-- 8. AI -->
+      <div class="info-acc" onclick="toggleAcc(this)">
+        <div class="info-acc-hd">
+          <span class="info-acc-title" style="color:var(--purple)">🤖 יצירה עם AI</span>
+          <span class="info-acc-arrow">▼</span>
+        </div>
+        <div class="info-acc-body">
+          <div class="info-row">לוחצים על כפתור ה-AI (סגול, פינה שמאל תחתית) לפתיחת לוח הכלים. 3 כלים עיקריים:</div>
+          <div class="info-divider"></div>
+          <div class="info-row" style="margin-bottom:4px"><strong style="color:var(--teal)">✏️ יצירת מסלול משימה</strong></div>
+          <div class="info-row">הכנס: מה המטרה שלך + היכן אתה נמצא כעת + כמה שלבים (5–15) + סלוט זמן. ה-AI בונה מסלול התקדמות מדויק מנקודה א' לנקודה ב', עם גרסה שונה לכל שלב. כל שלב מקשה מעט יותר מהקודם עד להגעה ליעד.</div>
+          <div class="info-divider"></div>
+          <div class="info-row" style="margin-bottom:4px"><strong style="color:var(--gold)">🎁 יצירת צ'ופרים</strong></div>
+          <div class="info-row">ספר ל-AI על מה שאתה אוהב — סרטים, ספרים, אוכל, תחביבים, ויתקין פרסים <strong>ספציפיים ומוחשיים</strong>: שם סרט אמיתי, מוצר אוכל קונקרטי, פעילות מוגדרת. לא "פינוק כלשהו" אלא "פיצה ממסעדה X".</div>
+          <div class="info-divider"></div>
+          <div class="info-row" style="margin-bottom:4px"><strong style="color:var(--blue)">📓 ניתוח יומן</strong></div>
+          <div class="info-row">בלשונית יומן — כתוב על היום שלך וה-AI ינתח את הביצועים, יציין מה עבד ומה לא, ויציע שיפורים קונקרטיים בהתאם להקשר שכתבת.</div>
+          <div class="info-divider"></div>
+          <div style="background:rgba(155,126,248,.08);border:1px solid rgba(155,126,248,.2);border-radius:10px;padding:12px 14px">
+            <div class="info-row" style="margin-bottom:8px"><strong style="color:var(--purple)">🔑 הגדרת מפתח AI — צעד אחר צעד</strong></div>
+            <div class="info-row"><span style="color:var(--txt3)">1.</span> כנס לכתובת: <strong style="color:var(--blue)">console.anthropic.com</strong></div>
+            <div class="info-row"><span style="color:var(--txt3)">2.</span> התחבר או צור חשבון חדש</div>
+            <div class="info-row"><span style="color:var(--txt3)">3.</span> לחץ על <strong>"API Keys"</strong> בתפריט הצד</div>
+            <div class="info-row"><span style="color:var(--txt3)">4.</span> לחץ <strong>"Create Key"</strong> ← העתק את המפתח שמתחיל ב-<strong style="color:var(--teal)">sk-ant-...</strong></div>
+            <div class="info-row"><span style="color:var(--txt3)">5.</span> חזור לאפליקציה ← כפתור AI ← לשונית <strong>🔑 מפתח</strong></div>
+            <div class="info-row"><span style="color:var(--txt3)">6.</span> הדבק את המפתח ולחץ <strong>"שמור"</strong></div>
+            <div style="height:8px"></div>
+            <div class="info-row" style="color:var(--orange)">⚠️ <strong>עלות:</strong> pay-as-you-go — כל שיחה עולה כמה סנטים. אין מנוי חודשי. המפתח נשמר <strong>מוצפן</strong> ומסתנכרן בין מכשירים.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9. יומן -->
+      <div class="info-acc" onclick="toggleAcc(this)">
+        <div class="info-acc-hd">
+          <span class="info-acc-title" style="color:var(--blue)">📓 יומן יומי</span>
+          <span class="info-acc-arrow">▼</span>
+        </div>
+        <div class="info-acc-body">
+          <div class="info-row">בלשונית <strong>יומן</strong> (מגירה ← 📓) כותבים כל יום רשומה אישית חופשית. הרציונל: רפלקציה יומית היא אחד הכלים החזקים לשינוי הרגלים — לשים לב מה עובד ומה לא.</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong>סיכום יום אוטומטי</strong> — בראש הדף מוצגים: כמה משימות בוצעו, אחוז ביצוע, ונקודות שנצברו — ההקשר לרשומה שלך.</div>
+          <div class="info-row"><strong style="color:var(--purple)">🤖 ניתוח AI</strong> — לחץ "נתח יום" וה-AI יקרא את הרשומה + נתוני הביצוע ויספק ניתוח: מה עבד, מה לשפר, תובנות על דפוסים חוזרים.</div>
+          <div class="info-row"><strong>רשומות קודמות</strong> — ניתן לצפות ברשומות ובניתוחי AI מ-30 הימים האחרונים. ניתוחי AI נשמרים לצד הרשומה.</div>
+          <div class="info-row" style="color:var(--txt3)">הרשומות נשמרות מקומית ומסתנכרנות לענן כשמחובר לחשבון Google.</div>
+        </div>
+      </div>
+
+      <!-- 10. פרסים -->
+      <div class="info-acc" onclick="toggleAcc(this)">
+        <div class="info-acc-hd">
+          <span class="info-acc-title" style="color:var(--gold)">🎁 צ'ופרים ופרסים</span>
+          <span class="info-acc-arrow">▼</span>
+        </div>
+        <div class="info-acc-body">
+          <div class="info-row">ממשים נקודות תמורת פרסים אמיתיים — סדרות, ספרים, ספורט, חוויות. הלוגיקה: <strong>פינוקים שמותר לך לעשות רק כשעמדת ביעדים</strong>. זה מה שהופך פרסים רגילים לתמריץ אמיתי.</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong style="color:var(--gold)">⭐ פרס חלום</strong> — פרס מרכזי שמוצג כמטרה קבועה בראש מסך הפרסים. עוזר לשמור מוטיבציה לאורך זמן — תמיד יש מה לשאוף אליו.</div>
+          <div class="info-row"><strong>מיון</strong> — ניתן לסדר פרסים לפי קטגוריות / מחיר עולה-יורד / "זמין לי עכשיו".</div>
+          <div class="info-row"><strong>עריכה</strong> — לחיצה ארוכה על פרס → שינוי שם, מחיר, תיאור, אימוג'י.</div>
+          <div class="info-row"><strong>הסתרה</strong> — ניתן להסתיר פרסים שלא רלוונטיים כרגע מבלי למחוק.</div>
+          <div class="info-row"><strong style="color:var(--purple)">🛡️ ימי חסד בחנות</strong> — ניתן לרכוש יום חסד נוסף בנקודות.</div>
+          <div class="info-row"><strong>שלב מינימום</strong> — חלק מהפרסים נפתחים רק מהגעה לשלב מסוים.</div>
+          <div class="info-row" style="color:var(--txt3)">מגבלת מימוש יומית: 2–3 פרסים ביום — כדי לא לבזבז הכל ביום אחד.</div>
+        </div>
+      </div>
+
+      <!-- 11. שישי ושבת -->
+      <div class="info-acc" onclick="toggleAcc(this)">
+        <div class="info-acc-hd">
+          <span class="info-acc-title" style="color:var(--purple)">✡️ שישי ושבת</span>
+          <span class="info-acc-arrow">▼</span>
+        </div>
+        <div class="info-acc-body">
+          <div class="info-row">האפליקציה מודעת לשבת ומתנהלת בהתאם. בשבת לא מתקבלות תזכורות ולא ניתן להפעיל את האפליקציה.</div>
+          <div class="info-divider"></div>
+          <div class="info-row">במוצאי שבת מופיע כפתור <strong>"עדכון שישי+שבת"</strong> לרישום מה בוצע בשני הימים בצורה רטרואקטיבית.</div>
+          <div class="info-row"><span class="info-tag" style="background:rgba(45,212,191,.1);color:var(--teal)">🕯️ שישי</span> משימות בוקר + הכנות שבת · סף רצף: <strong>50%</strong> (פחות מהרגיל — שישי עמוס)</div>
+          <div class="info-row"><span class="info-tag" style="background:rgba(155,126,248,.1);color:var(--purple)">✡️ שבת</span> משימות שבת ייעודיות · סף רצף: <strong>80%</strong></div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong style="color:var(--gold)">🔔 זמני שבת אוטומטיים</strong> — האפליקציה מושכת זמני שבת מדויקים לפי מיקומך (HebCal API). כל התזכורות מושהות אוטומטית מכניסת שבת עד צאתה.</div>
+          <div class="info-divider"></div>
+          <div style="font-size:12px;color:var(--txt3)" id="shabbat-status-txt"></div>
+        </div>
+      </div>
+
+      <!-- 12. ימי חסד -->
+      <div class="info-acc" onclick="toggleAcc(this)">
+        <div class="info-acc-hd">
+          <span class="info-acc-title" style="color:var(--gold)">🛡️ ימי חסד</span>
+          <span class="info-acc-arrow">▼</span>
+        </div>
+        <div class="info-acc-body">
+          <div class="info-row">יום חסד הוא "כרית ביטחון" שמשמרת את הרצף גם ביום שלא הגעת ל-80%. מצהירים עליו בלחיצה על כפתור 🛡️ במסך הראשי — ניתן להצהיר עד שעת חצות.</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><span class="info-tag" style="background:rgba(240,192,64,.1);color:var(--gold)">שלבים 1–5</span> 1 יום חסד / חודש</div>
+          <div class="info-row"><span class="info-tag" style="background:rgba(240,192,64,.1);color:var(--gold)">שלבים 6–10</span> 2 ימי חסד / חודש</div>
+          <div class="info-row"><span class="info-tag" style="background:rgba(240,192,64,.1);color:var(--gold)">שלבים 11–15</span> 3 ימי חסד / חודש</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong style="color:var(--gold)">רכישה נוספת</strong> — ניתן לרכוש יום חסד נוסף בחנות הצ'ופרים בנקודות.</div>
+          <div class="info-row"><strong>ביטול</strong> — אם הצהרת בטעות, ניתן לבטל יום חסד בהגדרות ← מידע.</div>
+          <div style="font-size:12px;color:var(--txt3);margin-top:6px" id="grace-status-txt"></div>
+        </div>
+      </div>
+
+      <!-- 13. יום עשייה -->
+      <div class="info-acc" onclick="toggleAcc(this)">
+        <div class="info-acc-hd">
+          <span class="info-acc-title" style="color:var(--teal)">🎯 יום עשייה ממוקד</span>
+          <span class="info-acc-arrow">▼</span>
+        </div>
+        <div class="info-acc-body">
+          <div class="info-row">כשיש פרויקט גדול ולא תוכל לבצע את כל המשימות הרגילות — מצהירים על "יום עשייה". הרצף <strong style="color:var(--teal)">קפוא</strong> — לא עולה ולא יורד. כלומר: לא מאבדים ולא מרוויחים מהרצף, אבל לא נפגעים.</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong>שני תנאים לשימוש:</strong></div>
+          <div class="info-row">1. להגדיר מטרת-על מראש — מה ספציפית תשיג ביום זה.</div>
+          <div class="info-row">2. לשמור על <strong>3 משימות עוגן</strong> שנשארות גם ביום עשייה:</div>
+          <div class="info-row" style="color:var(--txt3);padding-right:12px">⚓ קימה בזמן &nbsp;·&nbsp; ⚓ חת"ת/רמב"ם &nbsp;·&nbsp; ⚓ שתיית מים</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong>מצהירים יום לפני</strong> — לוחצים 🎯 במסך הראשי ומגדירים את יעד המחרת. לא ניתן להצהיר רטרואקטיבית.</div>
+          <div class="info-row" style="color:var(--teal)">מגבלה: עד <strong>3 ימי עשייה בחודש</strong>. ניתן לבטל בהגדרות ← מידע.</div>
+          <div style="font-size:12px;color:var(--txt3);margin-top:6px" id="focus-day-status-txt"></div>
+        </div>
+      </div>
+
+      <!-- 14. מעקב וסטטיסטיקות -->
+      <div class="info-acc" onclick="toggleAcc(this)">
+        <div class="info-acc-hd">
+          <span class="info-acc-title" style="color:var(--green)">📊 מעקב וסטטיסטיקות</span>
+          <span class="info-acc-arrow">▼</span>
+        </div>
+        <div class="info-acc-body">
+          <div class="info-row">מסך <strong>מעקב</strong> (ניווט תחתון) מציג ניתוחים מלאים של הביצועים שלך:</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong>📈 גרף נקודות</strong> — 30 הימים האחרונים עם ציון יומי. ניתן לראות ימים חזקים וחלשים.</div>
+          <div class="info-row"><strong>🏷️ גרף קטגוריות</strong> — אחוז הצלחה לפי תחום: זמנים, בריאות, אכילה, לימוד, בית, סמארטפון. מאפשר לזהות תחומים שדורשים תשומת לב.</div>
+          <div class="info-row"><strong>📅 לוח שנה</strong> — מפה ויזואלית של כל יום:</div>
+          <div class="info-row" style="padding-right:10px">🟢 ירוק = יום שהושלם ≥80% · 🩵 טורקיז = יום עשייה · 🟣 סגול = שבת · ⬜ אפור = יום חסד</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong style="color:var(--gold)">✏️ עריכה רטרואקטיבית</strong> — לחץ על כל יום בלוח השנה לעריכה ידנית: סמן/בטל משימות, הוסף הערה, שנה סטטוס ל-יום חסד/עשייה. שימושי לימים שלא עדכנת בזמן.</div>
+          <div class="info-row" style="color:var(--txt3)">ההיסטוריה שומרת עד 365 ימים אחורה.</div>
+        </div>
+      </div>
+
+      <!-- 15. הגדרות -->
+      <div class="info-acc" onclick="toggleAcc(this)">
+        <div class="info-acc-hd">
+          <span class="info-acc-title">⚙️ הגדרות — מה יש שם?</span>
+          <span class="info-acc-arrow">▼</span>
+        </div>
+        <div class="info-acc-body">
+          <div class="info-row"><strong>⚙️ כללי</strong> — מראה (בהיר/כהה), צלילים בסימון משימה, גיבוי ושחזור נתונים, תיקון נקודות (חישוב מחדש).</div>
+          <div class="info-row"><strong>🔔 תזכורות</strong> — הגדרת התראות לכל אחד מ-4 הסלוטים, תזכורת מוצאי שבת, ותזכורות אישיות למשימות ספציפיות. כל התזכורות מושהות אוטומטית בשבת.</div>
+          <div class="info-row"><strong>ℹ️ מידע</strong> (אתה כאן) — ניהול ימי חסד ועשייה פעילים, סטטוס שבת, מדריך האפליקציה.</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong style="color:var(--red)">⚠️ איפוס כל הנתונים</strong> — מחיקה מוחלטת של היסטוריה, נקודות, הגדרות ומשימות מותאמות. <strong>לא ניתן לשחזר</strong> — מומלץ לגבות קודם.</div>
+          <div class="info-row"><strong>תיקון נקודות</strong> — אם הנקודות נראות לא נכונות, לחץ "חשב מחדש" לחישוב מחדש מהיסטוריה.</div>
+        </div>
+      </div>
+
+      <!-- 16. סנכרון ענן -->
+      <div class="info-acc" onclick="toggleAcc(this)">
+        <div class="info-acc-hd">
+          <span class="info-acc-title" style="color:var(--blue)">☁️ סנכרון ענן</span>
+          <span class="info-acc-arrow">▼</span>
+        </div>
+        <div class="info-acc-body">
+          <div class="info-row">התחברות עם <strong>Google</strong> (בהגדרות ← ⚙️ כללי) מפעילה סנכרון אוטומטי דרך Firebase. הרציונל: הנתונים שלך לא ייאבדו אם תחליף מכשיר, תנקה דפדפן, או תשתמש בכמה מכשירים.</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong>מה מסתנכרן:</strong> כל ההיסטוריה · נקודות · הגדרות · משימות מותאמות · פרסים אישיים · מפתח ה-API · רשומות יומן.</div>
+          <div class="info-row"><strong>לוגיקת סנכרון</strong> — כשמתחברים, האפליקציה משווה בין הגרסה המקומית לענן ומאחדת לפי הנתונים העדכניים ביותר (לפי אורך ההיסטוריה).</div>
+          <div class="info-row"><strong>מעבר בין מכשירים</strong> — היכנס עם אותו חשבון Google בכל מכשיר לקבל את כל הנתונים.</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong style="color:var(--gold)">גיבוי ידני (JSON)</strong> — ייצוא כל הנתונים לקובץ בהגדרות ← ⚙️ כללי. מומלץ לגבות לפני: החלפת מכשיר, איפוס, או שינויים גדולים.</div>
+        </div>
+      </div>
+
+      <!-- 17. התקנה PWA -->
+      <div class="info-acc" onclick="toggleAcc(this)">
+        <div class="info-acc-hd">
+          <span class="info-acc-title" style="color:var(--blue)">📱 התקנה כאפליקציה (PWA)</span>
+          <span class="info-acc-arrow">▼</span>
+        </div>
+        <div class="info-acc-body">
+          <div class="info-row">האפליקציה תומכת בהתקנה כ-PWA (Progressive Web App) — נראית ומרגישה כמו אפליקציה אמיתית בלי App Store.</div>
+          <div class="info-divider"></div>
+          <div class="info-row"><strong style="color:var(--gold)">📱 iOS (iPhone/iPad):</strong></div>
+          <div class="info-row" style="color:var(--txt3)">1. פתח בـ Safari (לא Chrome)</div>
+          <div class="info-row" style="color:var(--txt3)">2. לחץ כפתור שיתוף ↑</div>
+          <div class="info-row" style="color:var(--txt3)">3. "הוסף למסך הבית" ✓</div>
+          <div style="height:8px"></div>
+          <div class="info-row"><strong style="color:var(--gold)">🤖 Android (Chrome):</strong></div>
+          <div class="info-row" style="color:var(--txt3)">1. פתח בـ Chrome</div>
+          <div class="info-row" style="color:var(--txt3)">2. ⋮ ← "הוסף למסך הבית" ✓</div>
+          <div style="height:8px"></div>
+          <div class="info-row"><strong style="color:var(--gold)">📦 APK לאנדרואיד (אם מארחים בעצמך):</strong></div>
+          <div class="info-row" style="color:var(--txt3)">1. העלה לשרת (GitHub Pages / Netlify)</div>
+          <div class="info-row" style="color:var(--txt3)">2. כנס לـ pwabuilder.com</div>
+          <div class="info-row" style="color:var(--txt3)">3. הדבק כתובת → Android → Generate APK ✓</div>
+        </div>
+      </div>
+
+    </div><!-- /stab-info-panel -->
+
+
+
+  </div>
+</div>
+
+
+<!-- MODAL: Task Group List -->
+<div class="modal-bg" id="modal-task-editor">
+  <div class="modal" style="max-width:440px;width:96%;padding:22px 18px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div class="modal-title" style="margin-bottom:0"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:5px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg></span> עורך משימות</div>
+      <button onclick="closeModal('modal-task-editor')" style="font-size:18px;color:var(--txt3);padding:4px 8px;border-radius:6px;background:var(--bg3)"><svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+    </div>
+    <div style="background:rgba(91,141,248,.08);border:1px solid rgba(91,141,248,.2);border-radius:9px;padding:10px 13px;margin-bottom:12px;font-size:12px;color:var(--txt2);line-height:1.6">
+      📋 <strong style="color:var(--blue)">15 משימות — שלב אחד לכל משימה.</strong><br>
+      כל משימה מכילה 15 גרסאות — אחת לכל שלב. לחץ <strong style="color:var(--txt)">"עריכה"</strong> כדי לשנות את הטקסט והנקודות של המשימה לכל שלב בנפרד.
+    </div>
+    <div id="te-group-list" style="max-height:400px;overflow-y:auto;margin-bottom:12px"></div>
+    <button onclick="openAddGroupModal()" style="width:100%;padding:11px;border:1.5px dashed rgba(91,141,248,.4);border-radius:var(--r-sm);font-size:12px;font-weight:700;color:var(--blue);cursor:pointer;background:rgba(91,141,248,.04);margin-bottom:10px"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:4px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg></span> הוסף משימה חדשה — הגדר 15 גרסאות (שלב 1–15)</button>
+    <div style="display:flex;gap:8px">
+      <button onclick="resetAllGroups()" style="flex:1;padding:9px;background:rgba(240,80,80,.1);border:1px solid rgba(240,80,80,.2);border-radius:var(--r-sm);font-size:11px;font-weight:700;color:var(--red);cursor:pointer">↺ איפוס הכל</button>
+      <button onclick="closeModal('modal-task-editor')" style="flex:2;padding:9px;background:var(--gold);color:#000;border-radius:var(--r-sm);font-size:12px;font-weight:800;cursor:pointer">סגור ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Edit Task Group (15 levels) -->
+<div class="modal-bg" id="modal-task-edit">
+  <div class="modal" style="max-width:460px;width:96%;max-height:92vh;overflow-y:auto;padding:22px 18px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div class="modal-title" style="margin-bottom:0" id="te-modal-title"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:6px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg></span> עריכת משימה</div>
+      <button onclick="closeModal('modal-task-edit')" style="font-size:18px;color:var(--txt3);padding:4px 8px;border-radius:6px;background:var(--bg3)"><svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+    </div>
+    <div style="background:rgba(45,212,191,.07);border:1px solid rgba(45,212,191,.2);border-radius:8px;padding:9px 13px;margin-bottom:12px;font-size:12px;color:var(--txt2);line-height:1.5">
+      🎯 <strong style="color:var(--teal)">15 שורות = 15 שלבים נפרדים.</strong> כל שלב מקבל טקסט ונקודות משלו.
+    </div>
+    <input type="hidden" id="te-edit-id">
+
+    <!-- Group title -->
+    <div style="margin-bottom:10px">
+      <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">כותרת המשימה (שם תצוגה)</div>
+      <input id="te-group-title" type="text" placeholder="שם הקבוצה — מוצג ברשימה..." maxlength="60"
+        style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:9px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;padding:9px 12px;outline:none;box-sizing:border-box">
+    </div>
+
+    <!-- Base properties -->
+    <div style="margin-bottom:8px">
+      <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">קטגוריה</div>
+      <div style="display:flex;gap:6px;margin-bottom:8px">
+        <select id="te-cat" style="flex:1;background:var(--bg3);border:1px solid var(--brd2);border-radius:9px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:12px;padding:8px 9px;outline:none"></select>
+        <button onclick="openAddTaskCat()" style="padding:8px 11px;background:var(--sf3);border:1px solid var(--brd2);border-radius:9px;font-size:12px;color:var(--txt2);cursor:pointer;white-space:nowrap">+ חדשה</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">סלוט זמן</div>
+          <select id="te-slot" style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:9px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:12px;padding:8px 9px;outline:none">
+            <option value="0">🌅 עבודת הבוקר</option>
+            <option value="1">⚡ עשייה ובניין</option>
+            <option value="2">📖 עומק ולימוד</option>
+            <option value="3">🌙 ערב ומנוחה</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">🕐 שעה (אופציונלי)</div>
+          <input id="te-time" type="time" style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:9px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:12px;padding:8px 9px;outline:none">
+        </div>
+      </div>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg3);border:1px solid var(--brd);border-radius:9px;cursor:pointer;margin-bottom:8px">
+      <input type="checkbox" id="te-anchor" style="width:15px;height:15px;accent-color:var(--teal)">
+      <span style="font-size:12px;color:var(--teal);font-weight:700">🎯 משימת עוגן (לימי עשייה)</span>
+    </label>
+    <!-- Days selector -->
+    <div style="margin-bottom:12px">
+      <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px">ימים פעילים</div>
+      <div style="display:flex;gap:6px">
+        <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:var(--bg3);border:1px solid var(--brd);border-radius:8px;cursor:pointer;flex:1;font-size:11px;font-weight:700">
+          <input type="checkbox" id="te-day-weekday" style="accent-color:var(--blue)"> <span style="color:var(--blue)">☀️ חול</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:var(--bg3);border:1px solid var(--brd);border-radius:8px;cursor:pointer;flex:1;font-size:11px;font-weight:700">
+          <input type="checkbox" id="te-day-friday" style="accent-color:var(--teal)"> <span style="color:var(--teal)">🕯️ שישי</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:var(--bg3);border:1px solid var(--brd);border-radius:8px;cursor:pointer;flex:1;font-size:11px;font-weight:700">
+          <input type="checkbox" id="te-day-shabbat" style="accent-color:var(--purple)"> <span style="color:var(--purple)">✡️ שבת</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Reminder -->
+    <div style="margin-bottom:12px">
+      <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px">🔔 תזכורת יומית (אופציונלי)</div>
+      <label style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg3);border:1px solid var(--brd);border-radius:9px;cursor:pointer">
+        <input type="checkbox" id="te-reminder-enabled" style="width:15px;height:15px;accent-color:var(--gold)">
+        <span style="font-size:12px;font-weight:700;color:var(--txt);flex:1">הפעל תזכורת יומית</span>
+        <input type="time" id="te-reminder-time" value="09:00" style="background:var(--sf2);border:1px solid var(--brd2);border-radius:7px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;padding:4px 8px;outline:none;width:90px">
+      </label>
+      <div style="font-size:10px;color:var(--txt3);margin-top:5px;padding-right:4px">⚠️ לא נשלחת בשבת — השעה מחושבת לפי זמני שבת אמיתיים (HebCal)</div>
+    </div>
+
+    <!-- Task Info Section -->
+    <div style="background:rgba(240,192,64,.05);border:1px solid rgba(240,192,64,.18);border-radius:10px;padding:12px 14px;margin-bottom:12px">
+      <div style="font-size:10px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px">📖 מידע הסברתי (מוצג בחלון ℹ️)</div>
+      <div style="margin-bottom:8px">
+        <div style="font-size:10px;font-weight:700;color:var(--txt3);margin-bottom:3px">🌟 למה זה חשוב?</div>
+        <textarea id="te-info-why" rows="2" placeholder="הסבר למה ההרגל הזה חשוב — עובדות, מחקרים, השפעה..."
+          style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:8px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:12px;padding:8px 11px;outline:none;resize:vertical;box-sizing:border-box;line-height:1.55"></textarea>
+      </div>
+      <div style="margin-bottom:8px">
+        <div style="font-size:10px;font-weight:700;color:var(--txt3);margin-bottom:3px">📋 מה לעשות?</div>
+        <textarea id="te-info-desc" rows="2" placeholder="הוראות ביצוע קונקרטיות..."
+          style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:8px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:12px;padding:8px 11px;outline:none;resize:vertical;box-sizing:border-box;line-height:1.55"></textarea>
+      </div>
+      <div style="margin-bottom:8px">
+        <div style="font-size:10px;font-weight:700;color:var(--txt3);margin-bottom:3px">💡 טיפ מעשי</div>
+        <input id="te-info-tip" type="text" placeholder="טיפ קטן שעוזר להצליח..."
+          style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:8px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:12px;padding:8px 11px;outline:none;box-sizing:border-box">
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:700;color:var(--txt3);margin-bottom:3px">🎯 יעד סופי (שלב 15)</div>
+        <input id="te-info-goal" type="text" placeholder="מה שלב 15 נראה — המטרה הסופית..."
+          style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:8px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:12px;padding:8px 11px;outline:none;box-sizing:border-box">
+      </div>
+    </div>
+
+    <!-- Per-level rows -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div style="font-size:10px;font-weight:800;color:var(--txt2);text-transform:uppercase;letter-spacing:.8px">📝 משימה נפרדת לכל שלב (שלב 1 → שלב 15)</div>
+      <div style="font-size:10px;color:var(--txt3)">15 שורות</div>
+    </div>
+    <div style="display:grid;grid-template-columns:auto 1fr 64px;gap:0;border:1px solid var(--brd);border-radius:10px;overflow:hidden;margin-bottom:14px">
+      <div style="padding:6px 8px;background:var(--sf3);font-size:10px;font-weight:800;color:var(--gold);text-align:center;border-bottom:1px solid var(--brd)">שלב</div>
+      <div style="padding:6px 8px;background:var(--sf3);font-size:10px;font-weight:800;color:var(--gold);border-bottom:1px solid var(--brd);border-right:1px solid var(--brd)">טקסט המשימה לשלב זה</div>
+      <div style="padding:6px 8px;background:var(--sf3);font-size:10px;font-weight:800;color:var(--gold);text-align:center;border-bottom:1px solid var(--brd)">נק'</div>
+      <div id="te-levels-rows"></div><div id="te-levels-rows-text"></div><div id="te-levels-rows-pts"></div>
+    </div>
+
+    <div class="modal-btns">
+      <button class="mbtn" style="background:rgba(240,80,80,.1);color:var(--red);border:1px solid rgba(240,80,80,.2)" onclick="resetGroupEditToDefault()">↺ אפס</button>
+      <button class="mbtn mbtn-cancel" onclick="closeModal('modal-task-edit')">ביטול</button>
+      <button class="mbtn mbtn-ok" onclick="saveGroupEdit()">שמור — 15 שלבים ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Custom Confirm -->
+<div class="bs-bg" id="modal-confirm" onclick="if(event.target===this)closeModal('modal-confirm')">
+  <div class="bs-sheet">
+    <div class="bs-handle"></div>
+    <div class="bs-header">
+      <div id="confirm-msg" style="font-size:15px;font-weight:700;line-height:1.5;flex:1;padding-left:8px"></div>
+      <button class="bs-close" onclick="_confirmReject()"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+    </div>
+    <div class="modal-btns" style="margin-bottom:4px">
+      <button class="mbtn mbtn-cancel" onclick="_confirmReject()">ביטול</button>
+      <button class="mbtn mbtn-ok" id="confirm-ok-btn" onclick="_confirmResolve()">אישור</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<canvas class="conf" id="conf-canvas"></canvas>
+
+<div id="lu">
+  <div class="lu-box">
+    <div class="lu-ico">🎯</div>
+    <div class="lu-title" id="lu-title">עלית שלב!</div>
+    <div class="lu-sub" id="lu-sub"></div>
+    <button class="lu-btn" onclick="closeLU()">יאללה, שלב חדש! ←</button>
+  </div>
+</div>
+
+<!-- MODAL: Reward Editor -->
+<div class="bs-bg" id="modal-reward-edit" onclick="if(event.target===this)closeModal('modal-reward-edit')">
+  <div class="bs-sheet">
+    <div class="bs-handle"></div>
+    <div class="bs-header">
+      <div class="bs-title" id="re-modal-title">עריכת צ'ופר</div>
+      <button class="bs-close" onclick="closeModal('modal-reward-edit')"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+    </div>
+    <input type="hidden" id="re-id">
+    <input type="hidden" id="re-is-custom">
+
+    <!-- TYPE SELECTOR (shown only when adding) -->
+    <div id="re-type-section" style="margin-bottom:12px">
+      <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px">סוג הצ'ופר</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <button class="re-type-btn on" id="re-type-simple" onclick="setRewardType('simple')">⭐ פשוט</button>
+        <button class="re-type-btn" id="re-type-series" onclick="setRewardType('series')">📺 סדרה</button>
+        <button class="re-type-btn" id="re-type-movie" onclick="setRewardType('movie')">🎬 סרטים</button>
+        <button class="re-type-btn" id="re-type-book" onclick="setRewardType('book')">📚 ספר</button>
+        <button class="re-type-btn" id="re-type-time" onclick="setRewardType('time')" style="grid-column:span 2">⏱ זמן (דקות)</button>
+      </div>
+    </div>
+
+    <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">קטגוריה</div>
+    <div style="display:flex;gap:6px;margin-bottom:10px">
+      <select id="re-cat" style="flex:1;background:var(--bg3);border:1px solid var(--brd2);border-radius:9px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:12px;padding:8px 9px;outline:none"></select>
+      <button onclick="openAddRewardCat()" style="padding:8px 11px;background:var(--sf3);border:1px solid var(--brd2);border-radius:9px;font-size:12px;color:var(--txt2);cursor:pointer;white-space:nowrap">+ חדשה</button>
+    </div>
+
+    <!-- SIMPLE fields -->
+    <div id="re-fields-simple">
+      <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">שם הצ'ופר</div>
+      <input id="re-title" placeholder="למשל: ערב סרט" maxlength="50">
+      <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">תיאור קצר</div>
+      <input id="re-desc" placeholder="תיאור אופציונלי" maxlength="80">
+      <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">📝 הערות</div>
+      <textarea id="re-notes" rows="2" placeholder="פרטים נוספים..." maxlength="200"
+        style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:9px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:12px;padding:9px 11px;outline:none;resize:vertical;box-sizing:border-box;line-height:1.5;margin-bottom:10px"></textarea>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+        <div>
+          <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">נקודות</div>
+          <input id="re-pts" type="number" placeholder="נק'" min="1" max="9999" style="margin-bottom:0">
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">אמוג'י</div>
+          <input id="re-emoji" placeholder="🎁" maxlength="4" style="margin-bottom:0">
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">שלב מינ'</div>
+          <input id="re-minlevel" type="number" placeholder="1-15" min="1" max="15" style="margin-bottom:0">
+        </div>
+      </div>
+    </div>
+
+    <!-- SERIES / MOVIE / BOOK fields -->
+    <div id="re-fields-series" style="display:none">
+      <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px" id="re-series-name-label">שם הסדרה</div>
+      <input id="re-series-name" placeholder="Severance עונה 2" maxlength="50" oninput="_updateSeriesPreview()">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+        <div>
+          <div style="font-size:10px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px" id="re-count-label">מס' פרקים</div>
+          <input id="re-series-count" type="number" placeholder="8" min="2" max="500" style="margin-bottom:0" oninput="_updateSeriesPreview()">
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">נק' לפריט</div>
+          <input id="re-series-pts" type="number" placeholder="80" min="1" max="9999" style="margin-bottom:0" oninput="_updateSeriesPreview()">
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">שלב מינ'</div>
+          <input id="re-series-minlevel" type="number" placeholder="1-15" min="1" max="15" style="margin-bottom:0">
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <input type="checkbox" id="re-series-lock" checked style="width:15px;height:15px;accent-color:var(--gold)">
+        <label for="re-series-lock" style="font-size:12px;color:var(--txt2);cursor:pointer">🔒 פתיחה הדרגתית — כל פריט נפתח רק אחרי מימוש הקודם</label>
+      </div>
+      <div id="re-series-preview" style="background:rgba(240,192,64,.06);border:1px solid rgba(240,192,64,.2);border-radius:9px;padding:10px 12px;font-size:11px;color:var(--txt2);line-height:1.8;margin-bottom:10px"></div>
+    </div>
+
+    <!-- TIME fields -->
+    <div id="re-fields-time" style="display:none">
+      <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">שם הצ'ופר</div>
+      <input id="re-time-name" placeholder="זמן יוטיוב" maxlength="50">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+        <div>
+          <div style="font-size:10px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">דקות / יחידה</div>
+          <input id="re-time-mins" type="number" placeholder="30" min="5" max="999" style="margin-bottom:0" oninput="_updateTimePreview()">
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">נק' ליחידה</div>
+          <input id="re-time-pts" type="number" placeholder="60" min="1" max="9999" style="margin-bottom:0" oninput="_updateTimePreview()">
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">שלב מינ'</div>
+          <input id="re-time-minlevel" type="number" placeholder="1-15" min="1" max="15" style="margin-bottom:0">
+        </div>
+      </div>
+      <div style="background:rgba(45,212,191,.07);border:1px solid rgba(45,212,191,.2);border-radius:9px;padding:9px 12px;font-size:11px;color:var(--txt2);margin-bottom:10px">
+        ⏱ כל <span id="re-time-preview-mins">30</span> דקות = <span id="re-time-preview-pts">60</span> נק' — ניתן לממש כמה יחידות ברצף
+      </div>
+    </div>
+
+    <!-- hidden legacy fields kept for compatibility -->
+    <input type="hidden" id="re-episodes">
+    <input type="hidden" id="re-episode-label">
+
+    <div class="modal-btns" style="margin-bottom:4px">
+      <button id="re-delete-btn" class="mbtn" style="background:rgba(240,80,80,.12);color:var(--red);flex:1" onclick="deleteRewardEdit()">🗑️ מחק</button>
+      <button class="mbtn mbtn-cancel" onclick="closeModal('modal-reward-edit')">ביטול</button>
+      <button class="mbtn mbtn-ok" onclick="saveRewardEdit()">שמור ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add Reward Category -->
+<div class="bs-bg" id="modal-reward-cat" onclick="if(event.target===this)closeModal('modal-reward-cat')">
+  <div class="bs-sheet">
+    <div class="bs-handle"></div>
+    <div class="bs-header">
+      <div class="bs-title">קטגוריה חדשה</div>
+      <button class="bs-close" onclick="closeModal('modal-reward-cat')"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+    </div>
+    <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">שם הקטגוריה</div>
+    <input id="rc-name" placeholder="למשל: מוזיקה ופנאי" maxlength="30">
+    <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">אמוג'י</div>
+    <input id="rc-emoji" placeholder="🎵" maxlength="4" style="margin-bottom:14px">
+    <div class="modal-btns">
+      <button class="mbtn mbtn-cancel" onclick="closeModal('modal-reward-cat')">ביטול</button>
+      <button class="mbtn mbtn-ok" onclick="saveRewardCat()">הוסף ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add Task Category -->
+<div class="bs-bg" id="modal-task-cat" onclick="if(event.target===this)closeModal('modal-task-cat')">
+  <div class="bs-sheet">
+    <div class="bs-handle"></div>
+    <div class="bs-header">
+      <div class="bs-title">קטגוריית משימה חדשה</div>
+      <button class="bs-close" onclick="closeModal('modal-task-cat')"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+    </div>
+    <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">שם הקטגוריה</div>
+    <input id="tc-name" placeholder="למשל: מדיטציה" maxlength="20">
+    <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">אמוג'י</div>
+    <input id="tc-emoji" placeholder="🧘" maxlength="4" style="margin-bottom:14px">
+    <div class="modal-btns">
+      <button class="mbtn mbtn-cancel" onclick="closeModal('modal-task-cat')">ביטול</button>
+      <button class="mbtn mbtn-ok" onclick="saveTaskCat()">הוסף ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Shabbat -->
+<div class="bs-bg" id="modal-shabbat" onclick="if(event.target===this)closeModal('modal-shabbat')">
+  <div class="bs-sheet">
+    <div class="bs-handle"></div>
+    <div class="bs-header">
+      <div class="bs-title"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:6px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></span> עדכון שישי + שבת</div>
+      <button class="bs-close" onclick="closeModal('modal-shabbat')"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <div style="flex:1;background:rgba(45,212,191,.07);border:1px solid rgba(45,212,191,.2);border-radius:8px;padding:7px 10px;font-size:11px;color:var(--teal);text-align:center"><strong>שישי</strong><br><span style="color:var(--txt3)">סף: 50%</span></div>
+      <div style="flex:1;background:rgba(155,126,248,.07);border:1px solid rgba(155,126,248,.2);border-radius:8px;padding:7px 10px;font-size:11px;color:var(--purple);text-align:center"><strong>שבת</strong><br><span style="color:var(--txt3)">סף: 80%</span></div>
+    </div>
+    <div style="font-size:12px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">🕯️ יום שישי</div>
+    <div id="shabbat-fri-tasks"></div>
+    <div style="font-size:12px;font-weight:800;color:var(--purple);text-transform:uppercase;letter-spacing:.8px;margin:12px 0 8px">✡️ שבת</div>
+    <div id="shabbat-sat-tasks"></div>
+    <div class="modal-btns" style="margin-top:14px">
+      <button class="mbtn mbtn-cancel" onclick="closeModal('modal-shabbat')">ביטול</button>
+      <button class="mbtn mbtn-ok" onclick="confirmShabbat()">שמור ←</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Focus Day Declaration -->
+<div class="bs-bg" id="modal-focus-day" onclick="if(event.target===this)closeModal('modal-focus-day')">
+  <div class="bs-sheet">
+    <div class="bs-handle"></div>
+    <div class="bs-header">
+      <div class="bs-title"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:6px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/></svg></span> הצהרת יום עשייה ממוקד</div>
+      <button class="bs-close" onclick="closeModal('modal-focus-day')"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+    </div>
+    <div style="font-size:12px;color:var(--txt2);margin-bottom:16px;line-height:1.6">
+      הרצף <strong style="color:var(--teal)">קפוא</strong> ביום זה — לא עולה ולא יורד.<br>
+      חייבים לשמור על 3 משימות עוגן: קימה, חת"ת/רמ"בם, שתיית מים.
+    </div>
+    <div style="font-size:12px;font-weight:800;color:var(--teal);margin-bottom:6px;text-transform:uppercase;letter-spacing:.6px">מהי מטרת העל של מחר?</div>
+    <textarea id="fd-goal" placeholder="למשל: כתיבת הרצאה חדשה / יום צילומים וקלטות לאסנז / למידה אינטנסיבית למבחן..."></textarea>
+    <div id="fd-usage-info" style="font-size:11px;color:var(--txt3);margin-bottom:12px"></div>
+    <div class="modal-btns">
+      <button class="mbtn mbtn-cancel" onclick="closeModal('modal-focus-day')">ביטול</button>
+      <button class="mbtn mbtn-ok" id="fd-confirm-btn" onclick="confirmFocusDay()" style="background:var(--teal);color:#000">הצהר ←</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Retroactive Edit -->
+<div class="bs-bg" id="modal-retro" onclick="if(event.target===this)closeModal('modal-retro')">
+  <div class="bs-sheet">
+    <div class="bs-handle"></div>
+    <div class="bs-header">
+      <div class="bs-title">עריכת יום</div>
+      <button class="bs-close" onclick="closeModal('modal-retro')"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+    </div>
+    <div id="retro-date-lbl" style="font-size:13px;font-weight:800;color:var(--gold);margin-bottom:4px"></div>
+    <input type="hidden" id="retro-date-val">
+    <div id="retro-summary" style="font-size:11px;color:var(--txt3);margin-bottom:12px"></div>
+    <div style="display:flex;gap:12px;margin-bottom:12px">
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer">
+        <input type="checkbox" id="retro-focus-cb" style="width:16px;height:16px;accent-color:var(--teal)">
+        <span style="color:var(--teal)"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:4px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/></svg></span> יום עשייה</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer">
+        <input type="checkbox" id="retro-grace-cb" style="width:16px;height:16px;accent-color:var(--gold)">
+        <span style="color:var(--gold)"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:4px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg></span> יום חסד</span>
+      </label>
+    </div>
+    <div style="font-size:11px;color:var(--txt3);margin-bottom:4px;font-weight:700">הערה (אופציונלי)</div>
+    <input id="retro-note" placeholder="למשל: שבת, יום חסד..." maxlength="60" style="margin-bottom:12px">
+    <div style="font-size:11px;font-weight:800;color:var(--txt2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">✅ משימות שביצעת</div>
+    <div id="retro-tasks-list" style="max-height:340px;overflow-y:auto;margin-bottom:10px"></div>
+    <div style="font-size:10px;color:var(--txt3);background:var(--bg3);border-radius:7px;padding:8px 10px;margin-bottom:14px;line-height:1.5">
+      ⚠️ לאחר שמירה, הרצף ואחוזי ההתקדמות יחושבו מחדש לפי כל ההיסטוריה.
+    </div>
+    <div class="modal-btns">
+      <button class="mbtn mbtn-cancel" onclick="closeModal('modal-retro')">ביטול</button>
+      <button class="mbtn mbtn-ok" onclick="saveRetroEdit()">שמור ✓</button>
+    </div>
+  </div>
+</div>
+
+<div id="pwa-banner">
+  <div id="pwa-banner-txt">📱 התקן את האפליקציה על המסך הבית</div>
+  <button id="pwa-banner-btn" onclick="installPWA()">התקן</button>
+  <button onclick="dismissPWA()" style="display:flex;align-items:center;color:var(--txt3);padding:6px;border-radius:6px;background:var(--bg3)"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg</button>
+</div>
+<!-- PASTE IMPORT MODAL -->
+<div class="modal-bg" id="modal-paste-import" onclick="if(event.target===this)closeModal('modal-paste-import')">
+  <div class="modal-box" style="max-width:460px">
+    <div class="modal-hd">
+      <div class="modal-title">📋 ייבוא נתונים — העתק הדבק</div>
+      <button class="modal-close" onclick="closeModal('modal-paste-import')">✕</button>
+    </div>
+    <div style="padding:0 18px 18px">
+      <div style="background:rgba(45,212,191,.07);border:1px solid rgba(45,212,191,.2);border-radius:9px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:var(--txt2);line-height:1.7">
+        <strong style="color:var(--teal)">איך מעבירים נתונים מהקובץ הישן:</strong><br>
+        1. פתח את הקובץ <strong>הישן</strong> בדפדפן<br>
+        2. לחץ F12 ← Console<br>
+        3. הדבק: <code style="background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:11px">copy(localStorage.getItem('aliyah_v34'))</code><br>
+        4. לחץ Enter — הנתונים הועתקו ללוח<br>
+        5. חזור לכאן והדבק (Ctrl+V) בתיבה למטה
+      </div>
+      <textarea id="paste-import-ta" rows="6" placeholder='הדבק כאן את ה-JSON שהעתקת...' style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:9px;color:var(--txt);font-family:monospace;font-size:11px;padding:10px 12px;outline:none;resize:vertical;box-sizing:border-box;line-height:1.5"></textarea>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button onclick="closeModal('modal-paste-import')" style="flex:1;padding:11px;background:var(--sf3);border:1px solid var(--brd2);border-radius:var(--r-sm);color:var(--txt2);font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;cursor:pointer">ביטול</button>
+        <button onclick="savePasteImport()" style="flex:2;padding:11px;background:var(--teal);border:none;border-radius:var(--r-sm);color:#000;font-family:'Heebo',sans-serif;font-size:13px;font-weight:900;cursor:pointer">📥 שחזר נתונים</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JOURNAL PAGE -->
+<div id="pg-journal" class="pg" style="padding-bottom:20px">
+
+  <div class="sh">
+    <span class="sh-t">📓 יומן אישי</span>
+    <span class="sh-s" id="journal-date-label"></span>
+  </div>
+
+  <!-- סיכום יום -->
+  <div id="journal-day-summary" style="background:var(--surface);border:1px solid var(--brd);border-radius:var(--r);padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:14px">
+    <div style="text-align:center;flex-shrink:0">
+      <div id="journal-ring-pct" style="font-size:22px;font-weight:900;color:var(--green);line-height:1">0%</div>
+      <div style="font-size:9px;color:var(--txt3);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-top:2px">הושלם</div>
+    </div>
+    <div style="width:1px;background:var(--brd);height:36px;flex-shrink:0"></div>
+    <div style="flex:1;display:flex;gap:6px;flex-wrap:wrap" id="journal-cat-pills"></div>
+  </div>
+
+  <!-- רשומה אישית -->
+  <div style="background:var(--surface);border:1px solid var(--brd2);border-radius:var(--r);padding:16px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-size:12px;font-weight:800;color:var(--txt2);text-transform:uppercase;letter-spacing:.8px">✍️ הרשומה שלי</div>
+      <div id="journal-saved-badge" style="display:none;font-size:10px;font-weight:700;color:var(--green);background:var(--green3);padding:2px 8px;border-radius:99px">✓ נשמר</div>
+    </div>
+    <textarea id="journal-user-text"
+      placeholder="איך היה היום? מה הרגשת? מה הצליח? מה קשה?"
+      style="width:100%;min-height:110px;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:12px 13px;outline:none;resize:vertical;line-height:1.6;transition:border-color .2s"
+      oninput="onJournalInput()"
+      onfocus="this.style.borderColor='var(--gold2)'"
+      onblur="this.style.borderColor='var(--brd2)'"></textarea>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+      <div id="journal-char-count" style="font-size:10px;color:var(--txt3)"></div>
+      <button onclick="saveJournalEntry()" style="padding:7px 18px;background:var(--gold);color:#000;border-radius:var(--r-sm);font-size:12px;font-weight:800">שמור ✓</button>
+    </div>
+  </div>
+
+  <!-- AI הגיגי היום -->
+  <div style="background:linear-gradient(135deg,rgba(155,126,248,0.06),rgba(91,141,248,0.04));border:1px solid rgba(155,126,248,0.2);border-radius:var(--r);padding:16px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;border-radius:8px;background:rgba(155,126,248,0.15);display:flex;align-items:center;justify-content:center;font-size:13px">🤖</div>
+        <div>
+          <div style="font-size:12px;font-weight:800;color:var(--purple)">הגיגי היום — AI</div>
+          <div style="font-size:10px;color:var(--txt3)">ניתוח אישי על בסיס הביצועים שלך</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button onclick="toggleAISettings()" id="ai-settings-toggle-btn"
+          style="padding:5px 10px;background:var(--sf2);border:1px solid var(--brd2);border-radius:var(--r-sm);font-size:11px;font-weight:700;color:var(--txt3)">⚙️ כיוון</button>
+        <button id="journal-ai-btn" onclick="generateAIJournal()"
+          style="padding:7px 14px;background:rgba(155,126,248,0.15);border:1px solid rgba(155,126,248,0.3);border-radius:var(--r-sm);font-size:11px;font-weight:800;color:var(--purple);white-space:nowrap">✨ צור</button>
+      </div>
+    </div>
+
+    <!-- AI Settings Panel -->
+    <div id="ai-settings-panel" style="display:none;margin-bottom:14px;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;padding:13px 14px">
+
+      <!-- Focus areas -->
+      <div style="margin-bottom:11px">
+        <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">🎯 על מה להתמקד</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px" id="ai-focus-chips">
+          <button class="ai-chip" data-id="tasks" onclick="toggleAIChip(this)">✅ משימות</button>
+          <button class="ai-chip" data-id="streak" onclick="toggleAIChip(this)">🔥 רצף</button>
+          <button class="ai-chip" data-id="patterns" onclick="toggleAIChip(this)">📈 מגמות</button>
+          <button class="ai-chip" data-id="emotion" onclick="toggleAIChip(this)">💬 מה כתבתי</button>
+          <button class="ai-chip" data-id="missed" onclick="toggleAIChip(this)">❌ מה החסרתי</button>
+          <button class="ai-chip" data-id="wins" onclick="toggleAIChip(this)">🏆 הצלחות</button>
+        </div>
+      </div>
+
+      <!-- Tone -->
+      <div style="margin-bottom:11px">
+        <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">🎨 סגנון הכתיבה</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <button class="ai-tone-btn on" data-tone="warm" onclick="selectAITone(this)">🤗 חמים</button>
+          <button class="ai-tone-btn" data-tone="direct" onclick="selectAITone(this)">⚡ ישיר</button>
+          <button class="ai-tone-btn" data-tone="coaching" onclick="selectAITone(this)">🏋️ מאמן</button>
+          <button class="ai-tone-btn" data-tone="deep" onclick="selectAITone(this)">🔮 עמוק</button>
+        </div>
+      </div>
+
+      <!-- Length -->
+      <div style="margin-bottom:6px">
+        <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">📏 אורך התשובה</div>
+        <div style="display:flex;gap:6px">
+          <button class="ai-len-btn" data-len="short" onclick="selectAILen(this)">קצר</button>
+          <button class="ai-len-btn on" data-len="medium" onclick="selectAILen(this)">בינוני</button>
+          <button class="ai-len-btn" data-len="long" onclick="selectAILen(this)">מפורט</button>
+        </div>
+      </div>
+
+      <!-- Free instruction -->
+      <div style="margin-top:11px">
+        <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">✏️ הנחיה חופשית (אופציונלי)</div>
+        <textarea id="ai-free-instruction" rows="2" placeholder="למשל: התמקד בשינה, דבר אלי בגוף ראשון, אל תזכיר כושר..."
+          style="width:100%;background:var(--surface);border:1px solid var(--brd2);border-radius:8px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:12px;padding:8px 10px;outline:none;resize:none;line-height:1.5"
+          onfocus="this.style.borderColor='var(--purple)'"
+          onblur="this.style.borderColor='var(--brd2)'"></textarea>
+      </div>
+    </div>
+    <div id="journal-ai-output">
+      <div id="journal-ai-placeholder" style="font-size:12px;color:var(--txt3);line-height:1.7;text-align:center;padding:16px 0">
+        לחץ "✨ צור" לקבלת ניתוח אישי של היום שלך.<br>
+        <span style="font-size:10px;opacity:.6">נדרש מפתח Anthropic API בהגדרות ← 🤖 AI</span>
+      </div>
+      <div id="journal-ai-loading" style="display:none;text-align:center;padding:20px 0">
+        <div style="display:inline-flex;gap:5px;align-items:center">
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--purple);animation:jdot 1.2s ease-in-out infinite"></span>
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--purple);animation:jdot 1.2s ease-in-out .2s infinite"></span>
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--purple);animation:jdot 1.2s ease-in-out .4s infinite"></span>
+        </div>
+        <div style="font-size:11px;color:var(--txt3);margin-top:8px">מנתח את היום שלך...</div>
+      </div>
+      <div id="journal-ai-text" style="display:none;font-size:13px;color:var(--txt);line-height:1.8;white-space:pre-wrap"></div>
+      <div id="journal-ai-error" style="display:none;font-size:11px;color:var(--red);padding:8px;background:rgba(240,80,80,.06);border-radius:8px;text-align:center"></div>
+    </div>
+  </div>
+
+  <!-- רשומות קודמות -->
+  <div style="margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+    <div style="font-size:11px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px">📅 רשומות קודמות</div>
+    <button onclick="togglePastJournals()" id="past-journals-toggle"
+      style="font-size:11px;color:var(--txt3);padding:4px 10px;background:var(--sf2);border:1px solid var(--brd);border-radius:99px">הצג</button>
+  </div>
+  <div id="journal-past-entries" style="display:none"></div>
+
+</div>
+<!-- END JOURNAL PAGE -->
+
+<!-- CHAT PAGE -->
+<div id="pg-chat" style="display:none;flex-direction:column;position:fixed;top:0;left:0;right:0;bottom:calc(62px + env(safe-area-inset-bottom,0px));max-width:500px;margin:0 auto;pointer-events:none;opacity:0;transition:opacity .2s;">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 16px 12px;background:var(--bg);border-bottom:1px solid var(--brd);flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:32px;height:32px;border-radius:10px;background:rgba(155,126,248,.15);display:flex;align-items:center;justify-content:center;font-size:15px">🤖</div>
+      <div>
+        <div style="font-size:14px;font-weight:900;color:var(--txt)">עוזר אישי</div>
+        <div id="chat-status" style="font-size:10px;color:var(--green);font-weight:700">● מחובר לכל הנתונים שלך</div>
+      </div>
+    </div>
+    <button onclick="chatClear()" style="padding:6px 12px;background:var(--sf2);border:1px solid var(--brd2);border-radius:99px;font-size:11px;font-weight:700;color:var(--txt3)">שיחה חדשה 🔄</button>
+  </div>
+
+  <!-- Messages -->
+  <div id="chat-messages" style="flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+    <div id="chat-welcome" style="text-align:center;padding:24px 0 8px">
+      <div style="font-size:28px;margin-bottom:10px">🤖</div>
+      <div style="font-size:14px;font-weight:800;color:var(--txt);margin-bottom:6px">שלום! אני מכיר את כל הנתונים שלך</div>
+      <div style="font-size:12px;color:var(--txt2);line-height:1.7;max-width:280px;margin:0 auto">אפשר לשאול אותי כל דבר על האפליקציה, הנתונים שלך, לקבל ייעוץ, לדייק משימות, או סתם לדבר</div>
+      <div style="display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:16px">
+        <button class="chat-suggestion" onclick="chatSuggest(this)">📊 איך הולך לי השבוע?</button>
+        <button class="chat-suggestion" onclick="chatSuggest(this)">💡 על מה כדאי לי להתמקד?</button>
+        <button class="chat-suggestion" onclick="chatSuggest(this)">🔥 למה הרצף שלי נשבר?</button>
+        <button class="chat-suggestion" onclick="chatSuggest(this)">⚙️ איך עובד יום חסד?</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div style="padding:10px 16px 12px;background:var(--bg);border-top:1px solid var(--brd);flex-shrink:0">
+    <div style="display:flex;gap:8px;align-items:flex-end">
+      <textarea id="chat-input" rows="1" placeholder="כתוב הודעה..."
+        style="flex:1;background:var(--sf2);border:1px solid var(--brd2);border-radius:12px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:14px;padding:10px 13px;outline:none;resize:none;line-height:1.5;max-height:120px;overflow-y:auto;transition:border-color .2s"
+        onfocus="this.style.borderColor='var(--purple)'"
+        onblur="this.style.borderColor='var(--brd2)'"
+        oninput="chatAutoResize(this)"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSend();}"></textarea>
+      <button id="chat-send-btn" onclick="chatSend()"
+        style="width:40px;height:40px;border-radius:12px;background:var(--purple);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;border:none;cursor:pointer">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="white"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
+      </button>
+    </div>
+  </div>
+
+</div>
+<!-- END CHAT PAGE -->
+
+<!-- MODAL: Add One-Time Task -->
+<div class="bs-bg" id="modal-onetime" onclick="if(event.target===this)closeModal('modal-onetime')">
+  <div class="bs-sheet">
+    <div class="bs-handle"></div>
+    <div class="bs-header">
+      <div class="bs-title">משימה חד פעמית</div>
+      <button class="bs-close" onclick="closeModal('modal-onetime')"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+    </div>
+    <div style="background:rgba(240,120,64,.08);border:1px solid rgba(240,120,64,.2);border-radius:8px;padding:9px 13px;margin-bottom:14px;font-size:12px;color:var(--orange);line-height:1.5">
+      ⚡ משימה שמבוצעת פעם אחת ונעלמת. נושאת ניקוד אך <strong>לא משפיעה על הרצף</strong>.
+    </div>
+    <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">שם המשימה</div>
+    <input id="modal-onetime-title" placeholder="למשל: קרא ספר X, השלם קורס Y..." maxlength="80"
+      style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none;margin-bottom:10px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div>
+        <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">נקודות</div>
+        <input id="modal-onetime-pts" type="number" min="1" max="500" value="20"
+          style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none">
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">חזרות</div>
+        <input id="modal-onetime-reps" type="number" min="1" max="365" value="1"
+          style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none">
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">🕐 שעה (אופציונלי)</div>
+        <input id="modal-onetime-time" type="time"
+          style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none">
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">סלוט זמן</div>
+        <select id="modal-onetime-slot" style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none">
+          <option value="0">🌅 בוקר</option><option value="1">⚡ עשייה</option><option value="2">📖 לימוד</option><option value="3">🌙 ערב</option>
+        </select>
+      </div>
+    </div>
+    <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px">קטגוריה</div>
+    <select id="modal-onetime-cat" style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none;margin-bottom:10px">
+      <option value="zman">⏱ זמנים</option><option value="briut">💧 בריאות</option><option value="achila">🍎 אכילה</option>
+      <option value="limud" selected>📖 לימוד</option><option value="bayit">🏠 בית</option><option value="smart">📵 סמארטפון</option>
+    </select>
+    <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">ימים פעילים</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <label style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;cursor:pointer"><input type="checkbox" id="ot-day-weekday" checked> ☀️ חול</label>
+      <label style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;cursor:pointer"><input type="checkbox" id="ot-day-friday"> 🕯️ שישי</label>
+      <label style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;cursor:pointer"><input type="checkbox" id="ot-day-shabbat"> ✡️ שבת</label>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closeModal('modal-onetime')" style="flex:1;padding:10px;background:var(--bg3);border:1px solid var(--brd2);border-radius:var(--r-sm);font-size:12px;font-weight:700;cursor:pointer">ביטול</button>
+      <button onclick="saveOneTimeTask()" style="flex:2;padding:10px;background:var(--orange);color:#fff;border-radius:var(--r-sm);font-size:13px;font-weight:800;cursor:pointer">⚡ הוסף משימה</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add Streak Task -->
+<div class="bs-bg" id="modal-streak" onclick="if(event.target===this)closeModal('modal-streak')">
+  <div class="bs-sheet">
+    <div class="bs-handle"></div>
+    <div class="bs-header">
+      <div class="bs-title">משימת עקביות</div>
+      <button class="bs-close" onclick="closeModal('modal-streak')"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+    </div>
+    <div style="background:rgba(56,214,138,.08);border:1px solid rgba(56,214,138,.2);border-radius:8px;padding:9px 13px;margin-bottom:14px;font-size:12px;color:var(--green);line-height:1.5">
+      🔥 משימה שחוזרת כל יום. <strong>הניקוד עולה עם הרצף</strong> — מ-5 נק' ביום הראשון ועד 90 נק' ב-180 יום רצף!
+    </div>
+    <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">שם המשימה</div>
+    <input id="modal-streak-title" placeholder="למשל: מדיטציה 10 דקות, קריאת דף גמרא..." maxlength="80"
+      style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none;margin-bottom:10px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div>
+        <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">סלוט זמן</div>
+        <select id="modal-streak-slot" style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none">
+          <option value="0">🌅 בוקר</option><option value="1">⚡ עשייה</option><option value="2">📖 לימוד</option><option value="3">🌙 ערב</option>
+        </select>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">🕐 שעה (אופציונלי)</div>
+        <input id="modal-streak-time" type="time"
+          style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none">
+      </div>
+      <div style="grid-column:1/-1">
+        <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">קטגוריה</div>
+        <select id="modal-streak-cat" style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none">
+          <option value="zman">⏱ זמנים</option><option value="briut">💧 בריאות</option><option value="achila">🍎 אכילה</option>
+          <option value="limud" selected>📖 לימוד</option><option value="bayit">🏠 בית</option><option value="smart">📵 סמארטפון</option>
+        </select>
+      </div>
+    </div>
+    <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">ימים פעילים (הרצף סופר רק ימים אלו)</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <label style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;cursor:pointer"><input type="checkbox" id="st-day-weekday" checked> ☀️ חול</label>
+      <label style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;cursor:pointer"><input type="checkbox" id="st-day-friday"> 🕯️ שישי</label>
+      <label style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;cursor:pointer"><input type="checkbox" id="st-day-shabbat"> ✡️ שבת</label>
+    </div>
+    <div style="background:rgba(240,192,64,.06);border:1px solid rgba(240,192,64,.15);border-radius:8px;padding:9px 12px;margin-bottom:14px;font-size:11px;color:var(--txt2)">
+      📈 סולם ניקוד: יום 1–4: 5נק' · יום 5–9: 8נק' · יום 10–19: 12נק' · יום 20–29: 18נק' · יום 30–44: 25נק' · יום 45–59: 33נק' · יום 60–89: 42נק' · יום 90–119: 52נק' · יום 120–149: 63נק' · יום 150–179: 75נק' · יום 180+: 90נק'
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closeModal('modal-streak')" style="flex:1;padding:10px;background:var(--bg3);border:1px solid var(--brd2);border-radius:var(--r-sm);font-size:12px;font-weight:700;cursor:pointer">ביטול</button>
+      <button onclick="saveStreakTask()" style="flex:2;padding:10px;background:var(--green);color:#000;border-radius:var(--r-sm);font-size:13px;font-weight:800;cursor:pointer"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:4px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg></span> הוסף משימת עקביות</button>
+    </div>
+  </div>
+</div>
+<!-- MODAL: Task Info -->
+<div class="bs-bg" id="task-info-modal" onclick="if(event.target===this)closeModal('task-info-modal')">
+  <div class="bs-sheet">
+    <div class="bs-handle"></div>
+    <div class="bs-header">
+      <div class="bs-title" id="task-info-title" style="font-size:16px"></div>
+      <button class="bs-close" onclick="closeModal('task-info-modal')"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+    </div>
+    <div style="display:inline-flex;align-items:center;gap:5px;background:var(--gold3);border:1px solid rgba(240,192,64,.25);border-radius:99px;padding:3px 11px;font-size:11px;font-weight:800;color:var(--gold);margin-bottom:16px" id="task-info-pts"></div>
+
+    <!-- למה זה חשוב -->
+    <div style="background:rgba(240,192,64,.06);border:1px solid rgba(240,192,64,.18);border-radius:10px;padding:12px 14px;margin-bottom:12px">
+      <div style="font-size:10px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">🌟 למה זה חשוב</div>
+      <div style="font-size:12px;color:var(--txt2);line-height:1.65" id="task-info-why"></div>
+    </div>
+
+    <!-- מה לעשות -->
+    <div style="background:var(--surface);border:1px solid var(--brd2);border-radius:10px;padding:12px 14px;margin-bottom:12px">
+      <div style="font-size:10px;font-weight:800;color:var(--txt2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px" id="task-info-desc-header">📋 מה לעשות בשלב זה</div>
+      <div style="font-size:13px;color:var(--txt);line-height:1.7" id="task-info-desc"></div>
+    </div>
+
+    <!-- מיקום בדרך ליעד -->
+    <div id="task-info-step-block" style="background:rgba(45,212,191,.07);border:1px solid rgba(45,212,191,.25);border-radius:10px;padding:12px 14px;margin-bottom:12px;display:none">
+      <div style="font-size:10px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">📍 מיקום במסלול</div>
+    </div>
+
+    <!-- טיפ מעשי -->
+    <div style="background:rgba(91,141,248,.07);border:1px solid rgba(91,141,248,.2);border-radius:10px;padding:12px 14px;margin-bottom:20px">
+      <div style="font-size:10px;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">💡 טיפ מעשי</div>
+      <div style="font-size:12px;color:var(--txt2);line-height:1.6" id="task-info-tip"></div>
+    </div>
+
+    <div style="display:flex;gap:8px">
+      <button onclick="openTaskInfoEdit()" style="flex:1;padding:12px;background:var(--sf3);border:1px solid var(--brd2);border-radius:var(--r-sm);font-size:12px;font-weight:800;cursor:pointer;color:var(--txt2)">✏️ ערוך מידע</button>
+      <button onclick="closeModal('task-info-modal')" style="flex:2;padding:12px;background:var(--gold);color:#000;border-radius:var(--r-sm);font-size:13px;font-weight:800;cursor:pointer">הבנתי ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Edit Task Info -->
+<div class="bs-bg" id="modal-task-info-edit" onclick="if(event.target===this)closeModal('modal-task-info-edit')">
+  <div class="bs-sheet" style="max-height:92vh;overflow-y:auto">
+    <div class="bs-handle"></div>
+    <div class="bs-header">
+      <div class="bs-title" id="tie-title">✏️ עריכת מידע</div>
+      <button class="bs-close" onclick="closeModal('modal-task-info-edit')"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+    </div>
+    <input type="hidden" id="tie-base-id">
+
+    <div style="background:rgba(45,212,191,.07);border:1px solid rgba(45,212,191,.2);border-radius:9px;padding:9px 13px;margin-bottom:14px;font-size:12px;color:var(--txt2);line-height:1.6">
+      ✏️ הטקסט האפור בשדות הוא <strong style="color:var(--teal)">ברירת המחדל</strong> — מה שמוצג כשהשדה ריק. כתוב בשדה כדי לעקוף. <strong style="color:var(--red)">מחק את הטקסט</strong> כדי לחזור לברירת המחדל.
+    </div>
+
+    <!-- Why -->
+    <div style="margin-bottom:12px">
+      <div style="font-size:10px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">🌟 למה זה חשוב</div>
+      <textarea id="tie-why" rows="3" placeholder="הסבר למה המשימה חשובה..."
+        style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none;resize:vertical;box-sizing:border-box;line-height:1.6;margin-bottom:4px"></textarea>
+      <div id="tie-why-default" style="font-size:10px;color:var(--txt3);padding:0 4px;line-height:1.5"></div>
+    </div>
+
+    <!-- Desc -->
+    <div style="margin-bottom:12px">
+      <div style="font-size:10px;font-weight:800;color:var(--txt2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">📋 מה לעשות</div>
+      <textarea id="tie-desc" rows="3" placeholder="הוראות ביצוע המשימה..."
+        style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none;resize:vertical;box-sizing:border-box;line-height:1.6;margin-bottom:4px"></textarea>
+      <div id="tie-desc-default" style="font-size:10px;color:var(--txt3);padding:0 4px;line-height:1.5"></div>
+    </div>
+
+    <!-- Tip -->
+    <div style="margin-bottom:12px">
+      <div style="font-size:10px;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">💡 טיפ מעשי</div>
+      <textarea id="tie-tip" rows="2" placeholder="טיפ קטן שעוזר בפועל..."
+        style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none;resize:vertical;box-sizing:border-box;line-height:1.6;margin-bottom:4px"></textarea>
+      <div id="tie-tip-default" style="font-size:10px;color:var(--txt3);padding:0 4px;line-height:1.5"></div>
+    </div>
+
+    <!-- Step info section -->
+    <div style="background:rgba(45,212,191,.05);border:1px solid rgba(45,212,191,.18);border-radius:10px;padding:12px 14px;margin-bottom:12px">
+      <div style="font-size:10px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px">📍 מידע לפי שלב</div>
+
+      <!-- Goal -->
+      <div style="margin-bottom:10px">
+        <div style="font-size:10px;font-weight:700;color:var(--txt3);margin-bottom:4px">🎯 יעד סופי (שלב 15)</div>
+        <input id="tie-goal" type="text" placeholder="מה הגרסה המלאה של המשימה בשלב 15..."
+          style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:9px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box;margin-bottom:4px">
+        <div id="tie-goal-default" style="font-size:10px;color:var(--txt3);padding:0 4px;line-height:1.5"></div>
+      </div>
+
+      <!-- Per-step descriptions -->
+      <div style="font-size:10px;font-weight:700;color:var(--txt3);margin-bottom:6px">📝 תיאור לכל שלב (ריק = ברירת מחדל)</div>
+      <div id="tie-steps-container" style="display:grid;gap:6px"></div>
+    </div>
+
+    <!-- buttons -->
+    <div style="display:flex;gap:8px;margin-bottom:4px">
+      <button onclick="resetTaskInfoEdit()" style="flex:1;padding:11px;background:rgba(240,80,80,.1);border:1px solid rgba(240,80,80,.2);border-radius:var(--r-sm);font-size:12px;font-weight:700;color:var(--red);cursor:pointer">↺ איפוס</button>
+      <button onclick="saveTaskInfoEdit()" style="flex:2;padding:11px;background:var(--teal);color:#000;border-radius:var(--r-sm);font-size:13px;font-weight:800;cursor:pointer">שמור ✓</button>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ═══════════ AI FAB ═══════════ -->
+<button id="ai-fab" onclick="openAiBS()" title="עוזר AI">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="11" width="18" height="11" rx="2"/>
+    <path d="M7 11V7a5 5 0 0110 0v4"/>
+    <circle cx="9" cy="16" r="1" fill="currentColor" stroke="none"/>
+    <circle cx="15" cy="16" r="1" fill="currentColor" stroke="none"/>
+    <path d="M9 20h6"/>
+    <path d="M12 3v2"/>
+  </svg>
+</button>
+
+<!-- ═══════════ AI BOTTOMSHEET ═══════════ -->
+<div id="ai-bs-bg" onclick="if(event.target===this)closeAiBS()">
+  <div id="ai-bs">
+    <div id="ai-bs-handle"></div>
+
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 16px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--purple),#6040c8);display:flex;align-items:center;justify-content:center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+            <circle cx="9" cy="16" r="1" fill="#fff" stroke="none"/><circle cx="15" cy="16" r="1" fill="#fff" stroke="none"/>
+          </svg>
+        </div>
+        <div>
+          <div style="font-size:15px;font-weight:900;color:var(--txt)">עוזר AI</div>
+          <div style="font-size:11px;color:var(--txt3)">יצירת משימות וצ'ופרים</div>
+        </div>
+      </div>
+      <button onclick="closeAiBS()" style="width:32px;height:32px;border-radius:50%;background:var(--bg3);border:1px solid var(--brd2);color:var(--txt2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+
+    <!-- Tabs -->
+    <div id="ai-bs-tabs">
+      <button class="ai-bs-tab on" id="ai-tab-tasks" onclick="switchAiTab('tasks')">✨ משימה חדשה</button>
+      <button class="ai-bs-tab" id="ai-tab-rewards" onclick="switchAiTab('rewards')">🎁 צ'ופרים</button>
+      <button class="ai-bs-tab" id="ai-tab-key" onclick="switchAiTab('key')">🔑 מפתח API</button>
+    </div>
+
+    <div id="ai-bs-content">
+
+      <!-- TAB: tasks -->
+      <div id="ai-pane-tasks">
+        <div style="font-size:12px;color:var(--txt2);margin-bottom:12px;line-height:1.6">תאר את המטרה והמצב הנוכחי שלך — ה-AI ייצר מסלול התקדמות מדויק.</div>
+        <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">🎯 מה המטרה שלך?</div>
+        <input id="ai-task-goal2" placeholder="למשל: לרוץ 5 ק&quot;מ ברצף, לנגן שיר שלם בגיטרה..." maxlength="120"
+          style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none;margin-bottom:8px;box-sizing:border-box">
+        <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">📍 היכן אתה אוחז כעת?</div>
+        <input id="ai-task-current2" placeholder="למשל: מצליח לרוץ 1 ק&quot;מ בקושי, מכיר 3 אקורדים..." maxlength="120"
+          style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none;margin-bottom:8px;box-sizing:border-box">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+          <div>
+            <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">📶 שלבים</div>
+            <select id="ai-task-steps2" style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none">
+              <option value="5">5</option><option value="7">7</option><option value="10" selected>10</option>
+              <option value="12">12</option><option value="15">15</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">⏰ סלוט</div>
+            <select id="ai-task-slot2" style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none">
+              <option value="0">🌅 בוקר</option><option value="1">⚡ עשייה</option>
+              <option value="2">📖 לימוד</option><option value="3">🌙 ערב</option>
+            </select>
+          </div>
+        </div>
+        <button onclick="aiGenerateTasksBS()" id="ai-task-btn2"
+          style="width:100%;padding:13px;background:linear-gradient(135deg,var(--purple),#6040c8);color:#fff;border-radius:var(--r-sm);font-size:13px;font-weight:800;cursor:pointer;box-sizing:border-box">✨ צור מסלול עם AI</button>
+        <div id="ai-task-result2" style="margin-top:12px"></div>
+      </div>
+
+      <!-- TAB: rewards -->
+      <div id="ai-pane-rewards" style="display:none">
+        <div style="font-size:12px;color:var(--txt2);margin-bottom:12px;line-height:1.6">ה-AI ייצר המלצות צ'ופרים קונקרטיות ומותאמות אישית.</div>
+        <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">🎬 סרטים / סדרות אהובות?</div>
+        <input id="ai-reward-movies2" placeholder="מדע בדיוני, אנימציה, קומדיות..." maxlength="100"
+          style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none;margin-bottom:8px;box-sizing:border-box">
+        <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">📚 ספרים / נושאים?</div>
+        <input id="ai-reward-books2" placeholder="פסיכולוגיה, ביוגרפיות, מדע..." maxlength="100"
+          style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none;margin-bottom:8px;box-sizing:border-box">
+        <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">🍕 אוכל / ממתקים?</div>
+        <input id="ai-reward-food2" placeholder="שוקולד, פיצה, גלידה..." maxlength="100"
+          style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none;margin-bottom:8px;box-sizing:border-box">
+        <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">🎮 תחביבים / פנאי?</div>
+        <input id="ai-reward-hobbies2" placeholder="משחקי מחשב, טיולים, מוזיקה..." maxlength="100"
+          style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none;margin-bottom:8px;box-sizing:border-box">
+        <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">💰 ערך נקודות לצ'ופר?</div>
+        <input id="ai-reward-points2" placeholder="150 קטן · 500 בינוני · 1000+ גדול" maxlength="80"
+          style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none;margin-bottom:14px;box-sizing:border-box">
+        <button onclick="aiGenerateRewardsBS()" id="ai-reward-btn2"
+          style="width:100%;padding:13px;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#000;border-radius:var(--r-sm);font-size:13px;font-weight:800;cursor:pointer;box-sizing:border-box">✨ צור צ'ופרים עם AI</button>
+        <div id="ai-reward-result2" style="margin-top:12px"></div>
+      </div>
+
+      <!-- TAB: key -->
+      <div id="ai-pane-key" style="display:none">
+        <div style="font-size:12px;color:var(--txt2);margin-bottom:12px;line-height:1.6">
+          המפתח נשמר <strong style="color:var(--txt)">מוצפן בענן</strong> — מתסנכרן אוטומטית בין מכשירים.<br>
+          <span style="color:var(--txt3)">קבל מפתח: console.anthropic.com ← API Keys</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input id="ai-key-input2" type="password" placeholder="sk-ant-api03-..." maxlength="200"
+            style="flex:1;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none">
+          <button onclick="saveApiKeyBS()" style="padding:10px 16px;background:var(--purple);color:#fff;border-radius:10px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap">שמור</button>
+        </div>
+        <div id="ai-key-status2" style="font-size:11px;margin-top:4px"></div>
+      </div>
+
+    </div><!-- /ai-bs-content -->
+  </div>
+</div>
+
+<!-- ═══════════ ONBOARDING ═══════════ -->
+<div id="ob-overlay" style="
+  display:none;position:fixed;inset:0;z-index:2000;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;padding:20px;
+">
+  <div id="ob-card" style="
+    background:var(--bg2);border:1px solid var(--brd2);border-radius:24px;
+    max-width:420px;width:100%;max-height:88vh;overflow:hidden;
+    position:relative;display:flex;flex-direction:column;
+    animation:pop .4s cubic-bezier(.34,1.56,.64,1);
+  ">
+    <!-- Progress bar -->
+    <div style="height:3px;background:var(--brd);border-radius:99px;margin:18px 22px 0;overflow:hidden;flex-shrink:0">
+      <div id="ob-progress" style="height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold2),var(--gold));transition:width .4s ease;width:14%"></div>
+    </div>
+
+    <!-- Slide content -->
+    <div id="ob-slides" style="overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch"></div>
+
+    <!-- Footer buttons -->
+    <div style="padding:14px 22px calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;flex-shrink:0;border-top:1px solid var(--brd)">
+      <button onclick="obSkip()" style="
+        padding:11px 16px;background:var(--bg3);border:1px solid var(--brd2);
+        border-radius:12px;font-size:12px;font-weight:700;color:var(--txt3);
+        cursor:pointer;white-space:nowrap;font-family:'Heebo',sans-serif
+      ">דלג ✕</button>
+      <button id="ob-next-btn" onclick="obNext()" style="
+        flex:1;padding:11px;background:linear-gradient(135deg,var(--gold2),var(--gold));
+        color:#000;border-radius:12px;font-size:14px;font-weight:900;
+        cursor:pointer;font-family:'Heebo',sans-serif;transition:opacity .15s
+      ">הבא ←</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.ob-slide{padding:22px 22px 18px;text-align:center}
+.ob-ico{font-size:52px;margin-bottom:12px;line-height:1}
+.ob-title{font-size:22px;font-weight:900;letter-spacing:-.5px;margin-bottom:8px}
+.ob-desc{font-size:13px;color:var(--txt2);line-height:1.75;margin-bottom:0}
+.ob-desc strong{color:var(--txt)}
+.ob-chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:14px}
+.ob-chip{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:99px;font-size:12px;font-weight:800;border:1px solid}
+.ob-rows{text-align:right;margin-top:14px;display:grid;gap:9px}
+.ob-row{display:flex;align-items:flex-start;gap:10px;background:var(--surface);border:1px solid var(--brd);border-radius:12px;padding:11px 13px}
+.ob-row-ico{font-size:20px;flex-shrink:0;line-height:1;margin-top:1px}
+.ob-row-text{font-size:12px;color:var(--txt2);line-height:1.6}
+.ob-row-text strong{color:var(--txt);display:block;font-size:13px;margin-bottom:1px}
+</style>
+
+<!-- MODAL: Add Sub-Task -->
+<div class="bs-bg" id="modal-subtask" onclick="if(event.target===this)closeModal('modal-subtask')">
+  <div class="bs-sheet">
+    <div class="bs-handle"></div>
+    <div class="bs-header">
+      <div class="bs-title">➕ תת-משימה</div>
+      <button class="bs-close" onclick="closeModal('modal-subtask')"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+    </div>
+    <div id="modal-subtask-parent-label" style="font-size:11px;font-weight:700;color:var(--txt3);background:var(--bg3);border-radius:8px;padding:7px 11px;margin-bottom:14px;line-height:1.4"></div>
+    <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">שם תת-המשימה</div>
+    <input id="modal-subtask-text" placeholder="למשל: לשמור גיבוי, לשלוח מייל..." maxlength="80"
+      style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none;margin-bottom:10px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      <div>
+        <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">נקודות</div>
+        <input id="modal-subtask-pts" type="number" min="1" max="50" value="5"
+          style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:13px;padding:10px 13px;outline:none">
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">היקף</div>
+        <select id="modal-subtask-scope" style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:12px;padding:10px 13px;outline:none">
+          <option value="level">שלב זה בלבד</option>
+          <option value="future">שלבים שטרם הושלמו</option>
+          <option value="all">כל השלבים</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closeModal('modal-subtask')" style="flex:1;padding:10px;background:var(--bg3);border:1px solid var(--brd2);border-radius:var(--r-sm);font-size:12px;font-weight:700;cursor:pointer;color:var(--txt)">ביטול</button>
+      <button onclick="saveSubTask()" style="flex:2;padding:10px;background:var(--gold);color:#000;border-radius:var(--r-sm);font-size:13px;font-weight:800;cursor:pointer">➕ הוסף תת-משימה</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════ ONBOARDING ═══════════ */
+const OB_KEY = 'haalia_onboarding_done_v1';
+
+const OB_SLIDES = [
+  {
+    ico: '✨',
+    title: 'ברוכים הבאים ל"העלייה שלי"',
+    color: 'var(--gold)',
+    html: `
+      <p class="ob-desc">אפליקציה לשיפור עצמי יומי עם <strong>15 שלבים</strong> של התקדמות.<br>בכל יום מבצעים משימות, צוברים נקודות, ומתקדמים קדימה.</p>
+      <div class="ob-chips">
+        <span class="ob-chip" style="background:var(--gold3);color:var(--gold);border-color:rgba(240,192,64,.3)">🏆 15 שלבים</span>
+        <span class="ob-chip" style="background:var(--blue3);color:var(--blue);border-color:rgba(91,141,248,.3)">✅ משימות יומיות</span>
+        <span class="ob-chip" style="background:var(--green3);color:var(--green);border-color:rgba(56,214,138,.25)">🔥 רצף ימים</span>
+        <span class="ob-chip" style="background:rgba(155,126,248,.1);color:var(--purple);border-color:rgba(155,126,248,.3)">🎁 פרסים</span>
+      </div>
+    `
+  },
+  {
+    ico: '📋',
+    title: 'המסך הראשי — היום שלך',
+    color: 'var(--blue)',
+    html: `
+      <p class="ob-desc">המשימות מחולקות ל<strong>4 תקופות ביום</strong>. סמן כל משימה כשתסיים אותה וצבור נקודות.</p>
+      <div class="ob-rows">
+        <div class="ob-row"><div class="ob-row-ico">🌅</div><div class="ob-row-text"><strong>בוקר</strong>קימה, תפילה, מים, סמארטפון</div></div>
+        <div class="ob-row"><div class="ob-row-ico">⚡</div><div class="ob-row-text"><strong>עשייה</strong>בניין ועשייה פעילה ביום</div></div>
+        <div class="ob-row"><div class="ob-row-ico">📖</div><div class="ob-row-text"><strong>לימוד</strong>עומק, לימוד ממוקד, ספורט</div></div>
+        <div class="ob-row"><div class="ob-row-ico">🌙</div><div class="ob-row-text"><strong>ערב</strong>סיום יום, שתיית מים, שינה</div></div>
+      </div>
+    `
+  },
+  {
+    ico: '🏆',
+    title: '15 שלבי התקדמות',
+    color: 'var(--gold)',
+    html: `
+      <p class="ob-desc">בכל שלב המשימות נהיות <strong>מאתגרות יותר</strong> — קימה מוקדמת יותר, יותר לימוד, יותר מים. הכל קורה <strong>אוטומטית</strong> כשעולים שלב.</p>
+      <div class="ob-rows">
+        <div class="ob-row"><div class="ob-row-ico">⬆️</div><div class="ob-row-text"><strong>איך עולים שלב?</strong>רצף של ≥80% ביצוע: 5 ימים (שלב 1–5) · 7 ימים (6–10) · 14 ימים (11–15)</div></div>
+        <div class="ob-row"><div class="ob-row-ico">🔥</div><div class="ob-row-text"><strong>בונוס רצף</strong>אחרי 7 ימים רצוף — כל המשימות מקבלות +15% נקודות</div></div>
+        <div class="ob-row"><div class="ob-row-ico">⬇️</div><div class="ob-row-text"><strong>ירידת שלב</strong>ימים רצופים מתחת ל-80% יורידו את השלב חזרה</div></div>
+      </div>
+    `
+  },
+  {
+    ico: '💡',
+    title: 'מערכת הנקודות',
+    color: 'var(--blue)',
+    html: `
+      <p class="ob-desc">כל משימה שמסמנים — מרוויחים נקודות. הנקודות נשמרות ב<strong>בנק</strong> וניתן לממש אותן בפרסים.</p>
+      <div class="ob-rows">
+        <div class="ob-row"><div class="ob-row-ico">📅</div><div class="ob-row-text"><strong>היום</strong>נקודות שנצברו היום (מתאפס בחצות)</div></div>
+        <div class="ob-row"><div class="ob-row-ico">🏦</div><div class="ob-row-text"><strong>בנק</strong>סה"כ נקודות זמינות לרכישת פרסים</div></div>
+        <div class="ob-row"><div class="ob-row-ico">📈</div><div class="ob-row-text"><strong>משימת עקביות</strong>הניקוד גדל ככל שמרוויחים ימים יותר רצוף — מ-5 עד 90 נקודות</div></div>
+      </div>
+    `
+  },
+  {
+    ico: '🎁',
+    title: 'פרסים וצ\'ופרים',
+    color: 'var(--gold)',
+    html: `
+      <p class="ob-desc">ממשים נקודות תמורת פרסים שאתה קובע — סדרות, ספרים, אוכל, חוויות. <strong>פינוקים שמותר רק כשעמדת ביעדים.</strong></p>
+      <div class="ob-rows">
+        <div class="ob-row"><div class="ob-row-ico">⭐</div><div class="ob-row-text"><strong>פרס חלום</strong>מטרה מרכזית שמוצגת תמיד — שומרת על המוטיבציה</div></div>
+        <div class="ob-row"><div class="ob-row-ico">🤖</div><div class="ob-row-text"><strong>AI יוצר פרסים</strong>ספר על מה שאתה אוהב — ה-AI ייצר פרסים ספציפיים ומוחשיים</div></div>
+        <div class="ob-row"><div class="ob-row-ico">🛡️</div><div class="ob-row-text"><strong>ימי חסד בחנות</strong>ניתן לרכוש יום חסד נוסף בנקודות</div></div>
+      </div>
+    `
+  },
+  {
+    ico: '🛡️',
+    title: 'ימי חסד ועשייה',
+    color: 'var(--teal)',
+    html: `
+      <p class="ob-desc">שני כלים שעוזרים לך לשמור על הרצף גם בימים מיוחדים.</p>
+      <div class="ob-rows">
+        <div class="ob-row"><div class="ob-row-ico">🛡️</div><div class="ob-row-text"><strong>יום חסד</strong>ביום קשה — מצהירים ולחצן 🛡️ שומר על הרצף גם בלי 80%. 1–3 ימים לחודש לפי שלב.</div></div>
+        <div class="ob-row"><div class="ob-row-ico">🎯</div><div class="ob-row-text"><strong>יום עשייה</strong>כשיש פרויקט גדול — מצהירים יום לפני, הרצף קפוא. עד 3 ימים לחודש.</div></div>
+      </div>
+    `
+  },
+  {
+    ico: '🤖',
+    title: 'עוזר ה-AI',
+    color: 'var(--purple)',
+    html: `
+      <p class="ob-desc">לחץ על הכפתור הסגול בפינה השמאלית התחתונה לפתיחת עוזר ה-AI.</p>
+      <div class="ob-rows">
+        <div class="ob-row"><div class="ob-row-ico">✏️</div><div class="ob-row-text"><strong>יצירת מסלול משימה</strong>ה-AI בונה 5–15 שלבים מותאמים אישית למטרה שתגדיר</div></div>
+        <div class="ob-row"><div class="ob-row-ico">🎁</div><div class="ob-row-text"><strong>יצירת פרסים</strong>ספר על תחביבים ואוכל אהוב — יקבל פרסים ספציפיים</div></div>
+        <div class="ob-row"><div class="ob-row-ico">📓</div><div class="ob-row-text"><strong>ניתוח יומן</strong>כתוב על היום שלך — ה-AI ינתח ויציע שיפורים</div></div>
+      </div>
+      <p class="ob-desc" style="margin-top:12px;font-size:11px;color:var(--txt3)">נדרש מפתח API מ-console.anthropic.com (תשלום לפי שימוש)</p>
+    `
+  },
+  {
+    ico: '🚀',
+    title: 'מוכן להתחיל?',
+    color: 'var(--green)',
+    html: `
+      <p class="ob-desc">כל המידע המלא זמין בכל עת בהגדרות ← <strong>ℹ️ מידע</strong>.</p>
+      <div class="ob-chips" style="margin-top:12px">
+        <span class="ob-chip" style="background:var(--green3);color:var(--green);border-color:rgba(56,214,138,.25)">✅ היום — משימות יומיות</span>
+        <span class="ob-chip" style="background:var(--gold3);color:var(--gold);border-color:rgba(240,192,64,.3)">🎁 פרסים — הצ'ופרים שלך</span>
+        <span class="ob-chip" style="background:var(--blue3);color:var(--blue);border-color:rgba(91,141,248,.3)">📊 מעקב — גרפים והיסטוריה</span>
+        <span class="ob-chip" style="background:rgba(155,126,248,.1);color:var(--purple);border-color:rgba(155,126,248,.3)">🤖 AI — יצירה חכמה</span>
+      </div>
+      <div style="margin-top:18px;background:rgba(56,214,138,.07);border:1px solid rgba(56,214,138,.2);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--txt2);line-height:1.7;text-align:right">
+        💡 <strong style="color:var(--txt)">טיפ ראשון:</strong> לחץ "התחל יום" במסך הראשי ותסמן את המשימה הראשונה שלך.
+      </div>
+    `
+  }
+];
+
+let _obStep = 0;
+
+function obRender() {
+  const total = OB_SLIDES.length;
+  const s = OB_SLIDES[_obStep];
+  const pct = Math.round(((_obStep + 1) / total) * 100);
+
+  document.getElementById('ob-progress').style.width = pct + '%';
+
+  const isLast = _obStep === total - 1;
+  const nextBtn = document.getElementById('ob-next-btn');
+  nextBtn.textContent = isLast ? 'יאללה, נתחיל! 🚀' : 'הבא ←';
+  nextBtn.style.background = isLast
+    ? 'linear-gradient(135deg,var(--green2),var(--green))'
+    : 'linear-gradient(135deg,var(--gold2),var(--gold))';
+
+  document.getElementById('ob-slides').innerHTML = `
+    <div class="ob-slide">
+      <div class="ob-ico">${s.ico}</div>
+      <div class="ob-title" style="color:${s.color}">${s.title}</div>
+      ${s.html}
+    </div>
+  `;
+
+  // Step counter label
+  const skip = document.querySelector('#ob-overlay .ob-step-lbl');
+  if (!skip) {
+    const footer = document.querySelector('#ob-overlay > div > div:last-child');
+    if (footer) {
+      const lbl = document.createElement('div');
+      lbl.className = 'ob-step-lbl';
+      lbl.style.cssText = 'font-size:10px;color:var(--txt3);text-align:center;margin-bottom:4px;font-weight:700;letter-spacing:.5px';
+      footer.parentNode.insertBefore(lbl, footer);
+    }
+  }
+  const lbl2 = document.querySelector('#ob-overlay .ob-step-lbl');
+  if (lbl2) lbl2.textContent = `${_obStep + 1} / ${total}`;
+}
+
+function obNext() {
+  if (_obStep < OB_SLIDES.length - 1) {
+    _obStep++;
+    obRender();
+    document.getElementById('ob-slides').scrollTop = 0;
+  } else {
+    obFinish();
+  }
+}
+
+function obSkip() {
+  obFinish();
+}
+
+function obFinish() {
+  localStorage.setItem(OB_KEY, '1');
+  const ov = document.getElementById('ob-overlay');
+  ov.style.opacity = '0';
+  ov.style.transition = 'opacity .3s';
+  setTimeout(() => { ov.style.display = 'none'; }, 300);
+}
+
+function obStart() {
+  if (localStorage.getItem(OB_KEY)) return; // already seen
+  _obStep = 0;
+  const ov = document.getElementById('ob-overlay');
+  ov.style.display = 'flex';
+  ov.style.opacity = '0';
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      ov.style.transition = 'opacity .35s';
+      ov.style.opacity = '1';
+    });
+  });
+  obRender();
+}
+
+// Launch after a short delay so the app renders first
+setTimeout(obStart, 600);
+
+/* ══════════════════════════════════════════
+   CHAT — עוזר אישי
+══════════════════════════════════════════ */
+let _chatHistory = []; // [{role:'user'|'assistant', content:'...'}]
+let _chatLoading = false;
+
+function chatBuildSystemPrompt(){
+  // Full task map: id -> name
+  const allTasks = getTasks(15); // get all possible tasks at max level
+  const taskMap = allTasks.map(t=>`  ${t.id}: "${t.text}" (קטגוריה: ${t.cat||''}, סלוט: ${t.slot||''})`).join('\n');
+
+  // Raw JSON data
+  const mainJson = localStorage.getItem('aliyah_v34')||'{}';
+  const journalJson = localStorage.getItem('aliyah_journal_v1')||'{}';
+
+  return `אתה עוזר אישי חכם ומכיר לעומק את אפליקציית "העלייה שלי" — אפליקציית שיפור עצמי יומי.
+
+═══ מה האפליקציה עושה ═══
+האפליקציה עוזרת למשתמש לבנות הרגלים יומיים דרך מסלול של 15 שלבים מתקדמים.
+כל שלב מוסיף משימות קשות יותר בתחומים: זמנים (קימה/שינה), בריאות (מים/הליכה), אכילה, לימוד (חיתת/רמבם/תניא), בית (סדר), סמארטפון (הגבלה).
+המשתמש מסמן משימות ומקבל נקודות. צבירת נקודות מאפשרת לממש פרסים (סרטים, ספרים, בילויים וכו').
+
+═══ מנגנונים מרכזיים ═══
+• רצף (streak): ימים רצופים עם 80%+ ביצוע. שביר אם יום יורד מתחת ל-80%.
+• יום חסד 🛡️: מגן על הרצף ביום קשה (1-3 לחודש לפי שלב). מצהירים מראש.
+• יום עשייה 🎯: ביום פרויקט גדול — הרצף קפוא (עד 3 לחודש). מצהירים יום לפני.
+• שלב (level): עולים שלב אחרי X ימים רצופים עם 80%+. כל שלב מחמיר את הדרישות.
+• נקודות: כל משימה שווה נקודות. בונוס רצף מכפיל נקודות.
+• פרסים: ממומשים בנקודות. יש פרסים חד-פעמיים וסדרות.
+• יומן: רפלקציה יומית + ניתוח AI.
+
+═══ כל המשימות האפשריות ═══
+${taskMap}
+
+═══ נתוני המשתמש — JSON מלא ═══
+מצב ראשי (aliyah_v34):
+${mainJson}
+
+יומן (aliyah_journal_v1):
+${journalJson}
+
+═══ הנחיות לשיחה ═══
+• אתה מכיר את כל הנתונים — השתמש בהם באופן קונקרטי.
+• ענה בעברית, בגוף שני, בסגנון חם וישיר.
+• אל תסתפק בתשובות גנריות — התייחס לנתונים האמיתיים של המשתמש.
+• אפשר לעזור עם: ניתוח ביצועים, ייעוץ על משימות, הסברים על האפליקציה, זיהוי דפוסים, תכנון, עידוד.
+• אם המשתמש שואל שאלה טכנית על האפליקציה — הסבר בפירוט.`;
+}
+
+function chatAutoResize(el){
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,120)+'px';
+}
+
+function chatAddMessage(role, text){
+  const msgs = document.getElementById('chat-messages');
+  const welcome = document.getElementById('chat-welcome');
+  if(welcome) welcome.style.display='none';
+
+  const now = new Date();
+  const time = now.getHours()+':'+(now.getMinutes()<10?'0':'')+now.getMinutes();
+
+  const div = document.createElement('div');
+  div.className = 'chat-msg '+role;
+  div.innerHTML = `<div class="chat-bubble">${text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div><div class="chat-msg-time">${time}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function chatShowTyping(){
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'chat-msg ai';
+  div.id = 'chat-typing-indicator';
+  div.innerHTML = `<div class="chat-typing"><span></span><span></span><span></span></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function chatHideTyping(){
+  const el = document.getElementById('chat-typing-indicator');
+  if(el) el.remove();
+}
+
+async function chatSend(){
+  if(_chatLoading) return;
+  const input = document.getElementById('chat-input');
+  const text = (input.value||'').trim();
+  if(!text) return;
+
+  const apiKey = localStorage.getItem('anthropic_api_key');
+  if(!apiKey){
+    chatAddMessage('ai','⚠️ לא נמצא מפתח API. הכנס מפתח בהגדרות ← 🤖 AI');
+    return;
+  }
+
+  input.value='';
+  input.style.height='auto';
+  chatAddMessage('user', text);
+  _chatHistory.push({role:'user', content:text});
+
+  _chatLoading = true;
+  const btn = document.getElementById('chat-send-btn');
+  if(btn) btn.style.opacity='.4';
+  chatShowTyping();
+
+  try{
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system: chatBuildSystemPrompt(),
+        messages: _chatHistory
+      })
+    });
+    if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.error?.message||`שגיאה ${res.status}`);}
+    const data = await res.json();
+    const reply = data.content?.map(b=>b.type==='text'?b.text:'').join('')||'';
+    if(!reply.trim()) throw new Error('תגובה ריקה');
+    _chatHistory.push({role:'assistant', content:reply});
+    chatHideTyping();
+    chatAddMessage('ai', reply);
+  }catch(e){
+    chatHideTyping();
+    chatAddMessage('ai','⚠️ '+( e.message||'שגיאת רשת'));
+    _chatHistory.pop(); // remove failed user message from history
+  }finally{
+    _chatLoading=false;
+    if(btn) btn.style.opacity='1';
+  }
+}
+
+function chatSuggest(el){
+  const input = document.getElementById('chat-input');
+  input.value = el.textContent;
+  chatSend();
+}
+
+function chatClear(){
+  _chatHistory=[];
+  const msgs=document.getElementById('chat-messages');
+  msgs.innerHTML=`<div id="chat-welcome" style="text-align:center;padding:24px 0 8px">
+    <div style="font-size:28px;margin-bottom:10px">🤖</div>
+    <div style="font-size:14px;font-weight:800;color:var(--txt);margin-bottom:6px">שלום! אני מכיר את כל הנתונים שלך</div>
+    <div style="font-size:12px;color:var(--txt2);line-height:1.7;max-width:280px;margin:0 auto">אפשר לשאול אותי כל דבר על האפליקציה, הנתונים שלך, לקבל ייעוץ, לדייק משימות, או סתם לדבר</div>
+    <div style="display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:16px">
+      <button class="chat-suggestion" onclick="chatSuggest(this)">📊 איך הולך לי השבוע?</button>
+      <button class="chat-suggestion" onclick="chatSuggest(this)">💡 על מה כדאי לי להתמקד?</button>
+      <button class="chat-suggestion" onclick="chatSuggest(this)">🔥 למה הרצף שלי נשבר?</button>
+      <button class="chat-suggestion" onclick="chatSuggest(this)">⚙️ איך עובד יום חסד?</button>
+    </div>
+  </div>`;
+}
+</script>
+
+<div class="bs-bg" id="modal-boost-day" onclick="if(event.target===this)closeModal('modal-boost-day')">
+  <div class="bs-sheet">
+    <div class="bs-handle"></div>
+    <div class="bs-header">
+      <div class="bs-title">⚡ יום בוסט</div>
+      <button class="bs-close" onclick="closeModal('modal-boost-day')">✕</button>
+    </div>
+
+    <!-- מצב נעול -->
+    <div id="boost-locked-msg" style="display:none;background:rgba(240,80,80,.1);border:1px solid rgba(240,80,80,.2);border-radius:12px;padding:15px;margin-bottom:15px;text-align:center">
+      <div style="font-size:24px;margin-bottom:8px">🔒</div>
+      <div style="font-size:14px;font-weight:800;color:var(--red)">הבוסט נעול זמנית</div>
+      <div id="boost-locked-reason" style="font-size:12px;color:var(--txt2);margin-top:5px"></div>
+    </div>
+
+    <!-- בוסט פעיל -->
+    <div id="boost-active-msg" style="display:none;background:rgba(91,141,248,.1);border:1px solid rgba(91,141,248,.3);border-radius:12px;padding:15px;margin-bottom:15px">
+      <div style="font-size:14px;font-weight:800;color:var(--blue);margin-bottom:8px">⚡ יום בוסט פעיל!</div>
+      <div id="boost-active-level-txt" style="font-size:13px;color:var(--txt2);margin-bottom:10px"></div>
+      <div id="boost-active-progress"></div>
+    </div>
+
+    <!-- בחירת שלב -->
+    <div id="boost-select-area">
+      <div style="background:rgba(255,160,50,.08);border:1px solid rgba(255,160,50,.25);border-radius:12px;padding:12px;margin-bottom:15px;font-size:12px;color:var(--orange);line-height:1.6">
+        ⚡ בחר שלב גבוה יותר מהשלב שלך — המשימות והניקוד יעודכנו ליום זה בלבד.
+      </div>
+      <div id="boost-cards-container" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px"></div>
+      <button id="boost-confirm-btn" onclick="confirmBoostDay()" style="width:100%;padding:14px;background:var(--orange);color:#fff;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;border:none">
+        הפעל בוסט ⚡
+      </button>
+    </div>
+
+</body>
+</html>
