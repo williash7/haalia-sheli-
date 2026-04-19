@@ -475,6 +475,7 @@ function applyFocusMode(){
 
 /* ══════════════ SOUND TOGGLE ══════════ */
 function toggleSound(){S.soundEnabled=!S.soundEnabled;save();renderSettings();}
+function toggleDream(id){S.dreamRewardId=S.dreamRewardId===id?null:id;save();renderRewards();renderSettings();}
 function toggleDream(id){
   S.dreamRewardId = S.dreamRewardId===id ? null : id;
   save(); renderRewards(); renderSettings();
@@ -4052,35 +4053,111 @@ function saveApiKeyBS(){
 }
 
 async function aiGenerateTasksBS(){
-  // Sync inputs to old fields for reuse of existing aiGenerateTasks logic
-  const goal = document.getElementById('ai-task-goal2').value;
-  const cur  = document.getElementById('ai-task-current2').value;
-  const steps= document.getElementById('ai-task-steps2').value;
+  const goal = (document.getElementById('ai-task-goal2').value||'').trim();
+  const current = (document.getElementById('ai-task-current2').value||'').trim();
+  const steps = parseInt(document.getElementById('ai-task-steps2').value)||10;
   const slot = document.getElementById('ai-task-slot2').value;
-  document.getElementById('ai-task-goal').value = goal;
-  document.getElementById('ai-task-current').value = cur;
-  document.getElementById('ai-task-steps').value = steps;
-  document.getElementById('ai-task-slot').value = slot;
-  // show result in BS panel
-  const resultEl = document.getElementById('ai-task-result2');
-  resultEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--txt2)">⏳ יוצר מסלול...</div>';
-  await aiGenerateTasks();
-  // copy result
-  const src=document.getElementById('ai-task-result');
-  resultEl.innerHTML=src?src.innerHTML:'';
+  const slotNames=['עבודת הבוקר','עשייה ובניין','עומק ולימוד','ערב ומנוחה'];
+  if(!goal){toast('הכנס את המטרה שלך');return;}
+  if(!current){toast('תאר היכן אתה אוחז כעת');return;}
+  const btn=document.getElementById('ai-task-btn2');
+  const resultEl=document.getElementById('ai-task-result2');
+  btn.textContent='⏳ יוצר מסלול...';btn.disabled=true;
+  resultEl.innerHTML='<div style="text-align:center;padding:20px;color:var(--txt2)">⏳ ה-AI בונה מסלול התקדמות...</div>';
+  const minPts=5,maxPts=28;
+  const prompt=`אתה עוזר לאפליקציית שיפור עצמי יומי בעברית.
+המשתמש רוצה להשיג מטרה: "${goal}".
+המצב הנוכחי שלו: "${current}".
+סלוט הזמן: ${slotNames[slot]}.
+
+בנה מסלול התקדמות של בדיוק ${steps} שלבים — מהמצב הנוכחי אל המטרה.
+
+חוקי בניית המסלול (חובה לשמור עליהם):
+1. צעדי תינוק — כל שלב מוסיף רק שינוי קטן אחד על השלב הקודם.
+2. שלב 1 = כמעט זהה למצב הנוכחי.
+3. שלב ${steps} = המטרה הסופית עצמה.
+4. כל שלב הוא משימה יומית קונקרטית עם מספרים ספציפיים.
+
+הנקודות עולות בהדרגה מ-${minPts} עד ${maxPts} על פני ${steps} שלבים.
+
+בנוסף צור:
+- why: למה הרגל זה חשוב (2-3 משפטים)
+- desc: איך מבצעים בפועל (1-2 משפטים)
+- tip: טיפ מעשי אחד (משפט אחד)
+- goal: תיאור שלב 15 (עד 80 תווים)
+- stepDescs: מערך של ${steps} תיאורים קצרים
+
+החזר JSON בלבד ללא שום טקסט נוסף:
+{"name":"שם קצר (עד 25 תווים)","why":"...","desc":"...","tip":"...","goal":"...","stepDescs":["..."],"levels":[{"text":"...","pts":${minPts}},{"text":"...","pts":${maxPts}}]}
+בדיוק ${steps} שלבים.`;
+  const raw=await _callClaude(prompt);
+  btn.textContent='✨ צור מסלול עם AI';btn.disabled=false;
+  if(!raw){resultEl.innerHTML='';return;}
+  try{
+    const clean=raw.replace(/```json|```/g,'').trim();
+    const obj=JSON.parse(clean);
+    if(!obj.levels||obj.levels.length<2){toast('תשובת AI לא תקינה, נסה שוב');resultEl.innerHTML='';return;}
+    while(obj.levels.length<15){const last=obj.levels[obj.levels.length-1];obj.levels.push({text:last.text,pts:last.pts});}
+    if(!obj.stepDescs)obj.stepDescs=[];
+    while(obj.stepDescs.length<15){obj.stepDescs.push(obj.stepDescs[obj.stepDescs.length-1]||'');}
+    resultEl.innerHTML=`
+      <div style="background:rgba(45,212,191,.07);border:1px solid rgba(45,212,191,.25);border-radius:var(--r-sm);padding:14px">
+        <div style="font-size:13px;font-weight:800;color:var(--teal);margin-bottom:10px">✓ "${obj.name}" — ${steps} שלבים</div>
+        <div style="font-size:11px;color:var(--txt2);margin-bottom:3px">🟢 שלב 1: ${obj.levels[0].text} <span style="color:var(--gold)">(${obj.levels[0].pts} נק')</span></div>
+        <div style="font-size:11px;color:var(--txt2);margin-bottom:12px">🏆 שלב ${steps}: ${obj.levels[steps-1].text} <span style="color:var(--gold)">(${obj.levels[steps-1].pts} נק')</span></div>
+        <button onclick='_aiAddTask(${JSON.stringify(JSON.stringify(obj))},${slot})'
+          style="width:100%;padding:10px;background:var(--teal);color:#000;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer">➕ הוסף מסלול לאפליקציה</button>
+      </div>`;
+  }catch(e){toast('שגיאה בפענוח תשובת AI');resultEl.innerHTML='';}
 }
 
 async function aiGenerateRewardsBS(){
-  ['movies','books','food','hobbies','points'].forEach(f=>{
-    const src=document.getElementById('ai-reward-'+f+'2');
-    const dst=document.getElementById('ai-reward-'+f);
-    if(src&&dst)dst.value=src.value;
-  });
+  const movies=(document.getElementById('ai-reward-movies2').value||'').trim();
+  const books=(document.getElementById('ai-reward-books2').value||'').trim();
+  const food=(document.getElementById('ai-reward-food2').value||'').trim();
+  const hobbies=(document.getElementById('ai-reward-hobbies2').value||'').trim();
+  const points=(document.getElementById('ai-reward-points2').value||'').trim();
+  if(!movies&&!books&&!food&&!hobbies){toast('מלא לפחות תחום עניין אחד');return;}
+  const btn=document.getElementById('ai-reward-btn2');
   const resultEl=document.getElementById('ai-reward-result2');
-  resultEl.innerHTML='<div style="text-align:center;padding:20px;color:var(--txt2)">⏳ יוצר צ\'ופרים...</div>';
-  await aiGenerateRewards();
-  const src=document.getElementById('ai-reward-result');
-  resultEl.innerHTML=src?src.innerHTML:'';
+  btn.textContent="⏳ יוצר צ'ופרים...";btn.disabled=true;
+  resultEl.innerHTML='<div style="text-align:center;padding:20px;color:var(--txt2)">⏳ ה-AI מחפש פינוקים מושלמים...</div>';
+  const prompt=`אתה עוזר לאפליקציית שיפור עצמי בעברית.
+צ'ופר = פינוק ספציפי שמותר לעשות רק כשעומדים ביעדים.
+הצ'ופרים חייבים להיות קונקרטיים לחלוטין.
+
+פרטי המשתמש:
+- סרטים/סדרות: "${movies||'לא צוין'}"
+- ספרים/קריאה: "${books||'לא צוין'}"
+- אוכל/ממתקים: "${food||'לא צוין'}"
+- תחביבים/פנאי: "${hobbies||'לא צוין'}"
+- טווח נקודות: "${points||'100-1000 נקודות'}"
+
+צור בדיוק 6 צ'ופרים ספציפיים ומגוונים (2 קטנים, 2 בינוניים, 2 גדולים).
+החזר JSON בלבד:
+[{"title":"שם ספציפי","desc":"תיאור קצר","pts":150,"emoji":"🎬","minLevel":1},...]`;
+  const raw=await _callClaude(prompt);
+  btn.textContent="✨ צור צ'ופרים עם AI";btn.disabled=false;
+  if(!raw){resultEl.innerHTML='';return;}
+  try{
+    const clean=raw.replace(/```json|```/g,'').trim();
+    const arr=JSON.parse(clean);
+    if(!Array.isArray(arr)||!arr.length){toast('תשובת AI לא תקינה, נסה שוב');resultEl.innerHTML='';return;}
+    const previewHtml=arr.map(r=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--brd)">
+        <span style="font-size:18px">${r.emoji||'🎁'}</span>
+        <div style="flex:1"><div style="font-size:12px;font-weight:700">${r.title}</div>
+        <div style="font-size:10px;color:var(--txt3)">${r.desc||''}</div></div>
+        <div style="font-size:12px;font-weight:900;color:var(--gold)">${r.pts} נק'</div>
+      </div>`).join('');
+    resultEl.innerHTML=`
+      <div style="background:rgba(240,192,64,.07);border:1px solid rgba(240,192,64,.25);border-radius:var(--r-sm);padding:14px">
+        <div style="font-size:12px;font-weight:800;color:var(--gold);margin-bottom:8px">✓ ${arr.length} צ'ופרים נוצרו</div>
+        ${previewHtml}
+        <button onclick='_aiAddRewards(${JSON.stringify(JSON.stringify(arr))})'
+          style="width:100%;padding:10px;background:var(--gold);color:#000;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;margin-top:10px">➕ הוסף הכל לאפליקציה</button>
+      </div>`;
+  }catch(e){toast('שגיאה בפענוח תשובת AI');resultEl.innerHTML='';}
 }
 
 // --- פונקציית הסתרת משימה ---

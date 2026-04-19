@@ -639,7 +639,6 @@ function _getDefaultTasks(lvl){
     // ── משימות כלליות / לאורך היום (slot 0) ──
     {id:`p5_${lvl}`, cat:'limud',    text:kavanaTexts[L],          pts:12+lvl, slot:0, days:['weekday','friday','saturday'], time:'05:00'},
     {id:`b1_${lvl}`, cat:'briut',    text:bodyMaintenanceTexts[L], pts:10+lvl, slot:0, days:['weekday','friday','saturday'], time:'06:00'},
-    {id:`s2_${lvl}`, cat:'briut',               text:notificationTexts[L], pts:10+lvl, slot:0,                             days:['weekday'], time:'09:00'},
 
     // ── בוקר (slot 1) ──
     {id:`z1_${lvl}`,   cat:'boker',    text:wakeTexts[L],           pts:15+lvl, slot:1, days:['weekday','friday','saturday'],  time:wS},
@@ -657,6 +656,7 @@ function _getDefaultTasks(lvl){
     {id:`l10_${lvl}`,  cat:'shlichut', text:communityDevTexts[L],   pts:14+lvl, slot:1, days:['weekday'],                     time:'12:30'},
     {id:`p2_${lvl}`,   cat:'limud',    text:minchaTexts[L],         pts:10+lvl, slot:1, days:['weekday'],                     time:'13:30'},
     {id:`z4_${lvl}`,   cat:'briut',    text:napTexts[L],            pts:12+lvl, slot:1, days:['weekday'],                     time:'14:00'},
+    {id:`s2_${lvl}`, cat:'smart',               text:notificationTexts[L], pts:10+lvl, slot:1,                             days:['weekday'], time:'09:00'},
 
     // ── אחר הצהריים (slot 2) ──
     {id:`h3_${lvl}`, cat:'bayit', text:laundryHomeTexts[L],  pts:12+lvl, slot:2, days:['weekday'], time:'17:00'},
