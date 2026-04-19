@@ -620,3 +620,27 @@ body.boost-mode {
   border-color: rgba(240,80,80,.2);
   color: var(--red);
 }
+
+/* --- כפתור הסתרת משימה --- */
+.btn-hide-task {
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 20px;
+  width: 100%;
+  font-size: 16px;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  transition: 0.2s;
+}
+
+.btn-hide-task:active {
+  background-color: #cc0000;
+  transform: scale(0.98);
+}

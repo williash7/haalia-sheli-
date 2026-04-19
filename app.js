@@ -2235,7 +2235,7 @@ function builtinGroups() {
 function expandGroupsForLevel(lvl) {
   const groups = getGroups();
   if (!groups) return null;
-  return groups.map(g => ({
+  return groups.filter(g => !g.hidden).map(g => ({
     id: g.id + '_' + lvl,
     text: (g.levels[lvl - 1] || {}).text || '',
     pts:  (g.levels[lvl - 1] || {}).pts  || 5,
@@ -2254,6 +2254,7 @@ function renderTeGroupList() {
   if (!c) return;
   const groups = getGroups() || builtinGroups();
   const isCustom = !!getGroups();
+  const hiddenCount = groups.filter(g => g.hidden).length;
   const CAT_ICONS = {zman:'⏱',briut:'💧',achila:'🍎',limud:'📖',bayit:'🏠',smart:'📵',erev:'🕯️',shabbat:'✡️'};
   const SLOT_ICONS = ['🌅','⚡','📖','🌙'];
   let html = '';
@@ -2266,6 +2267,11 @@ function renderTeGroupList() {
       ↕️ גרור את ⠿ לשינוי סדר המשימות
     </div>`;
   }
+  if(hiddenCount > 0){
+    html += `<div style="background:rgba(240,192,64,.06);border:1px solid rgba(240,192,64,.2);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:11px;color:var(--gold)">
+      🙈 ${hiddenCount} משימות מוסתרות — מוצגות למטה עם כפתור "👁 הצג"
+    </div>`;
+  }
   groups.forEach((g, idx) => {
     const catColor = CAT_COLORS[g.cat] || 'var(--txt3)';
     const displayTitle = g.title || (g.levels[0] || {}).text || '—';
@@ -2273,6 +2279,8 @@ function renderTeGroupList() {
     const l1pts  = (g.levels[0] || {}).pts || 0;
     const l15pts = (g.levels[14] || {}).pts || 0;
     const days = g.days || ['weekday'];
+    const hiddenStyle = g.hidden ? 'opacity:0.45;' : '';
+    const hiddenBadge = g.hidden ? '<span style="font-size:9px;background:rgba(240,192,64,.15);color:var(--gold);border-radius:4px;padding:1px 5px;font-weight:700">🙈 מוסתר</span>' : '';
     const dayBadges = [
       days.includes('weekday') ? '<span style="font-size:9px;background:rgba(91,141,248,.15);color:var(--blue);border-radius:4px;padding:1px 5px;font-weight:700">☀️ חול</span>' : '',
       days.includes('friday')  ? '<span style="font-size:9px;background:rgba(45,212,191,.15);color:var(--teal);border-radius:4px;padding:1px 5px;font-weight:700">🕯️ שישי</span>' : '',
@@ -2283,7 +2291,7 @@ function renderTeGroupList() {
       ondragover="onGrpDragOver(event)"
       ondrop="onGrpDrop(event)"
       ondragend="onGrpDragEnd(event)"
-      style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface);border:1px solid var(--brd);border-radius:var(--r-sm);margin-bottom:6px;cursor:default;transition:opacity .15s">
+      style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface);border:1px solid var(--brd);border-radius:var(--r-sm);margin-bottom:6px;cursor:default;transition:opacity .15s;${hiddenStyle}">
       <div class="grp-drag-handle" style="font-size:16px;color:var(--txt3);cursor:grab;flex-shrink:0;padding:0 2px;user-select:none">⠿</div>
       <div style="width:3px;min-height:40px;border-radius:2px;background:${catColor};flex-shrink:0;align-self:stretch"></div>
       <div style="flex:1;min-width:0">
@@ -2295,6 +2303,7 @@ function renderTeGroupList() {
           ${g.anchor ? '<span style="font-size:10px;color:var(--teal);font-weight:700">🎯</span>' : ''}
           <span style="font-size:10px;color:var(--gold);font-weight:800">${l1pts}→${l15pts} נק'</span>
           ${dayBadges}
+          ${hiddenBadge}
           ${g.time ? `<span style="font-size:9px;background:var(--blue3);color:var(--blue);border-radius:4px;padding:1px 5px;font-weight:700">🕐 ${g.time}</span>` : ''}
           ${g.reminderEnabled && g.reminderTime ? `<span style="font-size:9px;background:rgba(240,192,64,.15);color:var(--gold);border-radius:4px;padding:1px 5px;font-weight:700">🔔 ${g.reminderTime}</span>` : ''}
         </div>
@@ -2311,6 +2320,10 @@ function renderTeGroupList() {
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
         <button onclick="openEditGroupModal('${g.id}')" style="padding:5px 10px;background:var(--sf3);border:1px solid var(--brd2);border-radius:6px;font-size:10px;font-weight:700;color:var(--txt2);cursor:pointer">עריכה</button>
+        ${g.hidden
+          ? `<button onclick="unhideGroup('${g.id}')" style="padding:5px 10px;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.3);border-radius:6px;font-size:10px;font-weight:700;color:var(--teal);cursor:pointer">👁 הצג</button>`
+          : `<button onclick="hideGroupFromEditor('${g.id}')" style="padding:5px 10px;background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.25);border-radius:6px;font-size:10px;font-weight:700;color:var(--gold);cursor:pointer">🙈 הסתר</button>`
+        }
         <button onclick="deleteGroup('${g.id}')" style="padding:5px 10px;background:rgba(240,80,80,.1);border:1px solid rgba(240,80,80,.2);border-radius:6px;font-size:10px;font-weight:700;color:var(--red);cursor:pointer">מחק</button>
       </div>
     </div>`;
@@ -4064,4 +4077,85 @@ async function aiGenerateRewardsBS(){
   await aiGenerateRewards();
   const src=document.getElementById('ai-reward-result');
   resultEl.innerHTML=src?src.innerHTML:'';
+}
+
+// --- פונקציית הסתרת משימה ---
+function hideCurrentTask(taskId) {
+    // 1. אזהרה למשתמש
+    if (!confirm("האם להסתיר משימה זו? היא לא תופיע יותר ולא תפגע ברצף (Streak) שלך.")) return;
+
+    // 2. יצירת ה"רשימה השחורה" אם היא לא קיימת עדיין בזיכרון של האפליקציה
+    if (!S.hiddenTasks) {
+        S.hiddenTasks = [];
+    }
+
+    // 3. הוספת המזהה של המשימה לרשימה (אם הוא לא שם כבר)
+    if (!S.hiddenTasks.includes(taskId)) {
+        S.hiddenTasks.push(taskId);
+    }
+
+    // 4. שמירה ועדכון מסך
+    saveData(); // שים לב: אם הפונקציה ששומרת נתונים אצלך נקראת אחרת (למשל syncData), תשנה כאן.
+    closeModal(); // סגירת החלון הקופץ (שנה ל-ID של המודל אם הפונקציה אצלך דורשת ID)
+    renderToday(); // ציור מחדש של המסך הראשי כדי שהמשימה תיעלם (שנה לשם הפונקציה שלך, אולי buildDay)
+}
+
+/* ══ הסתרה / מחיקה — עורך ומודל מידע ══ */
+
+function hideGroupFromEditor(grpId){
+  if(!S.taskGroups) S.taskGroups = builtinGroups();
+  const idx = S.taskGroups.findIndex(g => g.id === grpId);
+  if(idx !== -1){
+    S.taskGroups[idx].hidden = true;
+  } else {
+    const found = builtinGroups().find(g => g.id === grpId);
+    if(found) S.taskGroups.push({...found, hidden:true});
+  }
+  save(); renderTeGroupList(); renderActive();
+  toast('🙈 המשימה הוסתרה — ניתן לשחזר בעורך');
+}
+
+function unhideGroup(grpId){
+  if(!S.taskGroups) return;
+  const idx = S.taskGroups.findIndex(g => g.id === grpId);
+  if(idx !== -1) delete S.taskGroups[idx].hidden;
+  save(); renderTeGroupList(); renderActive();
+  toast('👁 המשימה חזרה לתצוגה');
+}
+async function hideTaskFromModal(){
+  const bid = _tieCurrentBaseId;
+  if(!bid){ toast('לא ניתן לזהות משימה'); return; }
+  if(!await _customConfirm('להסתיר משימה זו? ניתן לשחזר דרך עורך המשימות.', '🙈 הסתר')) return;
+  // אם אין taskGroups — יוצר מהמובנות תחילה (כולל כולן)
+  if(!S.taskGroups) S.taskGroups = builtinGroups();
+  const grpId = 'grp_' + bid;
+  const idx = S.taskGroups.findIndex(g => g.id === grpId);
+  if(idx !== -1){
+    S.taskGroups[idx].hidden = true;
+  } else {
+    // משימה מובנית שעדיין לא ב-taskGroups — מוסיפה עם hidden
+    const found = builtinGroups().find(g => g.id === grpId);
+    if(found) S.taskGroups.push({...found, hidden:true});
+  }
+  save();
+  closeModal('task-info-modal');
+  renderActive();
+  toast('🙈 הוסתרה — שחזור דרך ✏️ משימות');
+}
+
+async function deleteTaskFromModal(){
+  const bid = _tieCurrentBaseId;
+  if(!bid){ toast('לא ניתן לזהות משימה'); return; }
+  if(!await _customConfirm('למחוק משימה זו לצמיתות מכל 15 השלבים?', '🗑️ מחק')) return;
+  const grpId = 'grp_' + bid;
+  if(S.taskGroups){
+    S.taskGroups = S.taskGroups.filter(g => g.id !== grpId);
+  } else {
+    S.taskGroups = builtinGroups().filter(g => g.id !== grpId);
+  }
+  for(let lvl=1; lvl<=MAX_LVL; lvl++) delete S.done[grpId+'_'+lvl];
+  save();
+  closeModal('task-info-modal');
+  renderActive();
+  toast('🗑️ המשימה נמחקה');
 }
