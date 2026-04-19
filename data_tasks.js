@@ -645,10 +645,10 @@ function _getDefaultTasks(lvl){
     {id:`h4_${lvl}`,   cat:'bayit',    text:generalOrderTexts[L],   pts:10+lvl, slot:0, days:['weekday']},
 
     // ── משימות בוקר (slot 1) [04:45–11:00] ──
-    {id:`z1_${lvl}`,   cat:'boker',    text:wakeTexts[L],           pts:15+lvl, slot:1, days:['weekday','friday','saturday'],  time:'04:45'},
-    {id:`z2_${lvl}`,   cat:'boker',    text:morningRoutineTexts[L], pts:12+lvl, slot:1, days:['weekday','friday'],             time:'04:50'},
-  {id:`pray_${lvl}`, cat:'boker',    text:prayTexts[L],           pts:15+lvl, slot:1, days:['weekday','friday','saturday'],  time:'05:00'},    
-    {id:`b2_${lvl}`,   cat:'boker',    text:walkTexts[L],           pts:15+lvl, slot:1, days:['weekday'],                      time:'05:20'},
+    {id:`z1_${lvl}`,   cat:'zman',    text:wakeTexts[L],           pts:15+lvl, slot:1, days:['weekday','friday','saturday'],  time:'04:45'},
+    {id:`z2_${lvl}`,   cat:'zman',    text:morningRoutineTexts[L], pts:12+lvl, slot:1, days:['weekday','friday'],             time:'04:50'},
+  {id:`pray_${lvl}`, cat:'zman',    text:prayTexts[L],           pts:15+lvl, slot:1, days:['weekday','friday','saturday'],  time:'05:00'},    
+    {id:`b2_${lvl}`,   cat:'zman',    text:walkTexts[L],           pts:15+lvl, slot:1, days:['weekday'],                      time:'05:20'},
 {id:`l8_${lvl}`,   cat:'limud',    text:chassidutTexts[L],      pts:13+lvl, slot:1, days:['weekday'],                      time:'06:20'},
     {id:`s1_${lvl}`,   cat:'smart', text:phoneDelayTexts[L],     pts:12+lvl, slot:1, days:['weekday'],                      time:'09:00'},
     {id:`l5_${lvl}`,   cat:'limud',    text:semichaTexts[L],        pts:15+lvl, slot:1, days:['weekday'],                      time:'09:00'},

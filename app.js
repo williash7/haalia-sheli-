@@ -117,7 +117,18 @@ function toggleTheme(){
 }
 
 /* ══════════════ TASK CATEGORIES ══════════════ */
-const BUILTIN_TASK_CATS={zman:'⏱ זמנים',briut:'💧 בריאות',achila:'🍎 אכילה',limud:'📖 לימוד',bayit:'🏠 בית',smart:'📵 סמארטפון',erev:'🕯️ ערב שבת',shabbat:'✡️ שבת'};
+const BUILTIN_TASK_CATS={
+  zman:'⏱ זמנים',
+  boker:'🌅 בוקר',
+  briut:'💧 בריאות',
+  achila:'🍎 אכילה',
+  limud:'📖 לימוד',
+  shlichut:'💼 שליחות',
+  bayit:'🏠 בית',
+  smart:'📵 סמארטפון',
+  erev:'🕯️ ערב שבת',
+  shabbat:'✡️ שבת'
+};
 
 function getCustomTaskCats(){return S.customTaskCats||[];}
 
@@ -3805,7 +3816,7 @@ function renderJournalDaySummary(){
   const pillsEl=document.getElementById('journal-cat-pills');
   if(!pillsEl)return;
   const catStats={};
-  const catDisplay={zman:{e:'⏱',n:'זמנים'},briut:{e:'💧',n:'בריאות'},achila:{e:'🍎',n:'אכילה'},limud:{e:'📖',n:'לימוד'},bayit:{e:'🏠',n:'בית'},smart:{e:'📵',n:'סמארטפון'}};
+const catDisplay={zman:{e:'⏱',n:'זמנים'},boker:{e:'🌅',n:'בוקר'},briut:{e:'💧',n:'בריאות'},achila:{e:'🍎',n:'אכילה'},limud:{e:'📖',n:'לימוד'},shlichut:{e:'💼',n:'שליחות'},bayit:{e:'🏠',n:'בית'},smart:{e:'📵',n:'סמארטפון'},erev:{e:'🕯️',n:'ערב שבת'},shabbat:{e:'✡️',n:'שבת'}};
   todayTasks.forEach(t=>{
     if(!catStats[t.cat])catStats[t.cat]={total:0,done:0};
     catStats[t.cat].total++;
@@ -3900,7 +3911,18 @@ function buildJournalDayContext(){
   const todayTasks=tasks.filter(t=>(t.days||['weekday']).includes(dayType));
   const doneTasks=todayTasks.filter(t=>S.done[t.id]);
   const pct=todayTasks.length?Math.round(doneTasks.length/todayTasks.length*100):0;
-  const catNames={zman:'זמנים',briut:'בריאות',achila:'אכילה',limud:'לימוד',bayit:'בית',smart:'סמארטפון'};
+ const catNames = {
+  zman: 'זמנים',
+  boker: 'בוקר',
+  briut: 'בריאות',
+  achila: 'אכילה',
+  limud: 'לימוד',
+  shlichut: 'שליחות',
+  bayit: 'בית',
+  smart: 'סמארטפון',
+  erev: 'ערב שבת',
+  shabbat: 'שבת'
+};
   const catStats={};
   todayTasks.forEach(t=>{
     const nm=catNames[t.cat]||t.cat;

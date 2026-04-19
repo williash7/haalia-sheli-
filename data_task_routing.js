@@ -68,16 +68,18 @@ function getTasksForDay(lvl, dayType){
     return days.includes(dayType);
   });
 }
-
 function domainProgress(lvl){
   return[
-    {name:'⏱ זמנים',    val:Math.round((9*60-lerp(9*60,5*60,lvl))/(9*60-5*60)*100), color:'var(--blue)'},
-    {name:'💧 בריאות',   val:Math.round((lerp(12,45,lvl)-12)/33*100),                color:'var(--green)'},
-    {name:'🍎 אכילה',    val:Math.round((lvl-1)/14*100),                              color:'#f07840'},
-    {name:'📖 לימוד',    val:Math.round((lerp(20,180,lvl)-20)/160*100),               color:'var(--purple)'},
-    {name:'🏠 בית',      val:Math.round((lerp(5,25,lvl)-5)/20*100),                   color:'var(--gold)'},
-    {name:'📵 סמארטפון', val:Math.round((lerp(30,120,lvl)-30)/90*100),                color:'var(--red)'},
+    {name:'⏱ זמנים',      val:Math.round((9*60-lerp(9*60,5*60,lvl))/(9*60-5*60)*100), color:'var(--blue)'},
+    {name:'🌅 בוקר',       val:Math.round((lvl-1)/14*100),                              color:'#ff9800'}, // כתום
+    {name:'💧 בריאות',    val:Math.round((lerp(12,45,lvl)-12)/33*100),                 color:'var(--green)'},
+    {name:'🍎 אכילה',     val:Math.round((lvl-1)/14*100),                              color:'#f07840'},
+    {name:'📖 לימוד',     val:Math.round((lerp(20,180,lvl)-20)/160*100),               color:'var(--purple)'},
+    {name:'💼 שליחות',    val:Math.round((lvl-1)/14*100),                              color:'#00bcd4'}, // תכלת
+    {name:'🏠 בית',       val:Math.round((lerp(5,25,lvl)-5)/20*100),                   color:'var(--gold)'},
+    {name:'📵 סמארטפון',  val:Math.round((lerp(30,120,lvl)-30)/90*100),                color:'var(--red)'},
+    {name:'🕯️ ערב שבת',  val:Math.round((lvl-1)/14*100),                              color:'#e91e63'}, // ורוד
+    {name:'✡️ שבת',       val:Math.round((lvl-1)/14*100),                              color:'#3f51b5'}  // אינדיגו
   ];
 }
-
 /* ══════════════ TASK INFO ══════════════ */
