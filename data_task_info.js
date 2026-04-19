@@ -1093,7 +1093,14 @@ const stepDescs = {
 function getTaskStepDesc(taskId, lvl) {
   const baseId = taskId.split('_')[0];
   const tObj = stepDescs[baseId];
-  if (!tObj) return '';
+  if (!tObj) return null;
   const idx = Math.min(Math.max(lvl - 1, 0), 14);
-  return `<b>היעד הסופי:</b> ${tObj.goal}<br><br><b>השלב הנוכחי:</b> ${tObj.steps[idx]}`;
+  const pct = Math.round((lvl / 15) * 100);
+  return {
+    level: lvl,
+    pct: pct,
+    goal: tObj.goal || '',
+    stepText: tObj.steps[idx] || '',
+    tip: ''
+  };
 }

@@ -475,6 +475,10 @@ function applyFocusMode(){
 
 /* ══════════════ SOUND TOGGLE ══════════ */
 function toggleSound(){S.soundEnabled=!S.soundEnabled;save();renderSettings();}
+function toggleDream(id){
+  S.dreamRewardId = S.dreamRewardId===id ? null : id;
+  save(); renderRewards(); renderSettings();
+}
 
 /* ══════════════ ACTIONS ══════════════ */
 function toggleTask(id,pts,isAnchorOnly){
@@ -3133,8 +3137,8 @@ function nav(p){
   const moreBtn=document.getElementById('btn-more');
   if(moreBtn) moreBtn.classList.toggle('on', DRAWER_PAGES.includes(p));
 
-  PAGES.find(x=>x.id===p)?.render();
-  if(p==='journal' && typeof renderJournal==='function') renderJournal();
+PAGES.find(x=>x.id===p)?.render();
+if(p==='journal' && typeof renderJournalPage==='function') renderJournalPage();
 }
 
 function openDrawer(){
