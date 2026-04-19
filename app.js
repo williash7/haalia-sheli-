@@ -3620,8 +3620,8 @@ function _aiAddTask(jsonStr,slot){
     };
   }
   save();
-  document.getElementById('ai-task-result').innerHTML=
-    '<div style="color:var(--green2);font-weight:700;text-align:center;padding:10px">✅ המשימה נוספה עם מידע הסברתי!</div>';
+  const _res = document.getElementById('ai-task-result') || document.getElementById('ai-task-result2');
+if(_res) _res.innerHTML='<div style="color:var(--green2);font-weight:700;text-align:center;padding:10px">✅ המשימה נוספה עם מידע הסברתי!</div>';
   toast('✅ משימת AI נוספה!');
   renderActive();
 }
@@ -4100,12 +4100,13 @@ async function aiGenerateTasksBS(){
     while(obj.levels.length<15){const last=obj.levels[obj.levels.length-1];obj.levels.push({text:last.text,pts:last.pts});}
     if(!obj.stepDescs)obj.stepDescs=[];
     while(obj.stepDescs.length<15){obj.stepDescs.push(obj.stepDescs[obj.stepDescs.length-1]||'');}
+_pendingAiTask = {obj, slot};
     resultEl.innerHTML=`
       <div style="background:rgba(45,212,191,.07);border:1px solid rgba(45,212,191,.25);border-radius:var(--r-sm);padding:14px">
         <div style="font-size:13px;font-weight:800;color:var(--teal);margin-bottom:10px">✓ "${obj.name}" — ${steps} שלבים</div>
         <div style="font-size:11px;color:var(--txt2);margin-bottom:3px">🟢 שלב 1: ${obj.levels[0].text} <span style="color:var(--gold)">(${obj.levels[0].pts} נק')</span></div>
         <div style="font-size:11px;color:var(--txt2);margin-bottom:12px">🏆 שלב ${steps}: ${obj.levels[steps-1].text} <span style="color:var(--gold)">(${obj.levels[steps-1].pts} נק')</span></div>
-        <button onclick='_aiAddTask(${JSON.stringify(JSON.stringify(obj))},${slot})'
+        <button onclick="_aiAddTaskPending()"
           style="width:100%;padding:10px;background:var(--teal);color:#000;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer">➕ הוסף מסלול לאפליקציה</button>
       </div>`;
   }catch(e){toast('שגיאה בפענוח תשובת AI');resultEl.innerHTML='';}
