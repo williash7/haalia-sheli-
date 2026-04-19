@@ -1710,55 +1710,10 @@
 .ob-row-text{font-size:12px;color:var(--txt2);line-height:1.6}
 .ob-row-text strong{color:var(--txt);display:block;font-size:13px;margin-bottom:1px}
 </style>
-
-<!-- MODAL: Add Sub-Task -->
-<!-- MODAL: Advanced Level -->
-<div class="bs-bg" id="modal-advanced-level" onclick="if(event.target===this)closeModal('modal-advanced-level')">
-  <div class="bs-sheet">
-    <div class="bs-handle"></div>
-    <div class="bs-header">
-      <div class="bs-title">⬆️ ביצעתי רמה מתקדמת</div>
-      <button class="bs-close" onclick="closeModal('modal-advanced-level')"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
-    </div>
-    <input type="hidden" id="adv-bid">
-
-    <!-- Compare: current vs next -->
-    <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin-bottom:16px">
-      <div style="background:var(--bg3);border:1px solid var(--brd);border-radius:10px;padding:10px 12px;text-align:center">
-        <div style="font-size:9px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">רמה נוכחית (<span id="adv-cur-lvl"></span>)</div>
-        <div style="font-size:12px;color:var(--txt2);line-height:1.4" id="adv-cur-text"></div>
-      </div>
-      <div style="font-size:20px;color:var(--purple);font-weight:900">→</div>
-      <div style="background:rgba(155,126,248,.1);border:1px solid rgba(155,126,248,.3);border-radius:10px;padding:10px 12px;text-align:center">
-        <div style="font-size:9px;font-weight:800;color:var(--purple);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">רמה מתקדמת (<span id="adv-next-lvl"></span>)</div>
-        <div style="font-size:12px;color:var(--txt);line-height:1.4;font-weight:600" id="adv-next-text"></div>
-      </div>
-    </div>
-
-    <!-- Progress towards level up -->
-    <div style="background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:12px 14px;margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div style="font-size:11px;font-weight:800;color:var(--purple)">התקדמות לרמה הבאה</div>
-        <div style="font-size:11px;font-weight:900;color:var(--purple)"><span id="adv-count-done"></span> / <span id="adv-count-needed"></span></div>
-      </div>
-      <div style="height:8px;background:var(--sf3);border-radius:99px;overflow:hidden;margin-bottom:6px">
-        <div id="adv-progress-fill" style="height:100%;border-radius:99px;background:linear-gradient(90deg,rgba(155,126,248,.6),var(--purple));transition:width .5s cubic-bezier(.22,1,.36,1)"></div>
-      </div>
-      <div style="font-size:11px;color:var(--txt3)">עוד <strong style="color:var(--purple)" id="adv-remaining"></strong> סימונים — ואז המשימה תעלה אוטומטית</div>
-    </div>
-
+     
     <!-- Already marked today -->
     <div id="adv-already-msg" style="display:none;background:rgba(56,214,138,.08);border:1px solid rgba(56,214,138,.2);border-radius:9px;padding:9px 13px;margin-bottom:12px;font-size:12px;color:var(--green2);font-weight:700;text-align:center">
       ✓ כבר סימנת ביצוע מתקדם היום — בא חשבון מחר
-    </div>
-
-    <div style="background:rgba(240,192,64,.06);border:1px solid rgba(240,192,64,.18);border-radius:9px;padding:9px 13px;margin-bottom:16px;font-size:11px;color:var(--txt2);line-height:1.6">
-      💡 <strong style="color:var(--txt)">מה זה אומר?</strong> אם ביצעת את דרישות הרמה הבאה בפועל — לא רק את מה שמוגדר לרמה שלך — לחץ לסמן. אחרי 5 סימונים, המשימה תעלה לרמה הגבוהה יותר אוטומטית.
-    </div>
-
-    <div style="display:flex;gap:8px">
-      <button onclick="closeModal('modal-advanced-level')" style="flex:1;padding:12px;background:var(--sf3);border:1px solid var(--brd2);border-radius:var(--r-sm);font-size:12px;font-weight:700;cursor:pointer;color:var(--txt2)">ביטול</button>
-      <button id="adv-confirm-btn" onclick="confirmAdvancedLevel()" style="flex:2;padding:12px;background:var(--purple);color:#fff;border-radius:var(--r-sm);font-size:13px;font-weight:800;cursor:pointer">⬆️ כן, ביצעתי!</button>
     </div>
   </div>
 </div>
