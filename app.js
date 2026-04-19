@@ -1836,6 +1836,7 @@ function _renderTaskHtml(t, isBonus, extraStyle){
       </div>
       ${subExpandBtn}
       <button class="task-star-btn${starred?' starred':''}" onclick="event.stopPropagation();toggleStar('${safeId}',event)" title="${starred?'הסר עדיפות':'סמן כעדיפות עליונה'}">${starred?'⭐':'☆'}</button>
+      ${(()=>{ const _bid=_baseId(t.id); return getTaskDisplayLevel(_bid)>=MAX_LVL?'':`<button class="task-snooze-btn" onclick="event.stopPropagation();openAdvancedLevelModal('${safeId}',event)" title="ביצעתי ברמת השלב הבא" style="color:var(--teal)">⬆️</button>`; })()}
       <button class="task-snooze-btn" onclick="event.stopPropagation();snoozeTask('${safeId}',event)" title="לא היום">⏭</button>
       <div class="tpts${isBonus?' bonus':''}">+${ap}${isBonus?' 🔥':''}</div>
     </div>
@@ -4219,4 +4220,157 @@ async function deleteTaskFromModal(){
   closeModal('task-info-modal');
   renderActive();
   toast('🗑️ המשימה נמחקה');
+}
+/* ══════════════ ADVANCED LEVEL — ביצעתי ברמת השלב הבא ══════════════
+   המשתמש מסמן שביצע משימה ברמת השלב הבא (מעל הרמה האישית הנוכחית שלו).
+   5 סימונים → עלייה אוטומטית ברמה האישית של המשימה.
+   רק סימון אחד ביום (מתאפס כל לילה).
+══════════════════════════════════════════════════════════════════════ */
+
+const TASK_ADVANCED_NEEDED = 5;
+
+function getTaskAdvancedCount(bid){
+  return (S.taskAdvancedCount||{})[bid]||0;
+}
+
+function openAdvancedLevelModal(taskId, event){
+  if(event){ event.stopPropagation(); }
+  const bid = _baseId(taskId);
+  const curIndivLvl = getTaskDisplayLevel(bid);
+
+  if(curIndivLvl >= MAX_LVL){
+    toast('🏆 כבר ברמה המקסימלית!');
+    return;
+  }
+
+  const nextLvl = curIndivLvl + 1;
+
+  // טקסט של השלב הנוכחי והבא
+  const curTasks  = getTasksForDay(curIndivLvl,  getDayType(new Date()));
+  const nextTasks = getTasksForDay(nextLvl, getDayType(new Date()));
+  const curTask   = curTasks.find(x  => _baseId(x.id) === bid);
+  const nextTask  = nextTasks.find(x => _baseId(x.id) === bid);
+  const curText   = curTask  ? curTask.text  : `רמה ${curIndivLvl}`;
+  const nextText  = nextTask ? nextTask.text : `רמה ${nextLvl}`;
+
+  const advCount    = getTaskAdvancedCount(bid);
+  const remaining   = TASK_ADVANCED_NEEDED - advCount;
+  const markedToday = (S.taskAdvancedToday||{})[bid] === todayStr();
+  const pct         = Math.round(advCount / TASK_ADVANCED_NEEDED * 100);
+
+  // הזרקת מודל לדום אם עדיין לא קיים
+  if(!document.getElementById('modal-advanced-level')){
+    const div = document.createElement('div');
+    div.innerHTML = `
+<div class="modal-bg" id="modal-advanced-level" onclick="if(event.target===this)closeModal('modal-advanced-level')">
+  <div class="modal-sheet">
+    <div class="modal-hd">
+      <div class="modal-title">⬆️ ביצעתי ברמת השלב הבא</div>
+      <button class="modal-close" onclick="closeModal('modal-advanced-level')">✕</button>
+    </div>
+    <div style="padding:0 16px 16px">
+      <div style="background:var(--surface);border:1px solid var(--brd);border-radius:var(--r-sm);padding:12px;margin-bottom:14px">
+        <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px">הרמה הנוכחית שלך</div>
+        <div id="adv-cur-text" style="font-size:13px;color:var(--txt);line-height:1.5"></div>
+        <div style="font-size:10px;color:var(--txt3);margin-top:2px">רמה <span id="adv-cur-lvl"></span></div>
+      </div>
+      <div style="background:rgba(45,212,191,.07);border:1px solid rgba(45,212,191,.25);border-radius:var(--r-sm);padding:12px;margin-bottom:14px">
+        <div style="font-size:10px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px">⬆️ רמת השלב הבא</div>
+        <div id="adv-next-text" style="font-size:13px;color:var(--teal);line-height:1.5"></div>
+        <div style="font-size:10px;color:var(--teal);margin-top:2px;opacity:.7">רמה <span id="adv-next-lvl"></span></div>
+      </div>
+      <div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;margin-bottom:6px">
+          <span style="color:var(--txt2)">התקדמות לעלייה</span>
+          <span id="adv-count-txt" style="color:var(--teal)"></span>
+        </div>
+        <div style="height:7px;background:var(--sf2);border-radius:99px;overflow:hidden">
+          <div id="adv-progress-fill" style="height:100%;background:var(--teal);border-radius:99px;transition:width .4s"></div>
+        </div>
+        <div id="adv-remaining-txt" style="font-size:11px;color:var(--txt3);margin-top:5px;text-align:center"></div>
+      </div>
+      <div id="adv-already-msg" style="display:none;background:rgba(240,192,64,.08);border:1px solid rgba(240,192,64,.2);border-radius:8px;padding:9px 12px;margin-bottom:12px;font-size:12px;color:var(--gold);text-align:center">
+        ✓ כבר סימנת היום — חזור מחר
+      </div>
+      <input type="hidden" id="adv-bid">
+      <button id="adv-confirm-btn" onclick="confirmAdvancedLevel()"
+        style="width:100%;padding:13px;background:var(--teal);color:#000;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;border:none">
+        ⬆️ כן, ביצעתי ברמה הבאה!
+      </button>
+    </div>
+  </div>
+</div>`;
+    document.body.appendChild(div.firstElementChild);
+  }
+
+  // מילוי הנתונים
+  document.getElementById('adv-bid').value          = bid;
+  document.getElementById('adv-cur-lvl').textContent = curIndivLvl;
+  document.getElementById('adv-next-lvl').textContent = nextLvl;
+  document.getElementById('adv-cur-text').textContent  = curText;
+  document.getElementById('adv-next-text').textContent = nextText;
+  document.getElementById('adv-count-txt').textContent = `${advCount} / ${TASK_ADVANCED_NEEDED}`;
+  document.getElementById('adv-progress-fill').style.width = pct + '%';
+  document.getElementById('adv-remaining-txt').textContent =
+    markedToday ? '' : `עוד ${remaining} סימון${remaining===1?'':'ים'} לעלייה אוטומטית`;
+
+  const btn = document.getElementById('adv-confirm-btn');
+  if(markedToday){
+    btn.textContent = '✓ סומן היום';
+    btn.disabled    = true;
+    btn.style.opacity = '0.45';
+    document.getElementById('adv-already-msg').style.display = 'block';
+  } else {
+    btn.textContent   = '⬆️ כן, ביצעתי ברמה הבאה!';
+    btn.disabled      = false;
+    btn.style.opacity = '1';
+    document.getElementById('adv-already-msg').style.display = 'none';
+  }
+
+  openModal('modal-advanced-level');
+}
+
+function confirmAdvancedLevel(){
+  const bid = document.getElementById('adv-bid').value;
+  if(!bid) return;
+
+  // בדיקה: כבר סומן היום?
+  if(!S.taskAdvancedToday) S.taskAdvancedToday = {};
+  if(S.taskAdvancedToday[bid] === todayStr()){
+    toast('כבר סימנת היום — חזור מחר');
+    return;
+  }
+
+  // סימון היום
+  S.taskAdvancedToday[bid] = todayStr();
+
+  // הגדלת מונה
+  if(!S.taskAdvancedCount) S.taskAdvancedCount = {};
+  S.taskAdvancedCount[bid] = (S.taskAdvancedCount[bid]||0) + 1;
+  const newCount = S.taskAdvancedCount[bid];
+
+  if(newCount >= TASK_ADVANCED_NEEDED){
+    // עלייה ברמה האישית!
+    if(!S.taskIndivLevel) S.taskIndivLevel = {};
+    const curLvl = S.taskIndivLevel[bid]||1;
+    if(curLvl < MAX_LVL){
+      S.taskIndivLevel[bid] = curLvl + 1;
+      if(!S.taskSuccessCount) S.taskSuccessCount = {};
+      S.taskSuccessCount[bid] = 0;
+    }
+    S.taskAdvancedCount[bid] = 0;
+    save();
+    closeModal('modal-advanced-level');
+    playLevelUp();
+    if(navigator.vibrate) navigator.vibrate([40,20,40,20,80]);
+    toast(`🎯 עלית לרמה ${S.taskIndivLevel[bid]} במשימה זו!`);
+    renderActive();
+  } else {
+    const remaining = TASK_ADVANCED_NEEDED - newCount;
+    save();
+    closeModal('modal-advanced-level');
+    if(navigator.vibrate) navigator.vibrate(40);
+    toast(`⬆️ +1 סימון — עוד ${remaining} לעלייה!`);
+    renderActive();
+  }
 }
