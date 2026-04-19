@@ -635,45 +635,45 @@ function _getDefaultTasks(lvl){
     'כל הבית מסודר ביום חמישי בערב ✦'
   ];
 
-  return [
-    // ── משימות כלליות / לאורך היום (slot 0) ──
-    {id:`p5_${lvl}`, cat:'limud',    text:kavanaTexts[L],          pts:12+lvl, slot:0, days:['weekday','friday','saturday'], time:'05:00'},
+  return [   
+// ── משימות כלליות / כל היום (slot 0) ──
+    {id:`p5_${lvl}`, cat:'limud',    text:kavanaTexts[L],         pts:12+lvl, slot:0, days:['weekday','friday','saturday'], time:'05:00'},
     {id:`b1_${lvl}`, cat:'briut',    text:bodyMaintenanceTexts[L], pts:10+lvl, slot:0, days:['weekday','friday','saturday'], time:'06:00'},
 
-    // ── בוקר (slot 1) ──
+    // ── משימות בוקר (slot 1) [04:45–11:00] ──
     {id:`z1_${lvl}`,   cat:'boker',    text:wakeTexts[L],           pts:15+lvl, slot:1, days:['weekday','friday','saturday'],  time:wS},
     {id:`z2_${lvl}`,   cat:'boker',    text:morningRoutineTexts[L], pts:12+lvl, slot:1, days:['weekday','friday'],             time:'05:00'},
-    {id:`b2_${lvl}`,   cat:'boker',    text:walkTexts[L],           pts:15+lvl, slot:1, days:['weekday'],                     time:'05:20'},
-    {id:`l8_${lvl}`,   cat:'limud',    text:chassidutTexts[L],      pts:13+lvl, slot:1, days:['weekday'],                     time:'06:20'},
+    {id:`b2_${lvl}`,   cat:'boker',    text:walkTexts[L],           pts:15+lvl, slot:1, days:['weekday'],                      time:'05:20'},
+    {id:`l8_${lvl}`,   cat:'limud',    text:chassidutTexts[L],      pts:13+lvl, slot:1, days:['weekday'],                      time:'06:20'},
     {id:`pray_${lvl}`, cat:'boker',    text:prayTexts[L],           pts:15+lvl, slot:1, days:['weekday','friday','saturday'],  time:'07:00'},
-    {id:`s1_${lvl}`,   cat:'shlichut', text:phoneDelayTexts[L],     pts:12+lvl, slot:1, days:['weekday'],                     time:'09:00'},
-    {id:`l5_${lvl}`,   cat:'limud',    text:semichaTexts[L],        pts:15+lvl, slot:1, days:['weekday'],                     time:'09:00'},
-    {id:`w2_${lvl}`,   cat:'shlichut', text:planningTexts[L],       pts:10+lvl, slot:1, days:['weekday'],                     time:'10:20'},
-    {id:`w1_${lvl}`,   cat:'shlichut', text:projectsTexts[L],       pts:18+lvl, slot:1, days:['weekday'],                     time:'10:30'},
-    {id:`v1_${lvl}`,   cat:'shlichut', text:donorTexts[L],          pts:15+lvl, slot:1, days:['weekday'],                     time:'11:00'},
-    {id:`v2_${lvl}`,   cat:'shlichut', text:crmSystemTexts[L],      pts:12+lvl, slot:1, days:['weekday'],                     time:'11:30'},
-    {id:`l9_${lvl}`,   cat:'limud',    text:lessonPrepTexts[L],     pts:12+lvl, slot:1, days:['weekday'],                     time:'12:00'},
-    {id:`l10_${lvl}`,  cat:'shlichut', text:communityDevTexts[L],   pts:14+lvl, slot:1, days:['weekday'],                     time:'12:30'},
-    {id:`p2_${lvl}`,   cat:'limud',    text:minchaTexts[L],         pts:10+lvl, slot:1, days:['weekday'],                     time:'13:30'},
-    {id:`z4_${lvl}`,   cat:'briut',    text:napTexts[L],            pts:12+lvl, slot:1, days:['weekday'],                     time:'14:00'},
-    {id:`s2_${lvl}`, cat:'smart',               text:notificationTexts[L], pts:10+lvl, slot:1,                             days:['weekday'], time:'09:00'},
+    {id:`s1_${lvl}`,   cat:'shlichut', text:phoneDelayTexts[L],     pts:12+lvl, slot:1, days:['weekday'],                      time:'09:00'},
+    {id:`l5_${lvl}`,   cat:'limud',    text:semichaTexts[L],        pts:15+lvl, slot:1, days:['weekday'],                      time:'09:00'},
+    {id:`s2_${lvl}`,   cat:'smart',    text:notificationTexts[L],   pts:10+lvl, slot:1, days:['weekday'],                      time:'09:00'},
+    {id:`w2_${lvl}`,   cat:'shlichut', text:planningTexts[L],       pts:10+lvl, slot:1, days:['weekday'],                      time:'10:20'},
+    {id:`w1_${lvl}`,   cat:'shlichut', text:projectsTexts[L],       pts:18+lvl, slot:1, days:['weekday'],                      time:'10:30'},
 
-    // ── אחר הצהריים (slot 2) ──
-    {id:`h3_${lvl}`, cat:'bayit', text:laundryHomeTexts[L],  pts:12+lvl, slot:2, days:['weekday'], time:'17:00'},
-    {id:`f1_${lvl}`, cat:'briut', text:mindfulEatingTexts[L], pts:12+lvl, slot:1, days:['weekday', 'friday', 'saturday'], time:'13:00'},
-    {id:`h4_${lvl}`, cat:'bayit', text:generalOrderTexts[L], pts:10+lvl, slot:2, days:['weekday'], time:'17:30'},
+    // ── משימות צהריים (slot 2) [11:00–18:00] ──
+    {id:`v1_${lvl}`,   cat:'shlichut', text:donorTexts[L],          pts:15+lvl, slot:2, days:['weekday'],                      time:'11:00'},
+    {id:`v2_${lvl}`,   cat:'shlichut', text:crmSystemTexts[L],      pts:12+lvl, slot:2, days:['weekday'],                      time:'11:30'},
+    {id:`l9_${lvl}`,   cat:'limud',    text:lessonPrepTexts[L],     pts:12+lvl, slot:2, days:['weekday'],                      time:'12:00'},
+    {id:`l10_${lvl}`,  cat:'shlichut', text:communityDevTexts[L],   pts:14+lvl, slot:2, days:['weekday'],                      time:'12:30'},
+    {id:`f1_${lvl}`,   cat:'briut',    text:mindfulEatingTexts[L],  pts:12+lvl, slot:2, days:['weekday', 'friday', 'saturday'], time:'13:00'},
+    {id:`p2_${lvl}`,   cat:'limud',    text:minchaTexts[L],         pts:10+lvl, slot:2, days:['weekday'],                      time:'13:30'},
+    {id:`z4_${lvl}`,   cat:'briut',    text:napTexts[L],            pts:12+lvl, slot:2, days:['weekday'],                      time:'14:00'},
+    {id:`h3_${lvl}`,   cat:'bayit',    text:laundryHomeTexts[L],    pts:12+lvl, slot:2, days:['weekday'],                      time:'17:00'},
+    {id:`h4_${lvl}`,   cat:'bayit',    text:generalOrderTexts[L],   pts:10+lvl, slot:2, days:['weekday'],                      time:'17:30'},
 
-    // ── ערב (slot 3) ──
-    {id:`s3_${lvl}`,       cat:'shlichut', text:phoneOffTexts[L],       pts:15+lvl, slot:3, days:['weekday','saturday'],             time:'19:00'},
-    {id:`bed_${lvl}`,      cat:'bayit',    text:bedtimeTexts[L],        pts:10+lvl, slot:3, days:['weekday'],                        time:'19:00'},
-    {id:`a3_${lvl}`,       cat:'briut',    text:kitchenClosureTexts[L], pts:12+lvl, slot:3, days:['weekday'],                        time:'19:30'},
-    {id:`ev_gmara_${lvl}`, cat:'limud',    text:gmaraEveningTexts[L],   pts:16+lvl, slot:3, days:['weekday'],                        time:'20:00'},
-    {id:`ev_lunch_${lvl}`, cat:'bayit',    text:lunchTexts[L],          pts:10+lvl, slot:3, days:['weekday'],                        time:'20:30'},
+    // ── משימות ערב ולילה (slot 3) [18:00–22:45] ──
+    {id:`s3_${lvl}`,       cat:'shlichut', text:phoneOffTexts[L],       pts:15+lvl, slot:3, days:['weekday','saturday'],               time:'19:00'},
+    {id:`bed_${lvl}`,      cat:'bayit',    text:bedtimeTexts[L],        pts:10+lvl, slot:3, days:['weekday'],                          time:'19:00'},
+    {id:`a3_${lvl}`,       cat:'briut',    text:kitchenClosureTexts[L], pts:12+lvl, slot:3, days:['weekday'],                          time:'19:30'},
+    {id:`ev_gmara_${lvl}`, cat:'limud',    text:gmaraEveningTexts[L],   pts:16+lvl, slot:3, days:['weekday'],                          time:'20:00'},
+    {id:`ev_lunch_${lvl}`, cat:'bayit',    text:lunchTexts[L],          pts:10+lvl, slot:3, days:['weekday'],                          time:'20:30'},
     {id:`c1_${lvl}`,       cat:'bayit',    text:coupleTimeTexts[L],     pts:15+lvl, slot:3, days:['weekday','friday','saturday']},
-    {id:`p3_${lvl}`,       cat:'limud',    text:maarivTexts[L],         pts:9+lvl,  slot:3, days:['weekday'],                        time:'21:00'},
-    {id:`h2_${lvl}`,       cat:'bayit',    text:homeTidyingTexts[L],    pts:10+lvl, slot:3, days:['weekday'],                        time:'21:20'},
-    {id:`p4_${lvl}`,       cat:'limud',    text:shemaTexts[L],          pts:11+lvl, slot:3, days:['weekday'],                        time:'21:45'},
-    {id:`sleep_${lvl}`,    cat:'bayit',    text:sleepTexts[L],          pts:14+lvl, slot:3, days:['weekday','saturday'],              time:'22:45'},
+    {id:`p3_${lvl}`,       cat:'limud',    text:maarivTexts[L],         pts:9+lvl,  slot:3, days:['weekday'],                          time:'21:00'},
+    {id:`h2_${lvl}`,       cat:'bayit',    text:homeTidyingTexts[L],    pts:10+lvl, slot:3, days:['weekday'],                          time:'21:20'},
+    {id:`p4_${lvl}`,       cat:'limud',    text:shemaTexts[L],          pts:11+lvl, slot:3, days:['weekday'],                          time:'21:45'},
+    {id:`sleep_${lvl}`,    cat:'bayit',    text:sleepTexts[L],          pts:14+lvl, slot:3, days:['weekday','saturday'],               time:'22:45'},
 
     // ── משימות שבת מיוחדות ──
     {id:`fr1_${lvl}`, cat:'bayit', text:fr1Texts[L], pts:5+lvl, slot:0, days:['friday']},

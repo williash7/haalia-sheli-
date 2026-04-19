@@ -179,6 +179,16 @@ body[dir="rtl"] #side-drawer.on{transform:translateX(0)}
   padding:0;line-height:1;
 }
 .task-snooze-btn:hover,.task-snooze-btn:active{background:rgba(240,120,64,.15);border-color:rgba(240,120,64,.4);color:var(--orange)}
+/* ── ADVANCED LEVEL BUTTON ── */
+.task-adv-btn{
+  width:22px;height:22px;border-radius:50%;
+  background:rgba(155,126,248,.12);border:1px solid rgba(155,126,248,.3);
+  color:var(--purple);font-size:11px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;cursor:pointer;transition:all .15s;
+  padding:0;line-height:1;
+}
+.task-adv-btn:hover,.task-adv-btn:active{background:rgba(155,126,248,.25);border-color:rgba(155,126,248,.6);}
 .task.snoozed{opacity:.28;border-color:transparent;background:var(--bg3)}
 .task.snoozed .tn{text-decoration:line-through;color:var(--txt3)}
 body.focus-mode .task.snoozed{display:none}

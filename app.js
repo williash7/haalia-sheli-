@@ -4161,27 +4161,6 @@ async function aiGenerateRewardsBS(){
   }catch(e){toast('שגיאה בפענוח תשובת AI');resultEl.innerHTML='';}
 }
 
-// --- פונקציית הסתרת משימה ---
-function hideCurrentTask(taskId) {
-    // 1. אזהרה למשתמש
-    if (!confirm("האם להסתיר משימה זו? היא לא תופיע יותר ולא תפגע ברצף (Streak) שלך.")) return;
-
-    // 2. יצירת ה"רשימה השחורה" אם היא לא קיימת עדיין בזיכרון של האפליקציה
-    if (!S.hiddenTasks) {
-        S.hiddenTasks = [];
-    }
-
-    // 3. הוספת המזהה של המשימה לרשימה (אם הוא לא שם כבר)
-    if (!S.hiddenTasks.includes(taskId)) {
-        S.hiddenTasks.push(taskId);
-    }
-
-    // 4. שמירה ועדכון מסך
-    saveData(); // שים לב: אם הפונקציה ששומרת נתונים אצלך נקראת אחרת (למשל syncData), תשנה כאן.
-    closeModal(); // סגירת החלון הקופץ (שנה ל-ID של המודל אם הפונקציה אצלך דורשת ID)
-    renderToday(); // ציור מחדש של המסך הראשי כדי שהמשימה תיעלם (שנה לשם הפונקציה שלך, אולי buildDay)
-}
-
 /* ══ הסתרה / מחיקה — עורך ומודל מידע ══ */
 
 function hideGroupFromEditor(grpId){
