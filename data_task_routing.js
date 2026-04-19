@@ -3,7 +3,39 @@
 
 function getTasks(lvl){
   const expanded = expandGroupsForLevel(lvl);
-  if (expanded) return expanded;
+  if (expanded) {
+    // בדיקה: האם יש משימות חדשות ב-BASE_IDS שחסרות אצל המשתמש?
+    const BASE_IDS = [   'p5', 'b1', 'z1', 'z2', 'b2', 'l8', 'pray', 's1', 'l5', 'w2', 'w1', 'v1', 'v2', 'l9', 'l10', 'p2', 'z4', 
+     'h3', 'f1', 'h4', 's2', 's3', 'bed', 'a3', 'ev_lunch', 'ev_gmara', 'c1', 'p3', 'h2', 'sleep', 'p4', 
+    'fr1', 'sh1', 'sh2', 'sh3'];
+    const userGrpIds = new Set((S.taskGroups || []).map(g => g.id));
+    const missingBases = BASE_IDS.filter(base => !userGrpIds.has('grp_' + base));
+    if (missingBases.length > 0) {
+      // בנה את הקבוצות החסרות מהמשימות המובנות
+      const newGroups = missingBases.map(base => {
+        const levels = [];
+        for (let i = 1; i <= MAX_LVL; i++) {
+          const tasks = _getDefaultTasks(i);
+          const t = tasks.find(x => x.id.startsWith(base + '_'));
+          levels.push({ text: t ? t.text : '', pts: t ? t.pts : 5 });
+        }
+        const t1 = _getDefaultTasks(1).find(x => x.id.startsWith(base + '_'));
+        return {
+          id: 'grp_' + base,
+          cat:    t1 ? t1.cat              : 'zman',
+          slot:   t1 ? t1.slot             : 0,
+          anchor: t1 ? !!t1.anchor         : false,
+          days:   t1 ? (t1.days || ['weekday']) : ['weekday'],
+          time:   t1 ? (t1.time || null)   : null,
+          levels
+        };
+      });
+      // מוסיף את החסרות בסוף — לא נוגע בסדר של המשתמש
+      S.taskGroups = [...(S.taskGroups || []), ...newGroups];
+      if (typeof save === 'function') save();
+    }
+    return expandGroupsForLevel(lvl);
+  }
   return _getDefaultTasks(lvl);
 }
 // Get tasks for today using per-task individual levels

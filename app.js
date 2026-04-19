@@ -1354,6 +1354,12 @@ function _taskProgressHtml(taskId){
   return badge;
 }
 
+/* ══════════════ HELPERS ══════════════ */
+function _baseIdFromTaskId(id){
+  if(!id)return '';
+  return id.replace(/_\d+$/,'');
+}
+
 /* ══════════════ RENDER TODAY ══════════ */
 function renderToday(){
   // Sync view mode buttons
@@ -2195,14 +2201,23 @@ function getGroups() {
 
 /* Build group list from built-in tasks (one-time seed) */
 function builtinGroups() {
-  const BASE_IDS = ['z1','pray','s1','b1','rule60','z2','l1','a1','nap','lesson','l2','z3','b2','sleep','a3','bed','zug','h2','s3','fr1','fr2','fr3','fr4','sh1','sh2','sh3','a2','a4','b3','b4','b5','h3','h4','h5','s2','s4','l3','l4','l5','l6','l7','l8','p2','p3','p4','p5','sh8a','sh8b'];
+  // רשימת מזהי הבסיס המעודכנת בדיוק לפי המשימות ב-_getDefaultTasks
+  const BASE_IDS = [
+    'p5', 'b1', 'z1', 'z2', 'b2', 'l8', 'pray', 's1', 'l5', 'w2', 'w1', 'v1', 'v2', 'l9', 'l10', 'p2', 'z4', 
+     'h3', 'f1', 'h4', 's2', 's3', 'bed', 'a3', 'ev_lunch', 'ev_gmara', 'c1', 'p3', 'h2', 'sleep', 'p4', 
+    'fr1', 'sh1', 'sh2', 'sh3'
+  ];
+
   return BASE_IDS.map(base => {
     const levels = [];
+    // MAX_LVL מוגדר מחוץ לפונקציה (בדרך כלל 15)
     for (let lvl = 1; lvl <= MAX_LVL; lvl++) {
       const tasks = _getDefaultTasks(lvl);
       const t = tasks.find(x => x.id.startsWith(base + '_'));
       levels.push({ text: t ? t.text : '', pts: t ? t.pts : 5 });
     }
+    
+    // משיכת נתוני המטא-דאטה (קטגוריה, סלוט, ימים, זמן) מהרמה הראשונה
     const t1 = _getDefaultTasks(1).find(x => x.id.startsWith(base + '_'));
     return {
       id: 'grp_' + base,
@@ -2362,12 +2377,13 @@ function _openGroupModal(grp) {
   document.getElementById('te-reminder-enabled').checked = grp ? !!grp.reminderEnabled : false;
   document.getElementById('te-reminder-time').value = (grp && grp.reminderTime) ? grp.reminderTime : '09:00';
 
-  // Task info fields
+  // Task info fields — override > built-in TASK_INFO > empty
   const grpInfoOv = grp ? ((S.taskInfoOverride||{})[grp.id]||{}) : {};
-  document.getElementById('te-info-why').value  = grpInfoOv.why  || '';
-  document.getElementById('te-info-desc').value = grpInfoOv.desc || '';
-  document.getElementById('te-info-tip').value  = grpInfoOv.tip  || '';
-  document.getElementById('te-info-goal').value = grpInfoOv.goal || '';
+  const _builtinInfo = (grp && typeof TASK_INFO !== 'undefined') ? (TASK_INFO[grp.id.replace('grp_','')] || {}) : {};
+  document.getElementById('te-info-why').value  = grpInfoOv.why  !== undefined ? grpInfoOv.why  : (_builtinInfo.why  || '');
+  document.getElementById('te-info-desc').value = grpInfoOv.desc !== undefined ? grpInfoOv.desc : (_builtinInfo.desc || '');
+  document.getElementById('te-info-tip').value  = grpInfoOv.tip  !== undefined ? grpInfoOv.tip  : (_builtinInfo.tip  || '');
+  document.getElementById('te-info-goal').value = grpInfoOv.goal !== undefined ? grpInfoOv.goal : (_builtinInfo.goal || '');
 
   const numCol  = document.getElementById('te-levels-rows');
   const textCol = document.getElementById('te-levels-rows-text');
@@ -2444,16 +2460,21 @@ function saveGroupEdit() {
     toast('✓ משימה חדשה נוספה לכל 15 השלבים');
   }
 
-  // Save task info fields
+  // Save task info fields — שמור רק אם שונה מהמובנה, כדי לא לדרוס TASK_INFO בערכים ריקים
   const infoWhy  = (document.getElementById('te-info-why')?.value  || '').trim();
   const infoDesc = (document.getElementById('te-info-desc')?.value || '').trim();
   const infoTip  = (document.getElementById('te-info-tip')?.value  || '').trim();
   const infoGoal = (document.getElementById('te-info-goal')?.value || '').trim();
-  if (infoWhy || infoDesc || infoTip || infoGoal) {
-    if (!S.taskInfoOverride) S.taskInfoOverride = {};
-    const curOv = S.taskInfoOverride[grpObj.id] || {};
-    S.taskInfoOverride[grpObj.id] = { ...curOv, why:infoWhy, desc:infoDesc, tip:infoTip, goal:infoGoal };
-  }
+  if (!S.taskInfoOverride) S.taskInfoOverride = {};
+  const curOv = S.taskInfoOverride[grpObj.id] || {};
+  const _builtinInfoSave = (typeof TASK_INFO !== 'undefined') ? (TASK_INFO[grpObj.id.replace('grp_','')] || {}) : {};
+  const newOv = { ...curOv };
+  if (infoWhy  !== (_builtinInfoSave.why  || '')) newOv.why  = infoWhy;  else delete newOv.why;
+  if (infoDesc !== (_builtinInfoSave.desc || '')) newOv.desc = infoDesc; else delete newOv.desc;
+  if (infoTip  !== (_builtinInfoSave.tip  || '')) newOv.tip  = infoTip;  else delete newOv.tip;
+  if (infoGoal !== (_builtinInfoSave.goal || '')) newOv.goal = infoGoal; else delete newOv.goal;
+  if (Object.keys(newOv).length) S.taskInfoOverride[grpObj.id] = newOv;
+  else delete S.taskInfoOverride[grpObj.id];
 
   save();
   closeModal('modal-task-edit');
