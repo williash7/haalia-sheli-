@@ -7,9 +7,9 @@ const CAT_COLORS_HEX={zman:'#5b8df8',briut:'#38d68a',achila:'#f07840',limud:'#9b
 const DAY_WEEKDAY='weekday', DAY_FRIDAY='friday', DAY_SHABBAT='shabbat';
 const SLOTS=[
   {label:'כל היום',title:'משימות כלליות',icon:'📌',notifHour:8,notifMin:0},
-  {label:'04:45–11:00',title:'משימות בוקר',icon:'🌅',notifHour:4,notifMin:45},
-  {label:'11:00–18:00',title:'משימות צהריים',icon:'☀️',notifHour:11,notifMin:0},
-  {label:'18:00–22:45',title:'משימות ערב ולילה',icon:'🌙',notifHour:18,notifMin:0},
+  {label:'04:45–11:00',title:'משימות הבוקר',icon:'🌅',notifHour:4,notifMin:45},
+  {label:'11:00–18:00',title:'משימות הצהריים',icon:'☀️',notifHour:11,notifMin:0},
+  {label:'18:00–22:45',title:'משימות הערב והלילה',icon:'🌙',notifHour:18,notifMin:0},
 ];
 const SHABBAT_REMINDER={notifHour:20,notifMin:30};
 
