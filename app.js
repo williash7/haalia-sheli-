@@ -4314,6 +4314,7 @@ function openAdvancedLevelModal(taskId, event){
   }, 80);
 
   openModal('modal-advanced-level');
+document.getElementById('adv-bid').value = bid;
 }
 
 let _advSelectedLevel = null;
@@ -4430,29 +4431,6 @@ function confirmAdvancedLevel(){
     toast('✓ סומן — ביצעת את הרמה הנוכחית שלך');
   }
 
-// משתנה גלובלי שישמור את השלב שבחרנו
-let chosenAdvancedLevel = null;
-
-function _selectAdvancedLevel(lvl, curLvl) {
-  chosenAdvancedLevel = lvl;
-
-  // 1. איפוס כל השלבים חזרה למצב ההתחלתי
-  for(let i=1; i<=15; i++) {
-    const row = document.getElementById(`adv-row-${i}`);
-    const chk = document.getElementById(`adv-chk-${i}`);
-    
-    if(row && chk) {
-      // בודק אם זו השורה של הרמה הנוכחית כדי לשמור על העיצוב המקורי שלה
-      const isCur = (i === curLvl);
-      row.style.border = `1px solid ${isCur ? 'rgba(91,141,248,.25)' : 'var(--brd)'}`;
-      row.style.background = isCur ? 'rgba(91,141,248,.06)' : 'var(--surface)';
-      
-      chk.style.background = 'transparent';
-      chk.style.borderColor = 'var(--brd2)';
-      chk.innerHTML = ''; // מחיקת ה-V אם היה
-    }
-  }
-
   // 2. הדלקה וצביעה של השלב שנלחץ
   const selRow = document.getElementById(`adv-row-${lvl}`);
   const selChk = document.getElementById(`adv-chk-${lvl}`);
@@ -4479,4 +4457,3 @@ function _selectAdvancedLevel(lvl, curLvl) {
 }
 
   renderActive();
-}
