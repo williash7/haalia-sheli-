@@ -487,7 +487,6 @@ function applyFocusMode(){
 
 /* ══════════════ SOUND TOGGLE ══════════ */
 function toggleSound(){S.soundEnabled=!S.soundEnabled;save();renderSettings();}
-function toggleDream(id){S.dreamRewardId=S.dreamRewardId===id?null:id;save();renderRewards();renderSettings();}
 function toggleDream(id){
   S.dreamRewardId = S.dreamRewardId===id ? null : id;
   save(); renderRewards(); renderSettings();
@@ -4367,29 +4366,13 @@ function confirmAdvancedLevel(){
 
   // שמור את הסימון של היום
   S.taskAdvancedToday[bid] = todayStr();
+
 // סמן את המשימה כבוצעה
   const todayTasks = getTasksForDay(S.level, getDayType(new Date()));
   const matchTask = todayTasks.find(t => _baseId(t.id) === bid);
   if(matchTask && !S.done[matchTask.id]){
     S.done[matchTask.id] = true;
     playCheck();
-}
-// עדכן תצוגת המשימה לשלב שנבחר
-  const chosenTasks = getTasksForDay(chosenLvl, getDayType(new Date()));
-  const chosenTask = chosenTasks.find(t => _baseId(t.id) === bid);
-  if(chosenTask && matchTask){
-    const taskEl = document.querySelector(`[data-task-id="${matchTask.id}"]`);
-    if(taskEl){
-      const tnEl = taskEl.querySelector('.tn');
-      const tcatEl = taskEl.querySelector('.tcat');
-      if(tnEl) tnEl.textContent = chosenTask.text;
-      if(tcatEl){
-        tcatEl.textContent = `שלב ${chosenLvl} (${chosenLvl > S.level ? '⬆️ עליון' : chosenLvl < S.level ? '⬇️ נמוך' : '✓ רגיל'})`;
-        tcatEl.style.color = chosenLvl > S.level ? 'var(--green)' : chosenLvl < S.level ? 'var(--gold)' : 'var(--teal)';
-        tcatEl.style.background = chosenLvl > S.level ? 'var(--green3)' : chosenLvl < S.level ? 'var(--gold3)' : 'var(--teal3)';
-      }
-    }
-  }
   }  // שמור גם את השלב שנבחר
   if(!S.taskAdvancedChoices) S.taskAdvancedChoices = {};
   S.taskAdvancedChoices[bid] = S.taskAdvancedChoices[bid] || {};
@@ -4423,6 +4406,8 @@ function confirmAdvancedLevel(){
       if(navigator.vibrate) navigator.vibrate(40);
       toast(`⬆️ +1 לעלייה — עוד ${remaining} לשלב הבא`);
     }
+    renderActive();
+    _updateTaskVisual(matchTask, chosenLvl);
   } else if(chosenLvl < curIndivLvl){
     // שלב נמוך מהרמה הנוכחית — ספירה לירידה
     if(!S.taskLowCount) S.taskLowCount={};
@@ -4448,9 +4433,44 @@ function confirmAdvancedLevel(){
       closeModal('modal-advanced-level');
       toast(`⬇️ סומן שלב נמוך — עוד ${remaining} סימונים לירידת רמה`);
     }
+    renderActive();
+    _updateTaskVisual(matchTask, chosenLvl);
   } else {
     // אותה רמה — ניטרלי
     save();
     closeModal('modal-advanced-level');
     toast('✓ סומן — ביצעת את הרמה הנוכחית שלך');
+    renderActive();
+    _updateTaskVisual(matchTask, chosenLvl);
   }
+}
+
+/* ══ עדכון ויזואלי של משימה לאחר בחירת שלב מתקדם ══ */
+function _updateTaskVisual(matchTask, chosenLvl){
+  if(!matchTask) return;
+  const bid = _baseId(matchTask.id);
+  const chosenTasks = getTasksForDay(chosenLvl, getDayType(new Date()));
+  const chosenTask = chosenTasks.find(t => _baseId(t.id) === bid);
+  const taskEl = document.querySelector(`[data-task-id="${matchTask.id}"]`);
+  if(!taskEl || !chosenTask) return;
+
+  const tnEl = taskEl.querySelector('.tn');
+  const tcatEl = taskEl.querySelector('.tcat');
+
+  if(tnEl) tnEl.textContent = chosenTask.text;
+  if(tcatEl){
+    tcatEl.textContent = `שלב ${chosenLvl} ${chosenLvl > S.level ? '⬆️' : chosenLvl < S.level ? '⬇️' : '✓'}`;
+    tcatEl.style.color = chosenLvl > S.level ? 'var(--green)' : chosenLvl < S.level ? 'var(--gold)' : 'var(--teal)';
+    tcatEl.style.background = chosenLvl > S.level ? 'var(--green3)' : chosenLvl < S.level ? 'var(--gold3)' : 'var(--teal3)';
+  }
+  taskEl.style.background = chosenLvl > S.level
+    ? 'rgba(56,214,138,0.08)'
+    : chosenLvl < S.level
+      ? 'rgba(240,192,64,0.08)'
+      : 'rgba(45,212,191,0.08)';
+  taskEl.style.borderColor = chosenLvl > S.level
+    ? 'rgba(56,214,138,0.35)'
+    : chosenLvl < S.level
+      ? 'rgba(240,192,64,0.35)'
+      : 'rgba(45,212,191,0.35)';
+}
