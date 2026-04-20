@@ -2244,7 +2244,7 @@ function builtinGroups() {
   // רשימת מזהי הבסיס המעודכנת בדיוק לפי המשימות ב-_getDefaultTasks
   const BASE_IDS = [
     'p5', 'b1', 'z1', 'z2', 'b2', 'l8', 'pray', 's1', 'l5', 'w2', 'w1', 'v1', 'v2', 'l9', 'l10', 'p2', 'z4', 
-     'h3', 'f1', 'h4', 's2', 's3', 'bed', 'a3', 'ev_lunch', 'ev_gmara', 'c1', 'p3', 'h2', 'sleep', 'p4', 
+     'h3', 'f1', 'h4', 's2', 's3', 'bed', 'a3', 'ev_lunch', 'ev_gmara', 'c1', 'l4', 'p3', 'h2', 'sleep', 'p4', 
     'fr1', 'sh1', 'sh2', 'sh3'
   ];
 
