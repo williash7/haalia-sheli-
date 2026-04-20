@@ -1,5 +1,6 @@
 const SK='aliyah_v34';
 const MAX_LVL=15;
+const TASK_ADVANCED_NEEDED = 5;
 function def(){
   return{done:{},history:[],totalPts:0,redeemed:[],lastDay:new Date().toDateString(),
     level:1,streak:0,
@@ -4266,7 +4267,7 @@ function openAdvancedLevelModal(taskId, event){
     const el = document.createElement('div');
     el.className = 'modal-bg';
     el.id = 'modal-advanced-level';
-    el.onclick = function(e){ if(e.target===this) closeModal('modal-advanced-level'); };
+    el.onclick = function(e){ if(e.target===this) closeModal('modal-advanced-level'); renderActive();};
     el.innerHTML = `<div class="modal-sheet" style="background:var(--bg2);border-radius:20px 20px 0 0;border-top:1px solid var(--brd2);padding:0 0 calc(20px + env(safe-area-inset-bottom,0px));max-height:92vh;overflow-y:auto"><div style="width:36px;height:4px;border-radius:99px;background:var(--brd3);margin:12px auto 18px;flex-shrink:0"></div><div style="display:flex;align-items:center;justify-content:space-between;padding:0 20px;margin-bottom:16px"><div style="font-size:18px;font-weight:900;letter-spacing:-.4px">⬆️ בחר שלב שביצעת</div><button onclick="closeModal('modal-advanced-level')" style="width:30px;height:30px;border-radius:99px;background:var(--bg3);border:none;cursor:pointer;color:var(--txt3);display:flex;align-items:center;justify-content:center">✕</button></div><div style="padding:0 20px"><input type="hidden" id="adv-bid"><div id="adv-already-msg" style="display:none;background:rgba(56,214,138,.08);border:1px solid rgba(56,214,138,.2);border-radius:9px;padding:9px 13px;margin-bottom:12px;font-size:12px;color:var(--green2);font-weight:700;text-align:center"></div><div style="background:rgba(240,192,64,.06);border:1px solid rgba(240,192,64,.18);border-radius:9px;padding:9px 13px;margin-bottom:14px;font-size:11px;color:var(--txt2);line-height:1.6">💡 בחר את השלב שבו <strong style="color:var(--txt)">ביצעת בפועל</strong> את המשימה היום.<br>• <strong>שלב גבוה מהרמה שלך</strong> — 5 פעמים → עלייה<br>• <strong>שלב נמוך מהרמה שלך</strong> — 3 פעמים → ירידה<br>• ניתן לסמן רק פעם אחת ביום</div><div id="adv-level-list" style="display:flex;flex-direction:column;gap:6px;max-height:380px;overflow-y:auto;padding:2px;margin-bottom:14px"></div><button id="adv-confirm-btn" onclick="confirmAdvancedLevel()" disabled style="width:100%;padding:13px;background:var(--sf3);color:var(--txt3);border:1px solid var(--brd2);border-radius:12px;font-size:14px;font-weight:800;cursor:not-allowed;transition:all .2s">בחר שלב קודם</button></div></div>`;
     document.body.appendChild(el);
   }
@@ -4313,8 +4314,8 @@ function openAdvancedLevelModal(taskId, event){
     if(curRow) curRow.scrollIntoView({block:'center',behavior:'smooth'});
   }, 80);
 
-  openModal('modal-advanced-level');
 document.getElementById('adv-bid').value = bid;
+  openModal('modal-advanced-level');
 }
 
 let _advSelectedLevel = null;
@@ -4366,7 +4367,30 @@ function confirmAdvancedLevel(){
 
   // שמור את הסימון של היום
   S.taskAdvancedToday[bid] = todayStr();
-  // שמור גם את השלב שנבחר
+// סמן את המשימה כבוצעה
+  const todayTasks = getTasksForDay(S.level, getDayType(new Date()));
+  const matchTask = todayTasks.find(t => _baseId(t.id) === bid);
+  if(matchTask && !S.done[matchTask.id]){
+    S.done[matchTask.id] = true;
+    playCheck();
+}
+// עדכן תצוגת המשימה לשלב שנבחר
+  const chosenTasks = getTasksForDay(chosenLvl, getDayType(new Date()));
+  const chosenTask = chosenTasks.find(t => _baseId(t.id) === bid);
+  if(chosenTask && matchTask){
+    const taskEl = document.querySelector(`[data-task-id="${matchTask.id}"]`);
+    if(taskEl){
+      const tnEl = taskEl.querySelector('.tn');
+      const tcatEl = taskEl.querySelector('.tcat');
+      if(tnEl) tnEl.textContent = chosenTask.text;
+      if(tcatEl){
+        tcatEl.textContent = `שלב ${chosenLvl} (${chosenLvl > S.level ? '⬆️ עליון' : chosenLvl < S.level ? '⬇️ נמוך' : '✓ רגיל'})`;
+        tcatEl.style.color = chosenLvl > S.level ? 'var(--green)' : chosenLvl < S.level ? 'var(--gold)' : 'var(--teal)';
+        tcatEl.style.background = chosenLvl > S.level ? 'var(--green3)' : chosenLvl < S.level ? 'var(--gold3)' : 'var(--teal3)';
+      }
+    }
+  }
+  }  // שמור גם את השלב שנבחר
   if(!S.taskAdvancedChoices) S.taskAdvancedChoices = {};
   S.taskAdvancedChoices[bid] = S.taskAdvancedChoices[bid] || {};
   if(!S.taskAdvancedChoices[bid][todayStr()]) {
@@ -4430,30 +4454,3 @@ function confirmAdvancedLevel(){
     closeModal('modal-advanced-level');
     toast('✓ סומן — ביצעת את הרמה הנוכחית שלך');
   }
-
-  // 2. הדלקה וצביעה של השלב שנלחץ
-  const selRow = document.getElementById(`adv-row-${lvl}`);
-  const selChk = document.getElementById(`adv-chk-${lvl}`);
-  
-  if(selRow && selChk) {
-    selRow.style.border = '1px solid var(--purple)';
-    selRow.style.background = 'rgba(155,126,248,0.08)'; // רקע סגול עדין
-    selChk.style.background = 'var(--purple)';
-    selChk.style.borderColor = 'var(--purple)';
-    
-    // הוספת אייקון V לבן בתוך העיגול
-    selChk.innerHTML = `<svg width="12" height="12" viewBox="0 0 20 20" fill="#fff"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>`;
-  }
-
-  // 3. הדלקת כפתור האישור התחתון
-  const btn = document.getElementById('adv-confirm-btn');
-  if(btn) {
-    btn.disabled = false;
-    btn.style.cursor = 'pointer';
-    btn.style.background = 'var(--purple)';
-    btn.style.color = '#fff';
-    btn.innerText = '✓ עדכן רמה למשימה זו';
-  }
-}
-
-  renderActive();
