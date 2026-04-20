@@ -1845,9 +1845,27 @@ function _renderTaskHtml(t, isBonus, extraStyle){
       <div class="tcb" onclick="event.stopPropagation();toggleTask('${safeId}',${t.pts})">${chkSvg()}</div>
       <div class="tbody">
         ${titleLine}
-        <div class="tn">${t.text}</div>
+        <div class="tn">${(()=>{
+  const _bid = _baseId(t.id);
+  const _chosenLvl = S.taskAdvancedDisplay && S.taskAdvancedDisplay[_bid];
+  if(_chosenLvl){
+    const _altTasks = getTasksForDay(_chosenLvl, getDayType(new Date()));
+    const _alt = _altTasks.find(x => _baseId(x.id) === _bid);
+    return _alt ? _alt.text : t.text;
+  }
+  return t.text;
+})()}</div>
         <div style="display:flex;align-items:center;flex-wrap:wrap;gap:3px;margin-top:3px">
-          ${timeTag}<span class="tcat">${CATS[t.cat]||t.cat}</span>${subBadge}${_taskProgressHtml(t.id)}
+      ${timeTag}<span class="tcat">${CATS[t.cat]||t.cat}</span>${(()=>{
+  const _bid = _baseId(t.id);
+  const _chosenLvl = S.taskAdvancedDisplay && S.taskAdvancedDisplay[_bid];
+  if(_chosenLvl){
+    const _color = _chosenLvl > S.level ? 'var(--green)' : 'var(--gold)';
+    const _arrow = _chosenLvl > S.level ? '⬆️' : '⬇️';
+    return `<span style="font-size:10px;font-weight:800;color:${_color};background:var(--bg3);border-radius:4px;padding:1px 5px">${_arrow} שלב ${_chosenLvl}</span>`;
+  }
+  return '';
+})()}
         </div>
       </div>
       ${subExpandBtn}
@@ -4366,6 +4384,9 @@ function confirmAdvancedLevel(){
 
   // שמור את הסימון של היום
   S.taskAdvancedToday[bid] = todayStr();
+if(!S.taskAdvancedDisplay) S.taskAdvancedDisplay = {};
+S.taskAdvancedDisplay[bid] = chosenLvl;
+save();
 
 // סמן את המשימה כבוצעה
   const todayTasks = getTasksForDay(S.level, getDayType(new Date()));
@@ -4406,8 +4427,8 @@ function confirmAdvancedLevel(){
       if(navigator.vibrate) navigator.vibrate(40);
       toast(`⬆️ +1 לעלייה — עוד ${remaining} לשלב הבא`);
     }
-    renderActive();
-    _updateTaskVisual(matchTask, chosenLvl);
+   _updateTaskVisual(matchTask, chosenLvl);
+renderActive();
   } else if(chosenLvl < curIndivLvl){
     // שלב נמוך מהרמה הנוכחית — ספירה לירידה
     if(!S.taskLowCount) S.taskLowCount={};
@@ -4433,15 +4454,15 @@ function confirmAdvancedLevel(){
       closeModal('modal-advanced-level');
       toast(`⬇️ סומן שלב נמוך — עוד ${remaining} סימונים לירידת רמה`);
     }
-    renderActive();
-    _updateTaskVisual(matchTask, chosenLvl);
+  _updateTaskVisual(matchTask, chosenLvl);
+renderActive();
   } else {
     // אותה רמה — ניטרלי
     save();
     closeModal('modal-advanced-level');
     toast('✓ סומן — ביצעת את הרמה הנוכחית שלך');
-    renderActive();
-    _updateTaskVisual(matchTask, chosenLvl);
+_updateTaskVisual(matchTask, chosenLvl);
+renderActive();
   }
 }
 
@@ -4460,17 +4481,14 @@ function _updateTaskVisual(matchTask, chosenLvl){
   if(tnEl) tnEl.textContent = chosenTask.text;
   if(tcatEl){
     tcatEl.textContent = `שלב ${chosenLvl} ${chosenLvl > S.level ? '⬆️' : chosenLvl < S.level ? '⬇️' : '✓'}`;
-    tcatEl.style.color = chosenLvl > S.level ? 'var(--green)' : chosenLvl < S.level ? 'var(--gold)' : 'var(--teal)';
-    tcatEl.style.background = chosenLvl > S.level ? 'var(--green3)' : chosenLvl < S.level ? 'var(--gold3)' : 'var(--teal3)';
+    tcatEl.style.color = chosenLvl > S.level ? 'var(--green)' : 'var(--gold)';
+    tcatEl.style.background = chosenLvl > S.level ? 'var(--green3)' : 'var(--gold3)';
   }
-  taskEl.style.background = chosenLvl > S.level
-    ? 'rgba(56,214,138,0.08)'
-    : chosenLvl < S.level
-      ? 'rgba(240,192,64,0.08)'
-      : 'rgba(45,212,191,0.08)';
+
   taskEl.style.borderColor = chosenLvl > S.level
-    ? 'rgba(56,214,138,0.35)'
-    : chosenLvl < S.level
-      ? 'rgba(240,192,64,0.35)'
-      : 'rgba(45,212,191,0.35)';
+    ? 'rgba(56,214,138,0.6)'
+    : 'rgba(240,192,64,0.6)';
+  taskEl.style.background = chosenLvl > S.level
+    ? 'rgba(56,214,138,0.1)'
+    : 'rgba(240,192,64,0.1)';
 }
