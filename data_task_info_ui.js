@@ -22,7 +22,9 @@ function showTaskInfo(baseId, taskText, taskPts, event) {
   if(baseId && baseId.startsWith('grp_')) baseId = baseId.slice(4);
   _tieCurrentBaseId = baseId;
 
-  const lvl = S.level;
+    const lvl = (S.taskAdvancedDisplay && S.taskAdvancedDisplay[baseId])
+      ? S.taskAdvancedDisplay[baseId]
+      : S.level;
   const base = TASK_INFO[baseId] || {
     title: taskText,
     why: 'עקביות יומית בכל הרגל קטן היא הדרך שבה נבנה האדם.',
