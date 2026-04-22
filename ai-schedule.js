@@ -1,6 +1,54 @@
 /* ═══════════════════════════════════════════════════════
-   ai-schedule.js  —  לוז יומי חכם עם AI (v2)
+   ai-schedule.js  —  לוז יומי חכם עם AI (v3)
+   ── שיפורים: לוז קבוע שמתעדכן כל בוקר, שמירת לוז, תצוגה מורחבת ──
    ═══════════════════════════════════════════════════════ */
+
+/* ══════════════ SCHEDULE STORAGE ══════════════ */
+
+const SCHED_SK = 'aliyah_daily_schedule_v1';
+
+function _loadScheduleStore() {
+  try { const r = localStorage.getItem(SCHED_SK); if (r) return JSON.parse(r); } catch(e) {}
+  return {};
+}
+
+function _saveScheduleStore(store) {
+  try { localStorage.setItem(SCHED_SK, JSON.stringify(store)); } catch(e) {}
+}
+
+function _getTodayScheduleKey() {
+  return new Date().toDateString();
+}
+
+/** מחזיר את הלוז השמור להיום (null אם אין) */
+function getTodaySavedSchedule() {
+  const store = _loadScheduleStore();
+  return store[_getTodayScheduleKey()] || null;
+}
+
+/** שומר לוז להיום */
+function saveTodaySchedule(raw) {
+  const store = _loadScheduleStore();
+  store[_getTodayScheduleKey()] = {
+    raw,
+    savedAt: new Date().toISOString(),
+    level: S.level,
+    streak: S.streak
+  };
+  // שמור רק 7 ימים אחרונים
+  const keys = Object.keys(store).sort((a, b) => new Date(b) - new Date(a));
+  if (keys.length > 7) keys.slice(7).forEach(k => delete store[k]);
+  _saveScheduleStore(store);
+}
+
+/** מוחק את הלוז של היום */
+function clearTodaySchedule() {
+  const store = _loadScheduleStore();
+  delete store[_getTodayScheduleKey()];
+  _saveScheduleStore(store);
+}
+
+/* ══════════════ MODAL ══════════════ */
 
 (function createScheduleModal(){
   if(document.getElementById('modal-schedule')) return;
@@ -49,6 +97,208 @@
   document.body.appendChild(el);
 })();
 
+/* ══════════════ DAILY SCHEDULE WIDGET (דף היום) ══════════════ */
+
+/**
+ * יוצר את ה-widget של הלוז הקבוע ב-DOM של דף "היום".
+ * קורא את הלוז הקיים (אם יש) ומציג אותו.
+ */
+function renderDailyScheduleWidget() {
+  // מוצאים את container. אם לא קיים — יוצרים ומכניסים אחרי ה-summary card
+  let wrap = document.getElementById('daily-schedule-widget');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.id = 'daily-schedule-widget';
+    // מכניסים אחרי ה-tasks-section (לפי מבנה ה-HTML הקיים)
+    const tasksSection = document.getElementById('tasks-section');
+    if (tasksSection) {
+      tasksSection.parentNode.insertBefore(wrap, tasksSection);
+    } else {
+      // fallback — מכניסים בתחתית ה-app div
+      const app = document.getElementById('app');
+      if (app) app.appendChild(wrap);
+    }
+  }
+
+  const saved = getTodaySavedSchedule();
+
+  if (!saved) {
+    // הצג רק כפתור "צור לוז יומי"
+    wrap.innerHTML = `
+      <div id="dsw-collapsed" style="margin-bottom:14px">
+        <button onclick="openScheduleModal()"
+          style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
+          padding:11px 16px;background:var(--surface);border:1px dashed rgba(45,212,191,.35);
+          border-radius:var(--r-sm);font-size:12px;font-weight:800;color:var(--teal);
+          cursor:pointer;font-family:'Heebo',sans-serif;transition:all .2s">
+          📅 צור לוז יומי חכם
+        </button>
+      </div>`;
+    return;
+  }
+
+  // יש לוז שמור — הצג אותו
+  wrap.innerHTML = _buildScheduleWidgetHtml(saved);
+}
+
+/** בונה את ה-HTML של ה-widget עם הלוז השמור */
+function _buildScheduleWidgetHtml(saved) {
+  const raw = saved.raw || '';
+  const savedTime = saved.savedAt ? new Date(saved.savedAt) : null;
+  const timeLabel = savedTime
+    ? savedTime.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
+    : '';
+
+  // מחלץ שורות לוז ושורות סיכום
+  const { taskLines, summaryLines } = _parseScheduleRaw(raw);
+  const now = new Date();
+
+  // בנה שורות עם צביעת "עכשיו" / "עבר"
+  const taskRowsHtml = taskLines.map((line, i) => {
+    const parts = line.trim().split('•').map(p => p.trim());
+    const timeStr = parts[0] || '';
+    const taskName = parts[1] || '';
+    const dur = parts[2] || '';
+
+    // בדוק אם הזמן עבר
+    let isPast = false, isCurrent = false;
+    const timeParsed = _parseTimeStr(timeStr);
+    if (timeParsed) {
+      const taskDate = new Date();
+      taskDate.setHours(timeParsed.h, timeParsed.m, 0, 0);
+      const nextLine = taskLines[i + 1];
+      let nextDate = null;
+      if (nextLine) {
+        const np = nextLine.trim().split('•')[0].trim();
+        const nt = _parseTimeStr(np);
+        if (nt) { nextDate = new Date(); nextDate.setHours(nt.h, nt.m, 0, 0); }
+      }
+      isPast = nextDate ? now > nextDate : now > new Date(taskDate.getTime() + 60*60*1000);
+      isCurrent = !isPast && now >= taskDate;
+    }
+
+    const isFixed = /מנחה|מעריב|חת"ת|תפילה|רמב"ם|שחרית|מקווה/.test(taskName);
+    const accentStyle = isFixed ? 'border-right:3px solid rgba(45,212,191,.6)' : '';
+    const pastStyle = isPast ? 'opacity:0.42' : '';
+    const currentBg = isCurrent ? 'background:rgba(45,212,191,.07)' : (i % 2 === 0 ? 'background:var(--surface)' : 'background:var(--bg3)');
+    const currentDot = isCurrent ? '<span style="width:7px;height:7px;border-radius:50%;background:var(--teal);display:inline-block;margin-left:5px;animation:pulse-teal 1.5s infinite"></span>' : '';
+
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;${currentBg};${accentStyle};${pastStyle};border-bottom:1px solid var(--brd)">
+      <div style="font-size:11px;font-weight:800;color:${isCurrent?'var(--teal)':'var(--txt3)'};min-width:44px;flex-shrink:0;display:flex;align-items:center">${timeStr}${currentDot}</div>
+      <div style="flex:1;font-size:12px;color:${isPast?'var(--txt3)':'var(--txt)'};line-height:1.3;${isPast?'text-decoration:line-through;':''}">${taskName}</div>
+      <div style="font-size:11px;color:var(--txt3);flex-shrink:0">${dur}</div>
+    </div>`;
+  }).join('');
+
+  // בנה סיכום (📊 💡 🎁 🛡️)
+  const summaryHtml = summaryLines
+    .filter(l => l.trim())
+    .map(l => {
+      const icon = l.match(/^(📊|💡|🎁|🛡️|🎯)/)?.[0] || '';
+      const text = l.replace(/^(📊|💡|🎁|🛡️|🎯)\s*/, '');
+      if (!icon) return `<div style="font-size:11px;color:var(--txt2);line-height:1.6;padding:2px 0">${text}</div>`;
+      const colors = { '📊': 'var(--blue)', '💡': 'var(--gold)', '🎁': 'var(--green)', '🛡️': 'var(--gold)', '🎯': 'var(--teal)' };
+      const bgs   = { '📊': 'rgba(91,141,248,.08)', '💡': 'rgba(240,192,64,.08)', '🎁': 'rgba(56,214,138,.08)', '🛡️': 'rgba(240,192,64,.08)', '🎯': 'rgba(45,212,191,.08)' };
+      return `<div style="display:flex;gap:8px;padding:6px 10px;background:${bgs[icon]||'var(--bg3)'};border-radius:8px;margin-bottom:4px;font-size:11px;color:${colors[icon]||'var(--txt2)'}">
+        <span style="flex-shrink:0">${icon}</span><span>${text}</span>
+      </div>`;
+    }).join('');
+
+  const doneCount = getTasksForDay(S.level, getDayType(new Date())).filter(t => S.done[t.id]).length;
+  const totalCount = getTasksForDay(S.level, getDayType(new Date())).length;
+  const pct = totalCount ? Math.round(doneCount / totalCount * 100) : 0;
+
+  return `
+    <style>
+      @keyframes pulse-teal {
+        0%,100%{opacity:1;transform:scale(1)}
+        50%{opacity:.5;transform:scale(1.3)}
+      }
+    </style>
+    <div id="daily-schedule-widget-inner" style="margin-bottom:14px">
+      <!-- כותרת -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:7px">
+          <span style="font-size:14px;font-weight:900;color:var(--teal)">📅 הלוז שלי היום</span>
+          <span style="font-size:10px;color:var(--txt3);font-weight:600">${timeLabel ? 'נוצר ב-'+timeLabel : ''}</span>
+        </div>
+        <div style="display:flex;gap:5px">
+          <button onclick="openScheduleModal()"
+            title="עדכן לוז"
+            style="padding:4px 10px;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.3);border-radius:7px;font-size:10px;font-weight:800;color:var(--teal);cursor:pointer;font-family:'Heebo',sans-serif">
+            ↻ עדכן
+          </button>
+          <button onclick="_clearAndRerenderSchedule()"
+            title="מחק לוז"
+            style="padding:4px 8px;background:var(--sf3);border:1px solid var(--brd2);border-radius:7px;font-size:10px;color:var(--txt3);cursor:pointer;font-family:'Heebo',sans-serif">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- התקדמות היום -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:7px 10px;background:var(--surface);border:1px solid var(--brd);border-radius:9px">
+        <div style="height:5px;flex:1;background:var(--sf2);border-radius:99px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${pct>=80?'var(--green)':'var(--teal)'};border-radius:99px;transition:width .6s"></div>
+        </div>
+        <span style="font-size:11px;font-weight:800;color:${pct>=80?'var(--green)':'var(--teal)'};white-space:nowrap">${doneCount}/${totalCount} (${pct}%)</span>
+      </div>
+
+      <!-- שורות הלוז -->
+      <div id="dsw-toggle-wrap">
+        <div id="dsw-task-rows" style="border:1px solid var(--brd);border-radius:10px;overflow:hidden;margin-bottom:8px">
+          ${taskRowsHtml || '<div style="padding:12px;font-size:12px;color:var(--txt3);text-align:center">אין שורות לוז</div>'}
+        </div>
+
+        <!-- סיכום -->
+        ${summaryHtml ? `<div id="dsw-summary" style="margin-bottom:8px">${summaryHtml}</div>` : ''}
+      </div>
+
+      <!-- כפתור קיפול -->
+      <button onclick="_toggleScheduleWidget()" id="dsw-toggle-btn"
+        style="width:100%;padding:5px;background:var(--sf2);border:1px solid var(--brd);border-radius:7px;font-size:10px;font-weight:700;color:var(--txt3);cursor:pointer;font-family:'Heebo',sans-serif">
+        ▲ כווץ לוז
+      </button>
+    </div>`;
+}
+
+/** קיפול/פריסה של ה-widget */
+let _schedWidgetCollapsed = false;
+function _toggleScheduleWidget() {
+  _schedWidgetCollapsed = !_schedWidgetCollapsed;
+  const wrap = document.getElementById('dsw-toggle-wrap');
+  const btn  = document.getElementById('dsw-toggle-btn');
+  if (wrap) wrap.style.display = _schedWidgetCollapsed ? 'none' : '';
+  if (btn)  btn.textContent = _schedWidgetCollapsed ? '▼ הצג לוז' : '▲ כווץ לוז';
+}
+
+/** מוחק לוז ומרנדר מחדש */
+function _clearAndRerenderSchedule() {
+  clearTodaySchedule();
+  window._lastScheduleRaw = null;
+  renderDailyScheduleWidget();
+  if (typeof toast === 'function') toast('🗑 הלוז נמחק');
+}
+
+/* ══════════════ PARSE UTILS ══════════════ */
+
+function _parseScheduleRaw(raw) {
+  const lines = (raw || '').split('\n');
+  const isTaskLine = l => /^\d{1,2}:\d{2}/.test(l.trim());
+  return {
+    taskLines: lines.filter(isTaskLine),
+    summaryLines: lines.filter(l => !isTaskLine(l) && l.trim() && !l.includes('לוז') && !/^⏱/.test(l.trim()))
+  };
+}
+
+function _parseTimeStr(str) {
+  const m = (str || '').match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return null;
+  return { h: parseInt(m[1]), m: parseInt(m[2]) };
+}
+
+/* ══════════════ SCHEDULE MODAL LOGIC ══════════════ */
+
 function _setSchedNowTime(){
   const now = new Date();
   const hh = String(now.getHours()).padStart(2,'0');
@@ -60,7 +310,15 @@ function _setSchedNowTime(){
 function openScheduleModal(){
   _setSchedNowTime();
   const res = document.getElementById('sched-result');
-  if(res) res.innerHTML = '';
+
+  // אם יש לוז שמור — הצג אותו תחילה עם אפשרות לעדכן
+  const saved = getTodaySavedSchedule();
+  if (saved && res) {
+    res.innerHTML = _buildSavedScheduleInModal(saved.raw);
+  } else if (res) {
+    res.innerHTML = '';
+  }
+
   document.getElementById('modal-schedule').classList.add('on');
   document.body.style.overflow = 'hidden';
 }
@@ -70,6 +328,16 @@ function closeScheduleModal(){
   if(!document.querySelector('.bs-bg.on,.modal-bg.on'))
     document.body.style.overflow = '';
 }
+
+/** HTML של לוז שמור בתוך המודל */
+function _buildSavedScheduleInModal(raw) {
+  return `<div style="background:rgba(45,212,191,.06);border:1px solid rgba(45,212,191,.2);border-radius:10px;padding:11px 13px;margin-bottom:8px">
+    <div style="font-size:11px;font-weight:800;color:var(--teal);margin-bottom:8px">✅ לוז נוכחי (לחץ "סדר לי את היום" לעדכון)</div>
+    ${_renderScheduleResultHtml(raw)}
+  </div>`;
+}
+
+/* ══════════════ GENERATE + SAVE ══════════════ */
 
 function _buildScheduleContext(){
   const dayType = getDayType(new Date());
@@ -142,7 +410,7 @@ async function generateSchedule(){
 
   const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
   const availMin = toMin(endTime) - toMin(nowTime);
-  if(availMin <= 0){ toast('שעת הסיום חייבת להיות אחרי השעה הנוכחית'); return; }
+  if(availMin <= 0){ if(typeof toast==='function') toast('שעת הסיום חייבת להיות אחרי השעה הנוכחית'); return; }
 
   btn.disabled = true;
   btn.textContent = '⏳ מסדר...';
@@ -203,32 +471,52 @@ ${ctx.gracesRemaining>0 || ctx.focusDaysRemaining>0 ? '🛡️ ייעוץ: [הא
   }
 
   window._lastScheduleRaw = raw;
-  _renderScheduleResult(res, raw);
+  _renderScheduleResultInModal(res, raw);
 }
 
-function _renderScheduleResult(container, raw){
-  const lines = raw.split('\n');
+/** מציג תוצאה במודל עם כפתור שמירה */
+function _renderScheduleResultInModal(container, raw){
+  const html = _renderScheduleResultHtml(raw);
 
-  // מזהה שורות לוז: מתחילות בשעה (XX:XX)
+  container.innerHTML = `
+    <div style="background:rgba(45,212,191,.05);border:1px solid rgba(45,212,191,.2);border-radius:12px;padding:14px">
+      ${html}
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button onclick="_saveAndShowSchedule()" 
+          style="flex:2;padding:10px;background:linear-gradient(135deg,var(--teal),#0a8a70);color:#fff;border-radius:9px;font-size:12px;font-weight:800;cursor:pointer;font-family:'Heebo',sans-serif;border:none">
+          💾 שמור לוז ב"היום"
+        </button>
+        <button onclick="sendScheduleToChat()" 
+          style="flex:1;padding:10px;background:rgba(155,126,248,.12);border:1px solid rgba(155,126,248,.3);border-radius:9px;font-size:11px;font-weight:800;color:var(--purple);cursor:pointer;font-family:'Heebo',sans-serif">
+          💬 שאל
+        </button>
+        <button onclick="generateSchedule()" 
+          style="flex:1;padding:10px;background:var(--sf3);border:1px solid var(--brd2);border-radius:9px;font-size:11px;font-weight:800;color:var(--txt2);cursor:pointer;font-family:'Heebo',sans-serif">
+          ↻ בנה מחדש
+        </button>
+      </div>
+    </div>`;
+}
+
+/** מציג HTML של לוז (ללא כפתורים) */
+function _renderScheduleResultHtml(raw) {
+  const lines = raw.split('\n');
   const isTaskLine = l => /^\d{1,2}:\d{2}/.test(l.trim());
   const taskLines = lines.filter(isTaskLine);
   const otherLines = lines.filter(l => !isTaskLine(l));
 
-  // בנה כרטיסי לוז
   let schedHtml = '';
   if(taskLines.length){
-    schedHtml += `<div style="border:1px solid var(--brd);border-radius:10px;overflow:hidden;margin-bottom:12px">`;
+    schedHtml += `<div style="border:1px solid var(--brd);border-radius:10px;overflow:hidden;margin-bottom:8px">`;
     taskLines.forEach((line, i) => {
       const parts = line.trim().split('•').map(p=>p.trim());
       const timeStr = parts[0] || '';
       const taskName = parts[1] || '';
       const dur = parts[2] || '';
-      const bg = i%2===0 ? 'var(--surface)' : 'var(--bg3)';
-      // האם משימה קבועה (תפילה, חת"ת)
       const isFixed = /מנחה|מעריב|חת"ת|תפילה|רמב"ם/.test(taskName);
       const accent = isFixed ? 'border-right:3px solid rgba(45,212,191,.6)' : '';
       schedHtml += `
-        <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:${bg};${accent};border-bottom:1px solid var(--brd)">
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:${i%2===0?'var(--surface)':'var(--bg3)'};${accent};border-bottom:1px solid var(--brd)">
           <div style="font-size:11px;font-weight:800;color:var(--teal);min-width:44px;flex-shrink:0">${timeStr}</div>
           <div style="flex:1;font-size:12px;color:var(--txt);line-height:1.3">${taskName}</div>
           <div style="font-size:11px;color:var(--txt3);flex-shrink:0">${dur}</div>
@@ -237,7 +525,6 @@ function _renderScheduleResult(container, raw){
     schedHtml += `</div>`;
   }
 
-  // שאר הטקסט (סיכום, פרס, ייעוץ)
   const summaryRaw = otherLines
     .filter(l => l.trim() && !l.includes('לוז') && !/^⏱/.test(l.trim()))
     .join('\n');
@@ -245,22 +532,20 @@ function _renderScheduleResult(container, raw){
   const summaryHtml = summaryRaw
     .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
     .replace(/^(📊|💡|🎁|🛡️|🎯)(.+)$/gm,
-      '<div style="display:flex;gap:6px;padding:4px 0;font-size:12px"><span style="flex-shrink:0">$1</span><span>$2</span></div>')
+      '<div style="display:flex;gap:6px;padding:4px 0;font-size:11px"><span style="flex-shrink:0">$1</span><span>$2</span></div>')
     .replace(/\n{2,}/g,'<div style="height:4px"></div>');
 
-  container.innerHTML = `
-    <div style="background:rgba(45,212,191,.05);border:1px solid rgba(45,212,191,.2);border-radius:12px;padding:14px">
-      ${schedHtml}
-      <div style="color:var(--txt);line-height:1.75">${summaryHtml}</div>
-      <div style="display:flex;gap:8px;margin-top:12px">
-        <button onclick="sendScheduleToChat()" style="flex:1;padding:9px;background:rgba(155,126,248,.12);border:1px solid rgba(155,126,248,.3);border-radius:9px;font-size:11px;font-weight:800;color:var(--purple);cursor:pointer;font-family:'Heebo',sans-serif">
-          💬 שאל על הלוז
-        </button>
-        <button onclick="generateSchedule()" style="flex:1;padding:9px;background:var(--sf3);border:1px solid var(--brd2);border-radius:9px;font-size:11px;font-weight:800;color:var(--txt2);cursor:pointer;font-family:'Heebo',sans-serif">
-          ↻ בנה מחדש
-        </button>
-      </div>
-    </div>`;
+  return `${schedHtml}<div style="color:var(--txt);line-height:1.75">${summaryHtml}</div>`;
+}
+
+/** שומר לוז ומעדכן את ה-widget בדף היום */
+function _saveAndShowSchedule() {
+  if (!window._lastScheduleRaw) return;
+  saveTodaySchedule(window._lastScheduleRaw);
+  closeScheduleModal();
+  renderDailyScheduleWidget();
+  if (typeof toast === 'function') toast('✅ הלוז נשמר ומוצג בדף היום!');
+  if (navigator.vibrate) navigator.vibrate([30, 10, 30]);
 }
 
 function sendScheduleToChat(){
@@ -281,6 +566,34 @@ function sendScheduleToChat(){
     }, 300);
   }, 200);
 }
+
+/* ══════════════ HOOK INTO EXISTING RENDER ══════════════ */
+
+/**
+ * עוקף את renderToday המקורי כדי להזריק את ה-widget.
+ * קורא אחרי ה-renderToday המקורי.
+ */
+(function _patchRenderToday() {
+  // ממתין ל-renderToday שיהיה מוגדר
+  let _attempts = 0;
+  const _interval = setInterval(() => {
+    _attempts++;
+    if (typeof renderToday === 'function') {
+      clearInterval(_interval);
+      const _origRenderToday = renderToday;
+      window.renderToday = function() {
+        _origRenderToday.apply(this, arguments);
+        // הזרק את ה-widget אחרי ה-render
+        setTimeout(renderDailyScheduleWidget, 50);
+      };
+      // רנדר ראשוני
+      renderDailyScheduleWidget();
+    }
+    if (_attempts > 100) clearInterval(_interval); // timeout אחרי 10 שניות
+  }, 100);
+})();
+
+/* ══════════════ AI FAB & BOTTOMSHEET INTEGRATION ══════════════ */
 
 function _addScheduleBtnToChat(){
   if(document.getElementById('sched-chat-btn')) return;
