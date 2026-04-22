@@ -1,6 +1,7 @@
 /* ═══════════════════════════════════════════════════════
    ai-schedule.js  —  לוז יומי חכם עם AI (v3)
    ── שיפורים: לוז קבוע שמתעדכן כל בוקר, שמירת לוז, תצוגה מורחבת ──
+   ── כולל תיקון "עוגני זמן" ודיוק כרונולוגי למנוע ה-AI ──
    ═══════════════════════════════════════════════════════ */
 
 /* ══════════════ SCHEDULE STORAGE ══════════════ */
@@ -65,7 +66,7 @@ function clearTodaySchedule() {
     </div>
 
     <div style="background:rgba(45,212,191,.07);border:1px solid rgba(45,212,191,.2);border-radius:10px;padding:11px 13px;margin-bottom:12px;font-size:12px;color:var(--txt2);line-height:1.6">
-      ⏰ ה-AI רואה מה בוצע ומה נשאר, ובונה לוז ריאלי לשאר היום.
+      ⏰ ה-AI רואה מה בוצע ומה נשאר, ובונה לוז ריאלי לשאר היום. משימות עם שעה קבועה יישמרו בדיוק בזמנן.
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
@@ -99,22 +100,15 @@ function clearTodaySchedule() {
 
 /* ══════════════ DAILY SCHEDULE WIDGET (דף היום) ══════════════ */
 
-/**
- * יוצר את ה-widget של הלוז הקבוע ב-DOM של דף "היום".
- * קורא את הלוז הקיים (אם יש) ומציג אותו.
- */
 function renderDailyScheduleWidget() {
-  // מוצאים את container. אם לא קיים — יוצרים ומכניסים אחרי ה-summary card
   let wrap = document.getElementById('daily-schedule-widget');
   if (!wrap) {
     wrap = document.createElement('div');
     wrap.id = 'daily-schedule-widget';
-    // מכניסים אחרי ה-tasks-section (לפי מבנה ה-HTML הקיים)
     const tasksSection = document.getElementById('tasks-section');
     if (tasksSection) {
       tasksSection.parentNode.insertBefore(wrap, tasksSection);
     } else {
-      // fallback — מכניסים בתחתית ה-app div
       const app = document.getElementById('app');
       if (app) app.appendChild(wrap);
     }
@@ -123,7 +117,6 @@ function renderDailyScheduleWidget() {
   const saved = getTodaySavedSchedule();
 
   if (!saved) {
-    // הצג רק כפתור "צור לוז יומי"
     wrap.innerHTML = `
       <div id="dsw-collapsed" style="margin-bottom:14px">
         <button onclick="openScheduleModal()"
@@ -137,11 +130,9 @@ function renderDailyScheduleWidget() {
     return;
   }
 
-  // יש לוז שמור — הצג אותו
   wrap.innerHTML = _buildScheduleWidgetHtml(saved);
 }
 
-/** בונה את ה-HTML של ה-widget עם הלוז השמור */
 function _buildScheduleWidgetHtml(saved) {
   const raw = saved.raw || '';
   const savedTime = saved.savedAt ? new Date(saved.savedAt) : null;
@@ -149,18 +140,15 @@ function _buildScheduleWidgetHtml(saved) {
     ? savedTime.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
     : '';
 
-  // מחלץ שורות לוז ושורות סיכום
   const { taskLines, summaryLines } = _parseScheduleRaw(raw);
   const now = new Date();
 
-  // בנה שורות עם צביעת "עכשיו" / "עבר"
   const taskRowsHtml = taskLines.map((line, i) => {
     const parts = line.trim().split('•').map(p => p.trim());
     const timeStr = parts[0] || '';
     const taskName = parts[1] || '';
     const dur = parts[2] || '';
 
-    // בדוק אם הזמן עבר
     let isPast = false, isCurrent = false;
     const timeParsed = _parseTimeStr(timeStr);
     if (timeParsed) {
@@ -190,7 +178,6 @@ function _buildScheduleWidgetHtml(saved) {
     </div>`;
   }).join('');
 
-  // בנה סיכום (📊 💡 🎁 🛡️)
   const summaryHtml = summaryLines
     .filter(l => l.trim())
     .map(l => {
@@ -216,7 +203,6 @@ function _buildScheduleWidgetHtml(saved) {
       }
     </style>
     <div id="daily-schedule-widget-inner" style="margin-bottom:14px">
-      <!-- כותרת -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:7px">
           <span style="font-size:14px;font-weight:900;color:var(--teal)">📅 הלוז שלי היום</span>
@@ -236,7 +222,6 @@ function _buildScheduleWidgetHtml(saved) {
         </div>
       </div>
 
-      <!-- התקדמות היום -->
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:7px 10px;background:var(--surface);border:1px solid var(--brd);border-radius:9px">
         <div style="height:5px;flex:1;background:var(--sf2);border-radius:99px;overflow:hidden">
           <div style="height:100%;width:${pct}%;background:${pct>=80?'var(--green)':'var(--teal)'};border-radius:99px;transition:width .6s"></div>
@@ -244,17 +229,14 @@ function _buildScheduleWidgetHtml(saved) {
         <span style="font-size:11px;font-weight:800;color:${pct>=80?'var(--green)':'var(--teal)'};white-space:nowrap">${doneCount}/${totalCount} (${pct}%)</span>
       </div>
 
-      <!-- שורות הלוז -->
       <div id="dsw-toggle-wrap">
         <div id="dsw-task-rows" style="border:1px solid var(--brd);border-radius:10px;overflow:hidden;margin-bottom:8px">
           ${taskRowsHtml || '<div style="padding:12px;font-size:12px;color:var(--txt3);text-align:center">אין שורות לוז</div>'}
         </div>
 
-        <!-- סיכום -->
         ${summaryHtml ? `<div id="dsw-summary" style="margin-bottom:8px">${summaryHtml}</div>` : ''}
       </div>
 
-      <!-- כפתור קיפול -->
       <button onclick="_toggleScheduleWidget()" id="dsw-toggle-btn"
         style="width:100%;padding:5px;background:var(--sf2);border:1px solid var(--brd);border-radius:7px;font-size:10px;font-weight:700;color:var(--txt3);cursor:pointer;font-family:'Heebo',sans-serif">
         ▲ כווץ לוז
@@ -262,7 +244,6 @@ function _buildScheduleWidgetHtml(saved) {
     </div>`;
 }
 
-/** קיפול/פריסה של ה-widget */
 let _schedWidgetCollapsed = false;
 function _toggleScheduleWidget() {
   _schedWidgetCollapsed = !_schedWidgetCollapsed;
@@ -272,7 +253,6 @@ function _toggleScheduleWidget() {
   if (btn)  btn.textContent = _schedWidgetCollapsed ? '▼ הצג לוז' : '▲ כווץ לוז';
 }
 
-/** מוחק לוז ומרנדר מחדש */
 function _clearAndRerenderSchedule() {
   clearTodaySchedule();
   window._lastScheduleRaw = null;
@@ -311,7 +291,6 @@ function openScheduleModal(){
   _setSchedNowTime();
   const res = document.getElementById('sched-result');
 
-  // אם יש לוז שמור — הצג אותו תחילה עם אפשרות לעדכן
   const saved = getTodaySavedSchedule();
   if (saved && res) {
     res.innerHTML = _buildSavedScheduleInModal(saved.raw);
@@ -329,7 +308,6 @@ function closeScheduleModal(){
     document.body.style.overflow = '';
 }
 
-/** HTML של לוז שמור בתוך המודל */
 function _buildSavedScheduleInModal(raw) {
   return `<div style="background:rgba(45,212,191,.06);border:1px solid rgba(45,212,191,.2);border-radius:10px;padding:11px 13px;margin-bottom:8px">
     <div style="font-size:11px;font-weight:800;color:var(--teal);margin-bottom:8px">✅ לוז נוכחי (לחץ "סדר לי את היום" לעדכון)</div>
@@ -384,7 +362,8 @@ function _buildScheduleContext(){
     level: S.level,
     streak: S.streak,
     totalPts: avail,
-    doneTasks: done.map(t=>t._text),
+    // הוספת שעות משימות שבוצעו, אם קיימות (כדי שה-AI יבין מתי זה קרה)
+    doneTasks: done.map(t => t.time ? `${t._text} (בוצע ב-${t.time})` : t._text),
     pendingTasks: pending.map(t=>({
       text: t._text, pts: t._pts, slot: t.slot,
       time: t.time||null, indivLevel: t._indivLvl
@@ -417,10 +396,12 @@ async function generateSchedule(){
   res.innerHTML = `<div style="text-align:center;padding:20px;color:var(--txt3);font-size:12px">⏳ בונה לוז...</div>`;
 
   const SLOT_DUR = { 0:10, 1:20, 2:20, 3:15 };
+  
+  // חשיפת השעה הקבועה בצורה מפורשת עבור ה-AI
   const pendingLines = ctx.pendingTasks.map(t => {
     const dur = SLOT_DUR[t.slot] || 15;
-    const timeNote = t.time ? ` [מוגדר:${t.time}]` : '';
-    return `• ${t.text}${timeNote} [~${dur}דק, +${t.pts}נק, שלב${t.indivLevel}]`;
+    const timeNote = t.time ? ` [שעה קבועה: ${t.time}]` : ' [זמן גמיש]';
+    return `• ${t.text}${timeNote} [~${dur}דק, +${t.pts}נק]`;
   }).join('\n');
 
   const extraLines = [
@@ -429,44 +410,44 @@ async function generateSchedule(){
     ...(extra ? extra.split('\n').filter(Boolean).map(l=>`• ${l}`) : [])
   ].join('\n');
 
-  const prompt = `אתה עוזר ניהול זמן אישי בעברית. כתוב תשובה קצרה ומדויקת.
+  // פרומפט משודרג וחזק - לא מאפשר ל-AI לדלג על שעות מוגדרות
+  const prompt = `אתה עוזר ניהול זמן אישי. עליך לסדר לו"ז להמשך היום בצורה כרונולוגית והגיונית.
 
-מצב: שלב ${ctx.level}, רצף ${ctx.streak}, ${ctx.doneCount}/${ctx.totalCount} בוצעו (${ctx.pct}%)
-בוצע כבר: ${ctx.doneTasks.slice(0,4).join(' | ')||'כלום'}
+מצב נוכחי: שלב ${ctx.level}, ${ctx.doneCount}/${ctx.totalCount} משימות כבר בוצעו.
+בוצע כבר היום: ${ctx.doneTasks.slice(0,6).join(' | ')||'כלום'}
 
-משימות שנותרו:
+משימות שנותרו לשיבוץ (כולל עוגני זמן קריטיים):
 ${pendingLines||'הכל בוצע!'}
 
-${extraLines ? 'נוסף:\n'+extraLines : ''}
+${extraLines ? 'נוספו לבקשת המשתמש:\n'+extraLines : ''}
 
-זמן: ${nowTime} עד ${endTime} = ${availMin} דקות זמינות.
-נקודות: ${ctx.totalPts} | פרסים: ${ctx.rewardsList||'אין'}
-ימי חסד: ${ctx.gracesRemaining} | ימי עשייה: ${ctx.focusDaysRemaining}
+מסגרת זמן לשיבוץ: ${nowTime} עד ${endTime} (${availMin} דקות).
 
-כתוב לוז כזה (אחת לכל משימה):
+⚠️ חוקי ברזל קריטיים:
+1. עוגני זמן: משימה שיש לה "[שעה קבועה: XX:XX]" חייבת להיות משובצת *בדיוק* בשעה שלה! אל תזיז אותה לא משנה מה (למשל: אם ההוראה היא 22:15, שים אותה ב-22:15).
+2. זמן גמיש: משימות עם "[זמן גמיש]" סדר בחללים הפנויים שבין עוגני הזמן, החל מהשעה ${nowTime}.
+3. היגיון: אל תצמיד את כל המשימות ברצף רובוטי אם יש המון זמן פנוי. פזר אותן בצורה הגיונית על פני היום.
+4. סדר כרונולוגי: סדר תמיד מהשעה המוקדמת (${nowTime}) לשעה המאוחרת (${endTime}).
+
+החזר את הלו"ז בדיוק בפורמט הזה:
 כותרת: ⏱ לוז ${nowTime}–${endTime}
 
 [שעה] • [שם משימה] • [דקות]
 
-לדוגמה:
-14:45 • מנוחת צהריים • 15דק
-15:00 • חת"ת ורמב"ם • 30דק
-15:30 • עבודה על פרויקטים • 45דק
-
-לאחר הלוז, שורה ריקה, ואז:
-📊 משימות: Xדק | פנוי: Ydק | 80% — כן/לא
+לאחר הלוז, השאר שורה ריקה אחת, ואז כתוב:
+📊 משימות: Xדק | פנוי: Yדק | 80% — כן/לא
 💡 זמן פנוי: [1-2 רעיונות קצרים]
-🎁 פרס: [שם + כמה נקודות]
-${ctx.gracesRemaining>0 || ctx.focusDaysRemaining>0 ? '🛡️ ייעוץ: [האם כדאי יום חסד/עשייה אם אין מספיק זמן]' : ''}
+🎁 פרס: [המלצה מתוך: ${ctx.rewardsList||'משהו קטן'}]
+${ctx.gracesRemaining>0 || ctx.focusDaysRemaining>0 ? '🛡️ ייעוץ: [טיפ האם שווה לקחת יום חסד/עשייה]' : ''}
 
-חשוב: אל תכתוב "הנה" בפתיחה. אל תסביר. רק הלוז.`;
+רק הלוז והסיכום. בלי שום הקדמה מילולית ("הנה הלוז").`;
 
   const raw = await _callClaude(prompt);
   btn.disabled = false;
   btn.textContent = 'סדר לי את היום';
 
   if(!raw){
-    res.innerHTML = `<div style="color:var(--red);padding:10px;text-align:center;font-size:12px">שגיאה — בדוק שיש מפתח API תקין</div>`;
+    res.innerHTML = `<div style="color:var(--red);padding:10px;text-align:center;font-size:12px">שגיאה — מנוע ה-AI לא החזיר תשובה.</div>`;
     return;
   }
 
@@ -474,7 +455,6 @@ ${ctx.gracesRemaining>0 || ctx.focusDaysRemaining>0 ? '🛡️ ייעוץ: [הא
   _renderScheduleResultInModal(res, raw);
 }
 
-/** מציג תוצאה במודל עם כפתור שמירה */
 function _renderScheduleResultInModal(container, raw){
   const html = _renderScheduleResultHtml(raw);
 
@@ -498,7 +478,6 @@ function _renderScheduleResultInModal(container, raw){
     </div>`;
 }
 
-/** מציג HTML של לוז (ללא כפתורים) */
 function _renderScheduleResultHtml(raw) {
   const lines = raw.split('\n');
   const isTaskLine = l => /^\d{1,2}:\d{2}/.test(l.trim());
@@ -538,7 +517,6 @@ function _renderScheduleResultHtml(raw) {
   return `${schedHtml}<div style="color:var(--txt);line-height:1.75">${summaryHtml}</div>`;
 }
 
-/** שומר לוז ומעדכן את ה-widget בדף היום */
 function _saveAndShowSchedule() {
   if (!window._lastScheduleRaw) return;
   saveTodaySchedule(window._lastScheduleRaw);
@@ -569,12 +547,7 @@ function sendScheduleToChat(){
 
 /* ══════════════ HOOK INTO EXISTING RENDER ══════════════ */
 
-/**
- * עוקף את renderToday המקורי כדי להזריק את ה-widget.
- * קורא אחרי ה-renderToday המקורי.
- */
 (function _patchRenderToday() {
-  // ממתין ל-renderToday שיהיה מוגדר
   let _attempts = 0;
   const _interval = setInterval(() => {
     _attempts++;
@@ -583,13 +556,11 @@ function sendScheduleToChat(){
       const _origRenderToday = renderToday;
       window.renderToday = function() {
         _origRenderToday.apply(this, arguments);
-        // הזרק את ה-widget אחרי ה-render
         setTimeout(renderDailyScheduleWidget, 50);
       };
-      // רנדר ראשוני
       renderDailyScheduleWidget();
     }
-    if (_attempts > 100) clearInterval(_interval); // timeout אחרי 10 שניות
+    if (_attempts > 100) clearInterval(_interval);
   }, 100);
 })();
 
