@@ -360,6 +360,238 @@ function getTaskSuccessProgress(baseId){
   return{done,needed:TASK_INDIV_SUCCEED_NEEDED};
 }
 
+
+/**
+ * מחלץ שעת התחלה (HH:MM) מטקסט עברי של משימה.
+ * מחזיר { type: 'start'|'until'|'range', time: "HH:MM", endTime?: "HH:MM" } או null
+ */
+function extractStartTimeFromText(text) {
+  if (!text) return null;
+
+  const padT = t => {
+    const [h, m] = t.split(':');
+    return String(parseInt(h)).padStart(2, '0') + ':' + (m || '00');
+  };
+
+  // טווח "10:30-13:30"
+  const rangeM = text.match(/(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/);
+  if (rangeM) return { type: 'range', time: padT(rangeM[1]), endTime: padT(rangeM[2]) };
+
+  // "בשעה X:XX" / "בשעה X"
+  const atM = text.match(/בשעה\s*(\d{1,2}(?::\d{2})?)/);
+  if (atM) return { type: 'start', time: padT(atM[1].includes(':') ? atM[1] : atM[1] + ':00') };
+
+  // "ב-X:XX" (מתחיל ב-, ניתוק ב-, וכו')
+  const dashM = text.match(/ב-(\d{1,2}:\d{2})/);
+  if (dashM) return { type: 'start', time: padT(dashM[1]) };
+
+  // "עד X:XX" — deadline (שעת סיום / לא מאוחר מ-)
+  const untilM = text.match(/עד\s*(\d{1,2}:\d{2})/);
+  if (untilM) return { type: 'until', time: padT(untilM[1]) };
+
+  // מספר שעה בודד כמו "07:45" שמופיע בטקסט
+  const bareM = text.match(/\b(\d{1,2}:\d{2})\b/);
+  if (bareM) return { type: 'start', time: padT(bareM[1]) };
+
+  return null;
+}
+
+/**
+ * מחלץ משך זמן בדקות מטקסט עברי.
+ * מחזיר מספר (דקות) או null.
+ */
+function extractDurationFromText(text) {
+  if (!text) return null;
+
+  // טווח "10:30-13:30" — חישוב הפרש
+  const rangeM = text.match(/(\d{1,2}):(\d{2})\s*[-–]\s*(\d{1,2}):(\d{2})/);
+  if (rangeM) {
+    const s = parseInt(rangeM[1]) * 60 + parseInt(rangeM[2]);
+    const e = parseInt(rangeM[3]) * 60 + parseInt(rangeM[4]);
+    if (e > s) return e - s;
+  }
+
+  // "שעה וחצי" → 90
+  if (/שעה\s*וחצי/.test(text)) return 90;
+  // "שעה ורבע" → 75
+  if (/שעה\s*ורבע/.test(text)) return 75;
+  // "שעה ו-N דק" → 60 + N
+  const hrMinM = text.match(/שעה\s*ו-(\d+)\s*דק/);
+  if (hrMinM) return 60 + parseInt(hrMinM[1]);
+  // "N שעות" → N × 60
+  const hoursM = text.match(/(\d+(?:\.\d+)?)\s*שעות/);
+  if (hoursM) return Math.round(parseFloat(hoursM[1]) * 60);
+  // "שעה" לבד → 60
+  if (/\bשעה\b/.test(text)) return 60;
+
+  // "N דקות" / "N דק'" / "N דק." / "N דק "
+  const minsM = text.match(/(\d+(?:\.\d+)?)\s*(?:דקות|דק['\. ]|דק$)/);
+  if (minsM) return Math.round(parseFloat(minsM[1]));
+
+  return null;
+}
+
+/**
+ * מחלץ מספר חזרות מטקסט ("16 פעמים", "פעמיים" → 2, "פעם אחת" → 1).
+ * מחזיר מספר שלם.
+ */
+function extractRepCountFromText(text) {
+  if (!text) return 1;
+  if (/פעמיים/.test(text)) return 2;
+  if (/3\s*פעמים/.test(text)) return 3;
+  const m = text.match(/(\d+)\s*פעמים/);
+  if (m) return parseInt(m[1]);
+  if (/פעם אחת/.test(text)) return 1;
+  return 1;
+}
+
+/**
+ * טבלת שעות ברירת מחדל לפי מזהה בסיסי — למשימות ללא שעה בטקסט.
+ * הוסף/שנה לפי הצורך.
+ */
+const TASK_DEFAULT_TIMES = {
+  z1:       { type: 'until', time: '07:45' },  // קימה
+  z2:       { type: 'start', time: '06:00' },  // שגרת בוקר
+  b1:       { type: 'start', time: '05:50' },  // מקווה
+  l8:       { type: 'start', time: '08:00' },  // חסידות בוקר
+  pray:     { type: 'start', time: '09:00' },  // שחרית
+  s1:       { type: 'until', time: '08:00' },  // דיליי טלפון
+  l5:       { type: 'start', time: '10:00' },  // סמיכה
+  w2:       { type: 'start', time: '10:30' },  // תכנון לו"ז
+  w1:       { type: 'start', time: '10:30' },  // עבודה ממוקדת
+  v1:       { type: 'start', time: '16:00' },  // שליחות
+  v2:       { type: 'start', time: '16:30' },  // שליחות 2
+  l9:       { type: 'start', time: '15:30' },  // הכנת שיעור
+  l10:      { type: 'start', time: '17:00' },  // לימוד ערב
+  p2:       { type: 'start', time: '13:30' },  // מנחה
+  z4:       { type: 'start', time: '14:00' },  // מנוחה
+  h3:       { type: 'start', time: '09:00' },  // כביסה
+  h4:       { type: 'start', time: '09:00' },  // סדר כל שעה (כל היום)
+  f1:       { type: 'start', time: '07:30' },  // כללי אכילה
+  h2:       { type: 'start', time: '21:00' },  // סדר לילה
+  s2:       { type: 'start', time: '21:30' },  // ניתוק טלפון אחה"צ
+  s3:       { type: 'until', time: '22:30' },  // ניתוק לילה
+  bed:      { type: 'start', time: '20:00' },  // השכבות
+  sleep:    { type: 'start', time: '23:00' },  // שינה
+  p4:       { type: 'start', time: '23:00' },  // תפילת לילה
+  ev_lunch: { type: 'start', time: '13:00' },  // ארוחת צהריים
+  ev_gmara: { type: 'start', time: '21:00' },  // גמרא ערב
+  a3:       { type: 'start', time: '18:00' },  // ילדים
+  c1:       { type: 'start', time: '19:30' },  // זמן זוגי
+  l4:       { type: 'start', time: '08:30' },  // חת"ת
+  p3:       { type: 'start', time: '22:00' },  // ערבית
+  p5:       { type: 'start', time: '06:10' },  // תפילה מסידור
+  b2:       { type: 'start', time: '06:40' },  // הליכה
+  z3:       { type: 'start', time: '05:45' },  // קפיצה לקר
+  fr1:      { type: 'start', time: '14:00' },  // הכנה לשבת
+  sh1:      { type: 'start', time: '09:30' },  // שבת לימוד חסידות
+  sh2:      { type: 'start', time: '11:00' },  // שבת שולחן ערוך
+  sh3:      { type: 'start', time: '10:00' },  // שבת חת"ת
+};
+
+/**
+ * הפונקציה המרכזית: מחזירה מידע מלא על שעה ומשך לקבוצת משימה ברמה מסוימת.
+ *
+ * @param {object} grp       - אובייקט קבוצת המשימה (taskGroup)
+ * @param {number} level     - הרמה האישית הנוכחית (1-15)
+ * @param {number} [maxReps] - מספר חזרות (למשימות חד-פעמיות חוזרות), ברירת מחדל 1
+ * @returns {{
+ *   displayTime: string|null,   // שעה להצגה, למשל "09:00" או "עד 08:30"
+ *   timeType: string,           // 'start'|'until'|'range'|'none'
+ *   endTime: string|null,       // שעת סיום (לטווח)
+ *   durationMin: number|null,   // משך ביחידת דקה (ל-iteration אחת)
+ *   totalMin: number|null,      // סה"כ דקות (כולל חזרות)
+ *   repCount: number,           // מספר חזרות שזוהה
+ *   durationFormatted: string|null  // טקסט מסוכם למשתמש
+ * }}
+ */
+function getTaskAutoTimeInfo(grp, level, maxReps) {
+  maxReps = maxReps || 1;
+  level   = level   || 1;
+
+  // טקסט הרמה הנוכחית
+  const levelText = (grp.levels && grp.levels[level - 1])
+    ? grp.levels[level - 1].text
+    : null;
+
+  // ── שעה ──
+  // עדיפות: שדה grp.time מפורש → חילוץ מטקסט → טבלת ברירות מחדל
+  let timeInfo = null;
+
+if (levelText) {
+  timeInfo = extractStartTimeFromText(levelText);
+}
+
+  if (!timeInfo) {
+    // fallback לטבלה
+    const baseKey = (grp.id || '').replace(/^grp_/, '');
+    timeInfo = TASK_DEFAULT_TIMES[baseKey] || null;
+  }
+
+  let displayTime = null;
+  let timeType    = 'none';
+  let endTime     = null;
+
+  if (timeInfo) {
+    timeType = timeInfo.type;
+    endTime  = timeInfo.endTime || null;
+    if (timeInfo.type === 'until') {
+      displayTime = 'עד ' + timeInfo.time;
+    } else if (timeInfo.type === 'range') {
+      displayTime = timeInfo.time + '–' + timeInfo.endTime;
+    } else {
+      displayTime = timeInfo.time;
+    }
+  }
+
+  // ── משך ──
+  let durationMin = null;
+  if (levelText) {
+    // ניסיון חילוץ ישיר מטקסט הרמה
+    durationMin = extractDurationFromText(levelText);
+  }
+  // אם הוגדר טווח שעות — הוא כבר נכלל ב-extractDurationFromText
+
+  // ── חזרות ──
+  let repCount = maxReps;
+  if (levelText && repCount === 1) {
+    // בדוק גם בטקסט (למשל "16 פעמים")
+    const textReps = extractRepCountFromText(levelText);
+    if (textReps > 1) repCount = textReps;
+  }
+
+  const totalMin = durationMin ? durationMin * repCount : null;
+
+  return {
+    displayTime,
+    timeType,
+    endTime,
+    durationMin,
+    totalMin,
+    repCount,
+    durationFormatted: _formatDurationHeb(totalMin)
+  };
+}
+
+/**
+ * עיצוב משך זמן בעברית.
+ * למשל: 90 → "שעה וחצי", 75 → "שעה ורבע", 30 → "30 דק'", 120 → "2 שעות"
+ */
+function _formatDurationHeb(minutes) {
+  if (!minutes || minutes <= 0) return null;
+  if (minutes < 60) return `${minutes} דק'`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (m === 0) {
+    return h === 1 ? 'שעה' : `${h} שעות`;
+  }
+  if (h === 1 && m === 30) return 'שעה וחצי';
+  if (h === 1 && m === 15) return 'שעה ורבע';
+  if (h === 1 && m === 45) return 'שעה ו-45 דק\'';
+  if (h === 1) return `שעה ו-${m} דק'`;
+  return `${h}:${String(m).padStart(2, '0')} שעות`;
+}
+
 /* ══════════════ ROLLOVER ══════════════ */
 let pendingLU=null;
 (function(){
@@ -492,11 +724,216 @@ function toggleDream(id){
   save(); renderRewards(); renderSettings();
 }
 
+/**
+ * טבלת שעות חזרות יומיות לפי משימה ושלב.
+ * כל ערך הוא מערך של 15 שורות (שלב 1-15),
+ * כל שורה היא מערך שעות (HH:MM).
+ */
+const DAILY_OCCURRENCES = {
+
+  // ── תפילה מסידור (p5) ──
+  p5: [
+    ['09:00'],                                          // שלב 1
+    ['07:40'],                                          // שלב 2
+    ['07:44'],                                          // שלב 3
+    ['07:31'],                                          // שלב 4
+    ['07:18'],                                          // שלב 5
+    ['07:05', '09:00'],                                 // שלב 6
+    ['06:52', '09:00'],                                 // שלב 7
+    ['06:40', '09:00'],                                 // שלב 8
+    ['06:27', '09:00'],                                 // שלב 9
+    ['06:14', '09:00'],                                 // שלב 10
+    ['06:01', '09:00', '13:30'],                        // שלב 11
+    ['05:48', '07:00', '13:30'],                        // שלב 12
+    ['05:35', '07:00', '13:30', '21:00'],               // שלב 13
+    ['05:22', '07:00', '13:30', '21:00'],               // שלב 14
+    ['05:10', '07:00', '13:30', '21:00'],               // שלב 15
+  ],
+
+  // ── שתיית מים (b1) ──
+  b1: [
+    ['10:00'],                                          // שלב 1 — 1 כוס
+    ['08:00', '14:00'],                                 // שלב 2 — 1.5 כוסות
+    ['08:00', '14:00'],                                 // שלב 3 — 2 כוסות
+    ['08:00', '13:00', '18:00'],                        // שלב 4 — 2.5 כוסות
+    ['08:00', '13:00', '18:00'],                        // שלב 5 — 3 כוסות
+    ['08:00', '12:00', '16:00', '20:00'],               // שלב 6 — 3.5 כוסות
+    ['08:00', '12:00', '16:00', '20:00'],               // שלב 7 — 4 כוסות
+    ['07:00', '10:00', '13:00', '16:00', '19:00'],      // שלב 8 — 4.5 כוסות
+    ['07:00', '10:00', '13:00', '16:00', '19:00'],      // שלב 9 — 5 כוסות
+    ['07:00', '10:00', '12:00', '15:00', '18:00', '21:00'], // שלב 10 — 5.5
+    ['07:00', '10:00', '12:00', '15:00', '18:00', '21:00'], // שלב 11 — 6
+    ['06:00', '08:00', '11:00', '13:00', '16:00', '19:00', '21:00'], // שלב 12 — 6.5
+    ['06:00', '08:00', '11:00', '13:00', '16:00', '19:00', '21:00'], // שלב 13 — 7
+    ['06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '19:00', '22:00'], // שלב 14 — 7.5
+    ['06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '19:00', '22:00'], // שלב 15 — 8
+  ],
+
+  // ── סדר ארוחות (f1) — 3 ארוחות בכל השלבים ──
+  f1: [
+    ['09:00', '12:30', '17:00'],
+    ['09:00', '12:30', '17:00'],
+    ['09:00', '12:30', '17:00'],
+    ['09:00', '12:30', '17:00'],
+    ['09:00', '12:30', '17:00'],
+    ['09:00', '12:30', '17:00'],
+    ['09:00', '12:30', '17:00'],
+    ['09:00', '12:30', '17:00'],
+    ['09:00', '12:30', '17:00'],
+    ['09:00', '12:30', '17:00'],
+    ['09:00', '12:30', '17:00'],
+    ['09:00', '12:30', '17:00'],
+    ['09:00', '12:30', '17:00'],
+    ['09:00', '12:30', '17:00'],
+    ['09:00', '12:30', '17:00'],
+  ],
+
+  // ── חת"ת ורמב"ם (l4) ──
+  // שלב 1: קריאה בכל זמן — שעה אחת כללית
+  // שלב 2: תהילים אחרי תפילה
+  // שלב 3+: חת"ת אחרי תפילה + רמב"ם 16:20
+  l4: [
+    ['09:00'],                    // שלב 1
+    ['09:00'],                    // שלב 2 — תהילים אחרי תפילה
+    ['09:00', '16:20'],           // שלב 3 — + רמב"ם
+    ['09:00', '16:20'],           // שלב 4
+    ['09:00', '16:20'],           // שלב 5
+    ['09:00', '16:20'],           // שלב 6
+    ['09:00', '16:20'],           // שלב 7
+    ['09:00', '16:20'],           // שלב 8
+    ['09:00', '16:20'],           // שלב 9
+    ['09:00', '16:20'],           // שלב 10
+    ['09:00', '16:20'],           // שלב 11
+    ['07:00', '16:20'],           // שלב 12 — תפילה ב-7
+    ['07:00', '16:20'],           // שלב 13
+    ['07:00', '16:20'],           // שלב 14
+    ['07:00', '16:20'],           // שלב 15
+  ],
+
+  // ── סדר כל שעה (h4) ──
+  h4: [
+    ['12:00'],                                                    // שלב 1
+    ['12:00', '15:00'],                                           // שלב 2
+    ['12:00', '15:00', '18:00'],                                  // שלב 3
+    ['09:00', '12:00', '15:00', '18:00'],                         // שלב 4
+    ['09:00', '12:00', '13:00', '15:00', '18:00'],                // שלב 5
+    ['09:00', '12:00', '13:00', '15:00', '18:00', '20:00'],       // שלב 6
+    ['09:00', '10:00', '12:00', '13:00', '15:00', '18:00', '20:00'], // שלב 7
+    ['09:00', '10:00', '12:00', '13:00', '15:00', '16:00', '18:00', '20:00'], // שלב 8
+    ['09:00', '10:00', '12:00', '13:00', '15:00', '16:00', '18:00', '20:00', '21:00'], // שלב 9
+    ['08:00', '09:00', '10:00', '12:00', '13:00', '15:00', '16:00', '18:00', '20:00', '21:00'], // שלב 10
+    ['08:00', '09:00', '10:00', '12:00', '13:00', '15:00', '16:00', '17:00', '18:00', '20:00', '21:00'], // שלב 11
+    ['08:00', '09:00', '10:00', '12:00', '13:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00'], // שלב 12
+    ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00'], // שלב 13
+    ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'], // שלב 14
+    ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'], // שלב 15
+  ],
+};
+
+/**
+ * מחזיר את מפתח האחסון היומי לחזרות.
+ * { baseId_date: [0, 1, 0, ...] } — 1 = בוצע, 0 = לא
+ */
+function _occKey(baseId) {
+  return baseId + '_' + todayStr();
+}
+
+/**
+ * מחזיר את מצב החזרות של היום.
+ * מערך של booleans לפי מספר החזרות בשלב הנוכחי.
+ */
+function getOccurrenceDoneArr(baseId, level) {
+  const occ = DAILY_OCCURRENCES[baseId];
+  if (!occ) return null;
+  const times = occ[Math.min(level, 15) - 1] || [];
+  if (!times.length) return null;
+  if (!S.occurrenceDone) S.occurrenceDone = {};
+  const key = _occKey(baseId);
+  const stored = S.occurrenceDone[key];
+  // אם אין נתון, אתחל עם כל 0
+  if (!stored || stored.length !== times.length) {
+    S.occurrenceDone[key] = new Array(times.length).fill(0);
+  }
+  return S.occurrenceDone[key];
+}
+
+/**
+ * מחזיר כמה חזרות בוצעו היום.
+ */
+function getOccurrenceDoneCount(baseId, level) {
+  const arr = getOccurrenceDoneArr(baseId, level);
+  if (!arr) return 0;
+  return arr.filter(Boolean).length;
+}
+
+/**
+ * מחזיר את השעה הבאה שלא בוצעה עדיין (string HH:MM או null אם הכל בוצע).
+ */
+function getNextOccurrenceTime(baseId, level) {
+  const occ = DAILY_OCCURRENCES[baseId];
+  if (!occ) return null;
+  const times = occ[Math.min(level, 15) - 1] || [];
+  const arr = getOccurrenceDoneArr(baseId, level);
+  if (!arr) return null;
+  const idx = arr.findIndex(v => !v);
+  return idx >= 0 ? times[idx] : null;
+}
+
+/**
+ * מסמן את החזרה הבאה כבוצעה (או מבטל את האחרונה שבוצעה).
+ * מחזיר true אם כל החזרות הסתיימו.
+ */
+function markNextOccurrence(baseId, level, undo) {
+  const arr = getOccurrenceDoneArr(baseId, level);
+  if (!arr) return false;
+  if (undo) {
+    // ביטול — מחפש את האחרונה שבוצעה
+    for (let i = arr.length - 1; i >= 0; i--) {
+      if (arr[i]) { arr[i] = 0; break; }
+    }
+  } else {
+    // ביצוע — מסמן את הראשונה שלא בוצעה
+    const idx = arr.findIndex(v => !v);
+    if (idx >= 0) arr[idx] = 1;
+  }
+  if (!S.occurrenceDone) S.occurrenceDone = {};
+  S.occurrenceDone[_occKey(baseId)] = arr;
+  return arr.every(Boolean);
+}
+
+/**
+ * האם משימה היא משימת חזרות?
+ */
+function isOccurrenceTask(baseId) {
+  return !!DAILY_OCCURRENCES[baseId];
+}
+
+
 /* ══════════════ ACTIONS ══════════════ */
 function toggleTask(id,pts,isAnchorOnly){
   if(isAnchorOnly){
     // on focus day, non-anchor tasks can still be toggled but don't give points
   }
+const _bid = _baseIdFromTaskId(id);
+const _lvl = getTaskDisplayLevel(_masteryBid(_bid));
+if (isOccurrenceTask(_bid)) {
+  if (S.done[id]) {
+    markNextOccurrence(_bid, _lvl, true);
+    if (getOccurrenceDoneCount(_bid, _lvl) === 0) delete S.done[id];
+    playUncheck();
+  } else {
+    const allDone = markNextOccurrence(_bid, _lvl, false);
+    if (allDone) S.done[id] = true;
+    animateTaskDone(id);
+    trackTaskTimestamp(id);
+    playCheck();
+    const total = (DAILY_OCCURRENCES[_bid][Math.min(_lvl,15)-1]||[]).length;
+    const done  = getOccurrenceDoneCount(_bid, _lvl);
+    toast(`✓ ${done}/${total} +${bonusPts(pts)}${streakBonus()>1?' 🔥':''}`);
+  }
+  save(); renderActive();
+  return;
+}
   if(S.done[id]){
     if(calcAvail()-bonusPts(pts)<0){toast('לא ניתן לבטל — נקודות כבר מומשו');return;}
     delete S.done[id];
@@ -1558,18 +1995,26 @@ function renderToday(){
     });
   } else if(todayViewMode==='time'){
     // ── מיון לפי שעה ──
-    const timed = tasks.filter(t=>t.time).sort((a,b)=>a.time.localeCompare(b.time));
-    const allDay = tasks.filter(t=>!t.time);
-    if(timed.length){
-      let body='';
-      timed.forEach(t=>{ body+=_renderTaskHtml(t,isBonus); });
-      html+=_slotAccordion('tv_timed','🕐','לפי שעה','סדר כרונולוגי',timed,body);
-    }
-    if(allDay.length){
-      let body='';
-      allDay.forEach(t=>{ body+=_renderTaskHtml(t,isBonus); });
-      html+=_slotAccordion('tv_allday','📅','כל היום','ללא שעה מוגדרת',allDay,body);
-    }
+    const _timeCache = new Map();
+    tasks.forEach(t => {
+      const _gid = t._grpId || (t.id && t.id.includes("_") ? t.id.replace(/_\d+$/, "") : null);
+      const _grp = _gid ? (getGroups() || builtinGroups()).find(g => g.id === _gid || g.id === "grp_" + _gid) : null;
+      const _bid2 = _baseIdFromTaskId(t.id);
+      const _lvl2 = getTaskDisplayLevel(_masteryBid(_bid2));
+      let tm = null;
+      if (isOccurrenceTask(_bid2)) tm = getNextOccurrenceTime(_bid2, _lvl2) || null;
+      else if (_grp) tm = getTaskAutoTimeInfo(_grp, _lvl2).displayTime || t.time || null;
+      else tm = t.time || null;
+      _timeCache.set(t.id, tm);
+    });
+    const timed = tasks.filter(t=>_timeCache.get(t.id)).sort((a,b)=>(_timeCache.get(a.id)||'').localeCompare(_timeCache.get(b.id)||''));
+    const allDay = tasks.filter(t=>!_timeCache.get(t.id));
+if(timed.length){
+  timed.forEach(t=>{ html+=_renderTaskHtml(t,isBonus); });
+}
+if(allDay.length){
+  html+=_slotAccordion('tv_allday','📅','כל היום','ללא שעה מוגדרת',allDay, allDay.map(t=>_renderTaskHtml(t,isBonus)).join(''));
+}
   } else if(todayViewMode==='cat'){
     // ── מיון לפי קטגוריה ──
     const catOrder=['zman','limud','briut','achila','bayit','smart','erev','shabbat'];
@@ -1817,11 +2262,25 @@ function _renderTaskHtml(t, isBonus, extraStyle){
       <button class="task-snooze-btn" style="opacity:1" title="בטל">↩</button>
     </div>`;
   }
-  const timeTag = t.time
-    ? `<span style="font-size:10px;color:var(--blue);font-weight:700;background:var(--blue3);border-radius:4px;padding:1px 5px;margin-right:4px">${t.time}</span>`
-    : '';
+
   // Try to find the group title for this task
   const grpId = t._grpId || (t.id && t.id.includes('_') ? t.id.replace(/_\d+$/, '') : null);
+const grpForTime = grpId ? (getGroups() || builtinGroups()).find(g => g.id === grpId || g.id === 'grp_' + grpId) : null;
+const autoTime = grpForTime
+  ? getTaskAutoTimeInfo(grpForTime, t._displayLevel || getTaskDisplayLevel(_masteryBid(grpId))).displayTime
+  : t.time;
+const timeTag = autoTime
+  ? `<span style="font-size:10px;color:var(--blue);font-weight:700;background:var(--blue3);border-radius:4px;padding:1px 5px;margin-right:4px">${autoTime}</span>`
+  : '';
+const _bidOcc = _baseIdFromTaskId(t.id);
+const _lvlOcc = getTaskDisplayLevel(_masteryBid(_bidOcc));
+let occBadge = '';
+if (isOccurrenceTask(_bidOcc) && !S.done[t.id]) {
+  const total = (DAILY_OCCURRENCES[_bidOcc][Math.min(_lvlOcc,15)-1]||[]).length;
+  const done  = getOccurrenceDoneCount(_bidOcc, _lvlOcc);
+  const nextT = getNextOccurrenceTime(_bidOcc, _lvlOcc);
+  occBadge = `<span style="font-size:10px;background:rgba(45,212,191,.15);color:var(--teal);border-radius:4px;padding:1px 6px;font-weight:700;margin-right:4px">${done}/${total}${nextT ? ' · ' + nextT : ''}</span>`;
+}
   const grp = grpId ? (getGroups() || builtinGroups()).find(g => g.id === grpId) : null;
   // First: explicit group title. Second: TASK_INFO title. Third: nothing.
   const baseKey = grpId ? grpId.replace(/^grp_/, '') : null;
@@ -1860,7 +2319,7 @@ function _renderTaskHtml(t, isBonus, extraStyle){
   return t.text;
 })()}</div>
         <div style="display:flex;align-items:center;flex-wrap:wrap;gap:3px;margin-top:3px">
-      ${timeTag}<span class="tcat">${CATS[t.cat]||t.cat}</span>${(()=>{
+      ${occBadge || timeTag}<span class="tcat">${CATS[t.cat]||t.cat}</span>${(()=>{
   const _bid = _baseId(t.id);
   const _chosenLvl = S.taskAdvancedDisplay && S.taskAdvancedDisplay[_bid];
   if(_chosenLvl){
@@ -2247,9 +2706,9 @@ function getGroups() {
 function builtinGroups() {
   // רשימת מזהי הבסיס המעודכנת בדיוק לפי המשימות ב-_getDefaultTasks
   const BASE_IDS = [
-    'p5', 'b1', 'z1', 'z2', 'b2', 'l8', 'pray', 's1', 'l5', 'w2', 'w1', 'v1', 'v2', 'l9', 'l10', 'p2', 'z4', 
-     'h3', 'f1', 'h4', 's2', 's3', 'bed', 'a3', 'ev_lunch', 'ev_gmara', 'c1', 'l4', 'p3', 'h2', 'sleep', 'p4', 
-    'fr1', 'sh1', 'sh2', 'sh3'
+    'p5', 'b1', 'z1', 'z2', 'b2', 'mikve', 'l8', 'pray', 's1', 'l5', 'w2', 'w1', 'v1', 'l9', 'l4', 'p2', 'z4',
+    'h3', 'f1', 'h4', 's3', 'bed', 'a3', 'ev_lunch', 'ev_gmara', 'c1', 'p3', 'h2', 'sleep', 'p4',
+    'fr1', 'sh1', 'sh2', 'sh3', 'sh4'
   ];
 
   return BASE_IDS.map(base => {
@@ -2423,6 +2882,7 @@ function _openGroupModal(grp) {
   document.getElementById('te-slot').value = grp ? String(grp.slot) : '0';
   const teTimeEl = document.getElementById('te-time');
   if(teTimeEl) teTimeEl.value = (grp && grp.time) ? grp.time : '';
+if(teTimeEl) teTimeEl.placeholder = grp ? (getTaskAutoTimeInfo(grp, getTaskDisplayLevel(_masteryBid(grp.id))).displayTime || 'אוטומטי') : 'אוטומטי';
   document.getElementById('te-anchor').checked = grp ? !!grp.anchor : false;
   // Days checkboxes
   const days = grp ? (grp.days || ['weekday']) : ['weekday'];
@@ -3307,8 +3767,7 @@ const SLOT_LABELS=[
   items.forEach(g => {
     let key;
     if(_masterySort === 'slot') key = g.slot;
-    else if(_masterySort === 'time') key = g.time || '__notime__';
-    else key = g.cat || 'limud';
+else if(_masterySort === 'time') key = getTaskAutoTimeInfo(g, tl[_masteryBid(g.id)] || 1).displayTime || '__notime__';    else key = g.cat || 'limud';
     if(!grouped[key]) grouped[key] = [];
     grouped[key].push(g);
   });
@@ -3356,10 +3815,11 @@ const SLOT_LABELS=[
       const curText = (g.levels[indivLvl-1] || g.levels[0] || {}).text || '—';
       const titleText = g.title || (TASK_INFO[storeBid.replace('grp_','')]?.title) || curText;
 
-      // Time badge
-      const timeBadge = g.time
-        ? `<span style="font-size:10px;background:var(--blue3);color:var(--blue);border-radius:4px;padding:1px 6px;font-weight:700">🕐 ${g.time}</span>`
-        : '';
+// Time badge
+const { displayTime, durationFormatted } = getTaskAutoTimeInfo(g, indivLvl);
+const timeBadge = displayTime
+  ? `<span class="mastery-time-badge">🕐 ${displayTime}${durationFormatted ? ' · ' + durationFormatted : ''}</span>`
+  : (durationFormatted ? `<span class="mastery-time-badge">⏱ ${durationFormatted}</span>` : '');
 
       // Category badge
       const catBadge = `<span style="font-size:10px;background:var(--bg3);color:${catColor};border-radius:4px;padding:1px 6px;font-weight:700">${CATS[g.cat]||g.cat}</span>`;
