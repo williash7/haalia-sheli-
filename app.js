@@ -450,38 +450,38 @@ function extractRepCountFromText(text) {
  * הוסף/שנה לפי הצורך.
  */
 const TASK_DEFAULT_TIMES = {
-  z1:       { type: 'until', time: '07:45' },  // קימה
-  z2:       { type: 'start', time: '06:00' },  // שגרת בוקר
-  b1:       { type: 'start', time: '05:50' },  // מקווה
-  l8:       { type: 'start', time: '08:00' },  // חסידות בוקר
-  pray:     { type: 'start', time: '09:00' },  // שחרית
-  s1:       { type: 'until', time: '08:00' },  // דיליי טלפון
-  l5:       { type: 'start', time: '10:00' },  // סמיכה
+  z1:       { type: 'until', time: '04:45' },  // קימה
+  z2:       { type: 'start', time: '04:50' },  // שגרת בוקר
+  b1:       { type: 'start', time: '06:00' },  // מקווה
+  l8:       { type: 'start', time: '06:20' },  // חסידות בוקר
+  pray:     { type: 'start', time: '07:00' },  // שחרית
+  s1:       { type: 'until', time: '09:00' },  // דיליי טלפון
+  l5:       { type: 'start', time: '09:00' },  // סמיכה
   w2:       { type: 'start', time: '10:30' },  // תכנון לו"ז
   w1:       { type: 'start', time: '10:30' },  // עבודה ממוקדת
-  v1:       { type: 'start', time: '16:00' },  // שליחות
-  v2:       { type: 'start', time: '16:30' },  // שליחות 2
-  l9:       { type: 'start', time: '15:30' },  // הכנת שיעור
-  l10:      { type: 'start', time: '17:00' },  // לימוד ערב
+  v1:       { type: 'start', time: '10:30' },  // שליחות
+  v2:       { type: 'start', time: '10:30' },  // שליחות 2
+  l9:       { type: 'start', time: '10:30' },  // הכנת שיעור
+  l10:      { type: 'start', time: '20:00' },  // לימוד ערב
   p2:       { type: 'start', time: '13:30' },  // מנחה
   z4:       { type: 'start', time: '14:00' },  // מנוחה
-  h3:       { type: 'start', time: '09:00' },  // כביסה
-  h4:       { type: 'start', time: '09:00' },  // סדר כל שעה (כל היום)
-  f1:       { type: 'start', time: '07:30' },  // כללי אכילה
-  h2:       { type: 'start', time: '21:00' },  // סדר לילה
-  s2:       { type: 'start', time: '21:30' },  // ניתוק טלפון אחה"צ
-  s3:       { type: 'until', time: '22:30' },  // ניתוק לילה
-  bed:      { type: 'start', time: '20:00' },  // השכבות
-  sleep:    { type: 'start', time: '23:00' },  // שינה
-  p4:       { type: 'start', time: '23:00' },  // תפילת לילה
-  ev_lunch: { type: 'start', time: '13:00' },  // ארוחת צהריים
-  ev_gmara: { type: 'start', time: '21:00' },  // גמרא ערב
-  a3:       { type: 'start', time: '18:00' },  // ילדים
+  h3:       { type: 'start', time: '17:00' },  // כביסה
+  h4:       { type: 'start', time: '08:00' },  // סדר כל שעה (כל היום)
+  f1:       { type: 'start', time: '09:00' },  // כללי אכילה
+  h2:       { type: 'start', time: '21:20' },  // סדר לילה
+  s2:       { type: 'start', time: '19:30' },  // ניתוק טלפון אחה"צ
+  s3:       { type: 'until', time: '19:30' },  // ניתוק לילה
+  bed:      { type: 'start', time: '19:00' },  // השכבות
+  sleep:    { type: 'start', time: '22:45' },  // שינה
+  p4:       { type: 'start', time: '21:00' },  // תפילת לילה
+  ev_lunch: { type: 'start', time: '12:30' },  // ארוחת צהריים
+  ev_gmara: { type: 'start', time: '20:00' },  // גמרא ערב
+  a3:       { type: 'start', time: '19:00' },  // ילדים
   c1:       { type: 'start', time: '19:30' },  // זמן זוגי
-  l4:       { type: 'start', time: '08:30' },  // חת"ת
+  l4:       { type: 'start', time: '08:00' },  // חת"ת
   p3:       { type: 'start', time: '22:00' },  // ערבית
-  p5:       { type: 'start', time: '06:10' },  // תפילה מסידור
-  b2:       { type: 'start', time: '06:40' },  // הליכה
+  p5:       { type: 'start', time: '04:50' },  // תפילה מסידור
+  b2:       { type: 'start', time: '05:20' },  // הליכה
   z3:       { type: 'start', time: '05:45' },  // קפיצה לקר
   fr1:      { type: 'start', time: '14:00' },  // הכנה לשבת
   sh1:      { type: 'start', time: '09:30' },  // שבת לימוד חסידות
@@ -595,7 +595,7 @@ function _formatDurationHeb(minutes) {
 /* ══════════════ ROLLOVER ══════════════ */
 let pendingLU=null;
 (function(){
-  const today=new Date().toDateString();
+  const today=getAppNow().toDateString();
   if(S.lastDay===today)return;
   const yesterdayBoost = (S.boostDay && S.boostDay.date !== today) ? S.boostDay : null;
   if(yesterdayBoost){ _checkBoostRollover(yesterdayBoost); }
@@ -1919,7 +1919,7 @@ function renderToday(){
                 isToday_Shabbat ? getTasksForDay(_renderLevel,'shabbat') :
                 getTasksForDay(_renderLevel,'weekday');
   // Apply individual levels
-  const tasks = allTasks.map(t=>{
+  let tasks = allTasks.map(t=>{
     const bid=_baseId(t.id);
     const indivLvl=getTaskDisplayLevel(bid);
     if(indivLvl===S.level)return t;
@@ -1929,6 +1929,28 @@ function renderToday(){
     return t;
   });
 
+  // הסתרת משימות שעברו
+  if(hidePassedTasks){
+    const _nowMin = new Date().getHours()*60 + new Date().getMinutes();
+    const _taskTime = t => {
+      const _gid = t._grpId || (t.id && t.id.includes('_') ? t.id.replace(/_\d+$/, '') : null);
+      const _grp = _gid ? (getGroups()||builtinGroups()).find(g=>g.id===_gid||g.id==='grp_'+_gid) : null;
+      const _bid = _baseIdFromTaskId(t.id);
+      const _lvl = getTaskDisplayLevel(_masteryBid(_bid));
+      const tm = isOccurrenceTask(_bid)
+        ? getNextOccurrenceTime(_bid, _lvl)
+        : (_grp ? getTaskAutoTimeInfo(_grp, _lvl).displayTime : t.time);
+      if(!tm) return null;
+      const clean = tm.replace(/[^\d:]/g,'').trim().slice(0,5);
+      const [h,m] = clean.split(':').map(Number);
+      return h*60+(m||0);
+    };
+    tasks = tasks.filter(t => {
+      if(S.done[t.id]) return true;
+      const tm = _taskTime(t);
+      return tm === null || tm > _nowMin;
+    });
+  }
   const isFocusDay=!!fdToday;
   const done=isFocusDay?getAnchorTasks(S.level).filter(t=>S.done[t.id]).length:tasks.filter(t=>S.done[t.id]).length;
   const total=isFocusDay?getAnchorTasks(S.level).length:tasks.length;
@@ -2007,8 +2029,15 @@ function renderToday(){
       else tm = t.time || null;
       _timeCache.set(t.id, tm);
     });
-    const timed = tasks.filter(t=>_timeCache.get(t.id)).sort((a,b)=>(_timeCache.get(a.id)||'').localeCompare(_timeCache.get(b.id)||''));
-    const allDay = tasks.filter(t=>!_timeCache.get(t.id));
+const _sortTime = t => {
+  const raw = (_timeCache.get(t.id)||'').replace(/[^\d:]/g,'').trim().slice(0,5);
+  if(!raw) return 9999;
+  const [h,m] = raw.split(':').map(Number);
+  const mins = h*60+(m||0);
+  return h < 4 ? mins + 1440 : mins;
+};
+const timed = tasks.filter(t=>_timeCache.get(t.id)).sort((a,b)=>_sortTime(a)-_sortTime(b));
+const allDay = tasks.filter(t=>!_timeCache.get(t.id));
 if(timed.length){
   timed.forEach(t=>{ html+=_renderTaskHtml(t,isBonus); });
 }
@@ -2242,6 +2271,7 @@ function setSort(m){
 
 /* ══════════════ TODAY VIEW MODE ══════════════ */
 let todayViewMode = 'slot'; // 'slot' | 'time' | 'cat'
+let hidePassedTasks = false;
 function setTodayView(mode){
   todayViewMode = mode;
   ['slot','time','cat'].forEach(m=>{
@@ -2251,6 +2281,12 @@ function setTodayView(mode){
   renderToday();
 }
 
+function toggleHidePassedTasks(){
+  hidePassedTasks = !hidePassedTasks;
+  const btn = document.getElementById('hide-passed-btn');
+  if(btn) btn.classList.toggle('on', hidePassedTasks);
+  renderToday();
+}
 function _renderTaskHtml(t, isBonus, extraStyle){
   const dn=!!S.done[t.id], ap=bonusPts(t.pts), bid=_baseIdFromTaskId(t.id);
   const snoozed=isTaskSnoozed(t.id);
@@ -4264,7 +4300,13 @@ function renderSpecialTasksSettings(){
 const JOURNAL_SK='aliyah_journal_v1';
 function loadJournalData(){try{const r=localStorage.getItem(JOURNAL_SK);if(r)return JSON.parse(r);}catch(e){}return{};}
 function saveJournalData(data){localStorage.setItem(JOURNAL_SK,JSON.stringify(data));}
-function getTodayKey(){return new Date().toLocaleDateString('he-IL',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\./g,'-');}
+function getAppNow(){
+  const now = new Date();
+  // היום מתחיל ב-04:00 — לפני 4 בבוקר עדיין "אתמול"
+  if(now.getHours() < 4) now.setDate(now.getDate() - 1);
+  return now;
+}
+function getTodayKey(){return getAppNow().toLocaleDateString('he-IL',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\./g,'-');}
 function getFormattedDateJournal(){return new Date().toLocaleDateString('he-IL',{weekday:'long',year:'numeric',month:'long',day:'numeric'});}
 
 function renderJournalPage(){
