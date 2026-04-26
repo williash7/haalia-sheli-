@@ -504,6 +504,8 @@ function toggleTask(id,pts,isAnchorOnly){
     if(navigator.vibrate)navigator.vibrate([20,10,20]);
   }else{
     S.done[id]=true;
+    animateTaskDone(id);
+    trackTaskTimestamp(id);
     playCheck();
     if(navigator.vibrate)navigator.vibrate(40);
     toast(`+${bonusPts(pts)} ✓${streakBonus()>1?' 🔥':''}`);
@@ -1173,6 +1175,8 @@ function scheduleAllNotifs(){
   if(!notifSupported()||Notification.permission!=='granted')return;
   Object.keys(S.notifEnabled||{}).forEach(k=>{if(S.notifEnabled[k])scheduleNotif(k);});
   scheduleTaskReminders();
+  scheduleDynamicReminder();
+  scheduleWeeklyCatNotif();
 }
 function scheduleNotif(key){
   if(!notifSupported()||Notification.permission!=='granted')return;
@@ -1845,7 +1849,7 @@ function _renderTaskHtml(t, isBonus, extraStyle){
       <div class="tcb" onclick="event.stopPropagation();toggleTask('${safeId}',${t.pts})">${chkSvg()}</div>
       <div class="tbody">
         ${titleLine}
-        <div class="tn">${(()=>{
+        <div class="tn" ondblclick="inlineEditTask('${safeId}',this)">${(()=>{
   const _bid = _baseId(t.id);
   const _chosenLvl = S.taskAdvancedDisplay && S.taskAdvancedDisplay[_bid];
   if(_chosenLvl){
@@ -2928,6 +2932,7 @@ function renderNotifSection(){
     const kSh='shabbat',onSh=!!(S.notifEnabled&&S.notifEnabled[kSh]);
     rows+=`<div class="notif-row"><div class="notif-info"><div class="notif-name">✡️ תזכורת מוצאי שבת</div><div class="notif-time">שבת 20:30</div></div>
       <button class="toggle${onSh?' on':''}" onclick="${en?`setNotif('${kSh}',${!onSh})`:'requestNotifPerm()'}"></button></div>`;
+    rows += renderNewNotifRows();
     nr.innerHTML=rows;
   }
 }
@@ -3259,7 +3264,9 @@ const SLOT_LABELS=[
   const aheadCount = allBids.filter(bid=>(tl2[bid]||1)>S.level).length;
   const atGlobal = allBids.filter(bid=>(tl2[bid]||1)===S.level && (tl2[bid]||1)>1).length;
 
-  let h = `<div style="background:var(--surface);border:1px solid var(--gold2);border-radius:var(--r-lg);padding:18px;margin-bottom:18px">
+  let h = renderHoursChart();
+
+  h += `<div style="background:var(--surface);border:1px solid var(--gold2);border-radius:var(--r-lg);padding:18px;margin-bottom:18px">
     <div style="font-size:11px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;text-align:center">שני מסלולי עלייה</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
       <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center">
@@ -4631,4 +4638,250 @@ function _updateTaskVisual(matchTask, chosenLvl, bid) {
 
   taskEl.style.borderColor = chosenLvl > curIndivLvl ? 'rgba(56,214,138,.4)' : 'rgba(240,192,64,.35)';
   taskEl.style.background = chosenLvl > curIndivLvl ? 'rgba(56,214,138,.06)' : 'rgba(240,192,64,.04)';
+}
+/* ═══════════════════════════════════════════════════════════════
+   NEW FEATURES PATCH
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── TASK COMPLETION ANIMATION ── */
+function animateTaskDone(taskId) {
+  const taskEl = document.querySelector(`[data-task-id="${taskId}"]`);
+  if (!taskEl) return;
+  taskEl.classList.add('task-done-anim');
+  if (navigator.vibrate) navigator.vibrate(30);
+  // נקודות עפות
+  const task = (getTasks ? getTasks(S.level) : []).find(t => t.id === taskId);
+  if (task) {
+    const fly = document.createElement('div');
+    fly.className = 'pts-fly';
+    fly.textContent = '+' + bonusPts(task.pts);
+    taskEl.style.position = 'relative';
+    taskEl.appendChild(fly);
+    setTimeout(() => { fly.remove(); taskEl.style.position = ''; }, 950);
+  }
+  setTimeout(() => taskEl.classList.remove('task-done-anim'), 600);
+}
+
+/* ── HOURLY ACTIVITY TRACKING ── */
+function trackTaskTimestamp(taskId) {
+  const hour = new Date().getHours();
+  if (!S.hourlyActivity) S.hourlyActivity = {};
+  const todayKey = getTodayKey ? getTodayKey() : new Date().toLocaleDateString('he-IL',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\./g,'-');
+  if (!S.hourlyActivity[todayKey]) S.hourlyActivity[todayKey] = {};
+  S.hourlyActivity[todayKey][hour] = (S.hourlyActivity[todayKey][hour] || 0) + 1;
+  save();
+}
+
+function renderHoursChart() {
+  const allHours = new Array(24).fill(0);
+  Object.values(S.hourlyActivity || {}).forEach(day => {
+    Object.entries(day).forEach(([h, c]) => { allHours[parseInt(h)] += c; });
+  });
+  const max = Math.max(...allHours, 1);
+  const active = allHours.slice(5, 24);
+  const labels = Array.from({length:19},(_,i)=>String(i+5).padStart(2,'0'));
+  let peakHour = -1, peakVal = 0;
+  allHours.forEach((v,i) => { if(v > peakVal){ peakVal=v; peakHour=i; } });
+  const peakText = peakHour >= 0 && peakVal > 0
+    ? `שעת שיא: ${String(peakHour).padStart(2,'0')}:00 (${peakHour<12?'בוקר':peakHour<17?'צהריים':'ערב'})`
+    : 'סמן עוד משימות כדי לראות את שעות השיא שלך';
+
+  return `<div style="background:var(--surface);border:1px solid var(--brd);border-radius:var(--r);padding:16px;margin-bottom:14px">
+    <div style="font-size:12px;font-weight:800;color:var(--txt2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">⏰ שעות הפעילות שלך</div>
+    <div style="display:flex;align-items:flex-end;gap:2px;height:56px">
+      ${active.map((v,i) => {
+        const pct = Math.round((v/max)*100);
+        const bg = pct>=70?'var(--green)':pct>=30?'var(--gold)':'var(--brd2)';
+        return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+          <div style="width:100%;background:${bg};border-radius:3px 3px 0 0;height:${Math.max(Math.round(pct*0.56),pct>5?3:1)}px;transition:height .3s"></div>
+          <div style="font-size:7px;color:${pct>10?'var(--txt3)':'transparent'}">${labels[i]}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="font-size:10px;color:var(--txt3);margin-top:6px;text-align:center">${peakText}</div>
+  </div>`;
+}
+
+/* ── DYNAMIC REMINDER 14:00 ── */
+function scheduleDynamicReminder() {
+  if (!notifSupported() || Notification.permission !== 'granted') return;
+  if (!(S.notifEnabled && S.notifEnabled['dynamic_14'])) return;
+  const now = new Date(), target = new Date();
+  target.setHours(14, 0, 0, 0);
+  if (target <= now) target.setDate(target.getDate() + 1);
+  setTimeout(() => {
+    if (!isShabbatNow()) {
+      const tasks = getTasks(S.level);
+      const dayType = getDayType(new Date());
+      const todayTasks = tasks.filter(t => (t.days||['weekday']).includes(dayType));
+      const done = todayTasks.filter(t => S.done[t.id]).length;
+      const pct = todayTasks.length ? Math.round(done/todayTasks.length*100) : 0;
+      if (pct < 80) {
+        const rem = todayTasks.length - done;
+        new Notification(pct < 30 ? '⚡ עוד יש זמן!' : '🔥 כמעט שם!', {
+          body: `${pct}% — נשארו ${rem} משימות. קדימה, אפשר לסגור את זה! 💪`
+        });
+      }
+    }
+    setTimeout(scheduleDynamicReminder, 1000);
+  }, target - now);
+}
+
+/* ── WEEKLY CATEGORY NOTIFICATION ── */
+function scheduleWeeklyCatNotif() {
+  if (!notifSupported() || Notification.permission !== 'granted') return;
+  if (!(S.notifEnabled && S.notifEnabled['weekly_cat'])) return;
+  const now = new Date(), target = new Date();
+  const daysUntilSunday = (7 - now.getDay()) % 7 || 7;
+  target.setDate(now.getDate() + daysUntilSunday);
+  target.setHours(8, 30, 0, 0);
+  setTimeout(() => {
+    const history = (S.history || []).slice(-7);
+    const catTotals = {}, catDone = {};
+    history.forEach(h => {
+      Object.entries(h.catDone || {}).forEach(([cat, data]) => {
+        catTotals[cat] = (catTotals[cat]||0) + (data.total||0);
+        catDone[cat]   = (catDone[cat]  ||0) + (data.done ||0);
+      });
+    });
+    const catNames = {zman:'זמנים',boker:'בוקר',briut:'בריאות',achila:'אכילה',limud:'לימוד',shlichut:'שליחות',bayit:'בית',smart:'סמארטפון'};
+    let bestCat='', bestPct=0, worstCat='', worstPct=101;
+    Object.entries(catTotals).forEach(([cat,total]) => {
+      if(!total) return;
+      const pct = Math.round((catDone[cat]||0)/total*100);
+      if(pct > bestPct)  { bestPct=pct;  bestCat=catNames[cat]||cat; }
+      if(pct < worstPct) { worstPct=pct; worstCat=catNames[cat]||cat; }
+    });
+    const body = bestCat && worstCat
+      ? `חזק בـ${bestCat} ✅  ·  חלש בـ${worstCat} ⚠️ — שבוע טוב ומוצלח!`
+      : 'פתח את האפליקציה לסיכום השבוע';
+    new Notification('📊 סיכום שבועי — העלייה שלי', { body });
+    setTimeout(scheduleWeeklyCatNotif, 1000);
+  }, target - now);
+}
+
+/* ── NEW NOTIF ROWS IN SETTINGS ── */
+function renderNewNotifRows() {
+  const perm = notifSupported() ? Notification.permission : 'unsupported';
+  const en = perm === 'granted';
+  const on1 = !!(S.notifEnabled && S.notifEnabled['dynamic_14']);
+  const on2 = !!(S.notifEnabled && S.notifEnabled['weekly_cat']);
+  return `
+    <div class="notif-row" style="margin-top:4px;padding-top:10px;border-top:1px solid var(--brd)">
+      <div class="notif-info">
+        <div class="notif-name">⚡ תזכורת חכמה — 14:00</div>
+        <div class="notif-time">נשלחת רק אם ביצוע פחות מ-80%</div>
+      </div>
+      <button class="toggle${on1?' on':''}" onclick="${en?`setNotif('dynamic_14',${!on1});if(${!on1})scheduleDynamicReminder()`:'requestNotifPerm()'}"></button>
+    </div>
+    <div class="notif-row">
+      <div class="notif-info">
+        <div class="notif-name">📊 סיכום שבועי — ראשון 8:30</div>
+        <div class="notif-time">קטגוריה חזקה + חלשה של השבוע</div>
+      </div>
+      <button class="toggle${on2?' on':''}" onclick="${en?`setNotif('weekly_cat',${!on2});if(${!on2})scheduleWeeklyCatNotif()`:'requestNotifPerm()'}"></button>
+    </div>`;
+}
+
+/* ── JOURNAL EXPORT ── */
+function exportJournal() {
+  const jData = loadJournalData();
+  const entries = Object.entries(jData)
+    .filter(([,e]) => e.userText || e.aiText)
+    .sort(([a],[b]) => b.localeCompare(a));
+  if (!entries.length) { toast('אין רשומות לייצוא'); return; }
+  let text = '═══════════════════════════════\n    יומן אישי — העלייה שלי\n';
+  text += `    יוצא: ${new Date().toLocaleDateString('he-IL')}\n═══════════════════════════════\n\n`;
+  entries.forEach(([date, entry]) => {
+    const ctx = entry.dayContext;
+    text += `📅 ${date}`;
+    if (ctx) text += ` | שלב ${ctx.level} | רצף 🔥${ctx.streak} | ביצוע ${ctx.pct}%`;
+    text += '\n' + '─'.repeat(35) + '\n';
+    if (entry.userText) text += '✍️ רשומה אישית:\n' + entry.userText + '\n\n';
+    if (entry.aiText)   text += '🤖 ניתוח AI:\n'    + entry.aiText   + '\n\n';
+    text += '\n';
+  });
+  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `יומן-העלייה-שלי-${new Date().toLocaleDateString('he-IL').replace(/\//g,'-')}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('✓ היומן יוצא בהצלחה');
+}
+
+/* ══════════════════════════════════════════════
+   INLINE EDIT — עריכת שם משימה בלחיצה כפולה
+══════════════════════════════════════════════ */
+function inlineEditTask(taskId, el) {
+  if (el.querySelector('input')) return;
+  const original = el.textContent.trim();
+  el.style.padding = '0';
+  const inp = document.createElement('input');
+  inp.value = original;
+  inp.className = 'inline-edit-input';
+  el.innerHTML = '';
+  el.appendChild(inp);
+  inp.focus();
+  inp.select();
+
+  const saveEdit = () => {
+    const newText = inp.value.trim();
+    if (newText && newText !== original) {
+      // שמור override על הטקסט
+      if (!S.taskTextOverride) S.taskTextOverride = {};
+      S.taskTextOverride[taskId] = newText;
+      save();
+      el.textContent = newText;
+      toast('✓ משימה עודכנה');
+    } else {
+      el.textContent = original;
+    }
+    el.style.padding = '';
+  };
+
+  inp.addEventListener('blur', saveEdit);
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); inp.blur(); }
+    if (e.key === 'Escape') { inp.removeEventListener('blur', saveEdit); el.textContent = original; el.style.padding = ''; }
+  });
+}
+
+/* ══════════════════════════════════════════════
+   SEND WEEKLY CAT NOTIF
+══════════════════════════════════════════════ */
+function sendWeeklyCatNotif() {
+  const history = (S.history || []).slice(-7);
+  if (!history.length) return;
+  const catTotals = {}, catDone = {};
+  history.forEach(h => {
+    Object.entries(h.catDone || {}).forEach(([cat, data]) => {
+      catTotals[cat] = (catTotals[cat] || 0) + (data.total || 0);
+      catDone[cat] = (catDone[cat] || 0) + (data.done || 0);
+    });
+  });
+  const catNames = {zman:'זמנים',boker:'בוקר',briut:'בריאות',achila:'אכילה',limud:'לימוד',shlichut:'שליחות',bayit:'בית',smart:'סמארטפון'};
+  let bestCat = '', bestPct = 0, worstCat = '', worstPct = 101;
+  Object.entries(catTotals).forEach(([cat, total]) => {
+    if (!total) return;
+    const pct = Math.round((catDone[cat] || 0) / total * 100);
+    if (pct > bestPct) { bestPct = pct; bestCat = catNames[cat] || cat; }
+    if (pct < worstPct) { worstPct = pct; worstCat = catNames[cat] || cat; }
+  });
+  const body = bestCat && worstCat
+    ? `חזק בـ${bestCat} ✅ · חלש בـ${worstCat} ⚠️ — שבוע טוב!`
+    : 'פתח את האפליקציה לסיכום השבוע';
+  new Notification('📊 סיכום שבועי — העלייה שלי', { body });
+}
+
+/* ══════════════════════════════════════════════
+   GET PEAK HOUR TEXT
+══════════════════════════════════════════════ */
+function getPeakHourText(hours) {
+  let maxVal = 0, peakHour = -1;
+  hours.forEach((v, i) => { if (v > maxVal) { maxVal = v; peakHour = i; } });
+  if (peakHour === -1 || maxVal === 0) return 'אין מספיק נתונים עדיין — המשך לסמן משימות';
+  const period = peakHour < 12 ? 'בוקר' : peakHour < 17 ? 'צהריים' : 'ערב';
+  return `השעה הכי פעילה שלך: ${String(peakHour).padStart(2,'0')}:00 (${period})`;
 }

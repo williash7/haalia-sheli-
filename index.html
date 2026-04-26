@@ -1146,9 +1146,12 @@
 <!-- JOURNAL PAGE -->
 <div id="pg-journal" class="pg" style="padding-bottom:20px">
 
-  <div class="sh">
-    <span class="sh-t">📓 יומן אישי</span>
-    <span class="sh-s" id="journal-date-label"></span>
+  <div class="sh" style="display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <span class="sh-t">📓 יומן אישי</span>
+      <span class="sh-s" id="journal-date-label"></span>
+    </div>
+    <button onclick="exportJournal()" style="font-size:11px;font-weight:700;color:var(--txt3);padding:5px 11px;background:var(--sf2);border:1px solid var(--brd);border-radius:99px;cursor:pointer;font-family:'Heebo',sans-serif;transition:all .15s" onmouseover="this.style.color='var(--teal)';this.style.borderColor='rgba(45,212,191,.35)'" onmouseout="this.style.color='var(--txt3)';this.style.borderColor='var(--brd)'">⬇️ ייצוא</button>
   </div>
 
   <!-- סיכום יום -->
@@ -1294,10 +1297,11 @@
       <div style="font-size:14px;font-weight:800;color:var(--txt);margin-bottom:6px">שלום! אני מכיר את כל הנתונים שלך</div>
       <div style="font-size:12px;color:var(--txt2);line-height:1.7;max-width:280px;margin:0 auto">אפשר לשאול אותי כל דבר על האפליקציה, הנתונים שלך, לקבל ייעוץ, לדייק משימות, או סתם לדבר</div>
       <div style="display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:16px">
-        <button class="chat-suggestion" onclick="chatSuggest(this)">📊 איך הולך לי השבוע?</button>
-        <button class="chat-suggestion" onclick="chatSuggest(this)">💡 על מה כדאי לי להתמקד?</button>
-        <button class="chat-suggestion" onclick="chatSuggest(this)">🔥 למה הרצף שלי נשבר?</button>
-        <button class="chat-suggestion" onclick="chatSuggest(this)">⚙️ איך עובד יום חסד?</button>
+        <button class="chat-suggestion" onclick="chatSuggest(this)">📊 איך השבוע שלי?</button>
+        <button class="chat-suggestion" onclick="chatSuggest(this)">🎁 כמה נקודות עד הפרס הבא?</button>
+        <button class="chat-suggestion" onclick="chatSuggest(this)">🔥 מה הכי דחוף לשפר?</button>
+        <button class="chat-suggestion" onclick="chatSuggest(this)">📈 נתח את הרצף שלי</button>
+        <button class="chat-suggestion" onclick="chatSuggest(this)">💪 תן לי עידוד</button>
       </div>
     </div>
   </div>
@@ -2100,10 +2104,11 @@ function chatClear(){
     <div style="font-size:14px;font-weight:800;color:var(--txt);margin-bottom:6px">שלום! אני מכיר את כל הנתונים שלך</div>
     <div style="font-size:12px;color:var(--txt2);line-height:1.7;max-width:280px;margin:0 auto">אפשר לשאול אותי כל דבר על האפליקציה, הנתונים שלך, לקבל ייעוץ, לדייק משימות, או סתם לדבר</div>
     <div style="display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:16px">
-      <button class="chat-suggestion" onclick="chatSuggest(this)">📊 איך הולך לי השבוע?</button>
-      <button class="chat-suggestion" onclick="chatSuggest(this)">💡 על מה כדאי לי להתמקד?</button>
-      <button class="chat-suggestion" onclick="chatSuggest(this)">🔥 למה הרצף שלי נשבר?</button>
-      <button class="chat-suggestion" onclick="chatSuggest(this)">⚙️ איך עובד יום חסד?</button>
+      <button class="chat-suggestion" onclick="chatSuggest(this)">📊 איך השבוע שלי?</button>
+      <button class="chat-suggestion" onclick="chatSuggest(this)">🎁 כמה נקודות עד הפרס הבא?</button>
+      <button class="chat-suggestion" onclick="chatSuggest(this)">🔥 מה הכי דחוף לשפר?</button>
+      <button class="chat-suggestion" onclick="chatSuggest(this)">📈 נתח את הרצף שלי</button>
+      <button class="chat-suggestion" onclick="chatSuggest(this)">💪 תן לי עידוד</button>
     </div>
   </div>`;
 }
