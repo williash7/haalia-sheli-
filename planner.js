@@ -269,13 +269,17 @@ function _plDrag(el,id,type){
     if(Math.abs(y-sY)>5){hasMoved=true;el.classList.add('dragging');}
     if(hasMoved)el.style.top=Math.max(0,sTop+(y-sY))+'px';
   };
-  const end=y=>{
+  const end=async y=>{
     if(_plDragging!==id)return;
     const realMoved=hasMoved&&Math.abs(y-sY)>10&&(Date.now()-t0)>200;
     el.classList.remove('dragging');
     _plDragging=null;
     if(!realMoved)return;
     const nt=_plPxToTime(Math.max(0,sTop+(y-sY)));
+    const ok=typeof _customConfirm==='function'
+      ? await _customConfirm(`להזיז ל-${nt}?`,'✓ כן, הזז')
+      : confirm(`להזיז ל-${nt}?`);
+    if(!ok){_plBlocks();return;}
     if(type==='task'){
       if(!S.plannerTimeOverrides)S.plannerTimeOverrides={};
       S.plannerTimeOverrides[id]=nt;
