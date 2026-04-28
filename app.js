@@ -27,6 +27,8 @@ function def(){
     stagePoints:0,        // points accumulated in current global stage (for stage-up requirement)
     snoozedTasks:{},      // {taskId: dateString} — tasks hidden for today
     subTasks:{},          // {taskId: [{id,text,pts,scope,doneDate}]} — sub-tasks per parent task
+navItems:null,        // null = ברירת מחדל; מערך של מזהי עמודים בתפריט התחתון
+  homeScreen:'today',   // מסך שנפתח בהפעלה
   };
 }
 function load(){try{const r=localStorage.getItem(SK);if(r)return{...def(),...JSON.parse(r)};}catch(e){}return def();}
@@ -3462,6 +3464,7 @@ function renderSettings(){
   renderFocusDaySection();
   renderNotifSection();
   renderCustomRewardsSection();
+  renderNavSettings();
 }
 
 
@@ -3643,47 +3646,98 @@ const PAGES=[
 ];
 let activePage='today';
 
-// Pages that live in the drawer (not in bottom nav)
-const DRAWER_PAGES=['levels','settings','journal'];
-// Bottom nav tab IDs (excluding drawer pages)
-const NAV_TAB_IDS=['today','mastery','rewards','cal','chat'];
+// ── רשימת כל המסכים האפשריים עם אייקון SVG ──
+const ALL_NAV_ITEMS=[
+  {id:'today',    label:'היום',   emoji:'✅', locked:true, svg:'<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>'},
+  {id:'mastery',  label:'משימות', emoji:'📋', svg:'<path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h7a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h4a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>'},
+  {id:'rewards',  label:'פרסים',  emoji:'🎁', svg:'<path fill-rule="evenodd" d="M5 2a1 1 0 011 1v1h8V3a1 1 0 112 0v1h.5A1.5 1.5 0 0118 5.5v1A2.5 2.5 0 0115.5 9H15v7a1 1 0 01-1 1H6a1 1 0 01-1-1V9h-.5A2.5 2.5 0 012 6.5v-1A1.5 1.5 0 013.5 4H4V3a1 1 0 011-1zm3 7v6h4V9H8z" clip-rule="evenodd"/>'},
+  {id:'cal',      label:'מעקב',   emoji:'📊', svg:'<path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h10a2 2 0 002-2V5a1 1 0 100-2H3zm4 4a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm0 3a1 1 0 011-1h2a1 1 0 110 2H8a1 1 0 01-1-1z" clip-rule="evenodd"/>'},
+  {id:'chat',     label:'עוזר',   emoji:'💬', svg:'<path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"/>'},
+  {id:'levels',   label:'מסלול',  emoji:'📈', svg:'<path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"/><path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"/>'},
+  {id:'journal',  label:'יומן',   emoji:'📓', svg:'<path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>'},
+  {id:'settings', label:'הגדרות', emoji:'⚙️', svg:'<path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>'},
+];
+const DEFAULT_NAV_IDS=['today','mastery','rewards','cal','chat'];
+
+function getNavIds(){return S.navItems||DEFAULT_NAV_IDS;}
+function getDrawerIds(){return ALL_NAV_ITEMS.filter(x=>!getNavIds().includes(x.id)).map(x=>x.id);}
+
+// משתנים גלובליים לתאימות עם קוד קיים
+let DRAWER_PAGES=getDrawerIds();
+let NAV_TAB_IDS=getNavIds();
+
+function buildNav(){
+  DRAWER_PAGES=getDrawerIds();
+  NAV_TAB_IDS=getNavIds();
+  const navEl=document.getElementById('main-nav');
+  if(!navEl)return;
+  navEl.innerHTML='';
+  NAV_TAB_IDS.forEach(id=>{
+    const item=ALL_NAV_ITEMS.find(x=>x.id===id);
+    if(!item)return;
+    const btn=document.createElement('button');
+    btn.className='ntab'+(activePage===id?' on':'');
+    btn.id='btn-'+id;
+    btn.onclick=()=>nav(id);
+    btn.innerHTML=`<span class="ntab-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">${item.svg}</svg></span>${item.label}`;
+    navEl.appendChild(btn);
+  });
+  if(DRAWER_PAGES.length>0){
+    const moreBtn=document.createElement('button');
+    moreBtn.className='ntab'+(DRAWER_PAGES.includes(activePage)?' on':'');
+    moreBtn.id='btn-more';
+    moreBtn.onclick=openDrawer;
+    moreBtn.innerHTML=`<span class="ntab-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"/></svg></span>עוד`;
+    navEl.appendChild(moreBtn);
+  }
+}
+
+function buildDrawer(){
+  DRAWER_PAGES=getDrawerIds();
+  const list=document.getElementById('drawer-dynamic-list');
+  if(!list)return;
+  list.innerHTML='';
+  const subLabels={today:'משימות יומיות',mastery:'כל המשימות',rewards:'חנות פרסים',cal:'גרפים ולוח שנה',chat:'עוזר AI',levels:'התקדמות ושלבים',journal:'רפלקציה יומית',settings:'ניהול, גיבוי, AI'};
+  DRAWER_PAGES.forEach(id=>{
+    const item=ALL_NAV_ITEMS.find(x=>x.id===id);
+    if(!item)return;
+    const div=document.createElement('div');
+    div.className='drawer-item';
+    div.id='drawer-'+id;
+    div.onclick=()=>navDrawer(id);
+    div.innerHTML=`<span class="drawer-item-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">${item.svg}</svg></span><div><div>${item.label}</div><div class="drawer-item-sub">${subLabels[id]||''}</div></div>`;
+    list.appendChild(div);
+  });
+}
 
 function nav(p){
   activePage=p;
-  // Show/hide all pages
   PAGES.forEach(({id})=>{
     const el=document.getElementById('pg-'+id);
     if(el) el.classList.toggle('on',id===p);
   });
-  // journal page
   const jp=document.getElementById('pg-journal');
   if(jp) jp.classList.toggle('on',p==='journal');
-  // chat page (special fixed layout)
   const cp=document.getElementById('pg-chat');
   if(cp){
     if(p==='chat'){cp.style.display='flex';requestAnimationFrame(()=>{const hdr=document.querySelector('.hdr');const streak=document.getElementById('streak-section');const topOffset=(hdr?hdr.getBoundingClientRect().bottom:0)+(streak&&streak.offsetHeight?streak.offsetHeight:0);cp.style.top=Math.round(topOffset)+'px';cp.style.opacity='1';cp.style.pointerEvents='auto';});}
     else{cp.style.opacity='0';cp.style.pointerEvents='none';setTimeout(()=>{if(document.getElementById('pg-chat').style.opacity==='0')cp.style.display='none';},250);}
   }
-
-  // Highlight bottom nav tabs (only the 4 main ones)
   NAV_TAB_IDS.forEach(id=>{
     const btn=document.getElementById('btn-'+id);
     if(btn) btn.classList.toggle('on',id===p);
   });
-  // "עוד" button stays un-highlighted when navigating to main tabs
   const moreBtn=document.getElementById('btn-more');
   if(moreBtn) moreBtn.classList.toggle('on', DRAWER_PAGES.includes(p));
-
-PAGES.find(x=>x.id===p)?.render();
-if(p==='journal' && typeof renderJournalPage==='function') renderJournalPage();
+  PAGES.find(x=>x.id===p)?.render();
+  if(p==='journal' && typeof renderJournalPage==='function') renderJournalPage();
 }
 
 function openDrawer(){
   document.getElementById('side-drawer').classList.add('on');
   document.getElementById('side-drawer-overlay').classList.add('on');
   document.body.style.overflow='hidden';
-  // Highlight active drawer item
-  ['levels','journal','settings'].forEach(id=>{
+  DRAWER_PAGES.forEach(id=>{
     const el=document.getElementById('drawer-'+id);
     if(el) el.classList.toggle('on',activePage===id);
   });
@@ -3699,6 +3753,65 @@ function navDrawer(p){
 }
 
 function renderActive(){PAGES.find(x=>x.id===activePage)?.render();}
+
+/* ══════════════ NAV SETTINGS ══════════════ */
+function moveToDrawer(id){
+  const item=ALL_NAV_ITEMS.find(x=>x.id===id);
+  if(!item||item.locked)return;
+  S.navItems=[...getNavIds()].filter(x=>x!==id);
+  if(S.homeScreen===id) S.homeScreen='today';
+  save();buildNav();buildDrawer();renderNavSettings();
+  toast(`✅ "${item.label}" הועבר למגירה`);
+}
+function moveToNav(id){
+  const item=ALL_NAV_ITEMS.find(x=>x.id===id);
+  if(!item)return;
+  const ids=[...getNavIds()];
+  if(ids.length>=5){toast('⚠️ תפריט מלא — הוצא קודם פריט אחד');return;}
+  ids.push(id);
+  S.navItems=ids;
+  save();buildNav();buildDrawer();renderNavSettings();
+  toast(`✅ "${item.label}" הועבר לתפריט`);
+}
+function setHomeScreen(id){
+  S.homeScreen=id;save();renderNavSettings();
+  toast('✅ מסך ברירת מחדל עודכן');
+}
+function renderNavSettings(){
+  const container=document.getElementById('nav-settings-section');
+  if(!container)return;
+  const navIds=getNavIds();
+  const drawerIds=getDrawerIds();
+  const inNav=ALL_NAV_ITEMS.filter(x=>navIds.includes(x.id));
+  const inDrawer=ALL_NAV_ITEMS.filter(x=>drawerIds.includes(x.id));
+  const home=S.homeScreen||'today';
+  container.innerHTML=`
+    <div class="notif-section" style="margin-bottom:14px">
+      <div class="sect-hd">🗂️ תפריט ניווט</div>
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:12px;line-height:1.6">
+        בחר אילו מסכים בתפריט התחתון (עד 4) ואילו במגירה.<br>
+        <span style="color:var(--gold)">★ מסך הבית</span> — המסך שנפתח בהפעלה.
+      </div>
+      <div style="font-size:11px;font-weight:800;color:var(--txt2);margin-bottom:6px">📌 בתפריט התחתון</div>
+      ${inNav.map(item=>`
+        <div class="sound-row" style="margin-bottom:6px">
+          <div class="notif-info">
+            <div class="notif-name">${item.emoji} ${item.label}${item.locked?' <span style="font-size:10px;color:var(--txt3)">🔒</span>':''}</div>
+            ${!item.locked?`<div class="notif-time" style="cursor:pointer;color:${home===item.id?'var(--gold)':'var(--txt3)'}" onclick="setHomeScreen('${item.id}')">${home===item.id?'★ מסך הבית — לחץ לביטול':'☆ הגדר כמסך בית'}</div>`:''}
+          </div>
+          ${!item.locked?`<button onclick="moveToDrawer('${item.id}')" style="font-size:11px;padding:5px 10px;border-radius:6px;background:var(--sf3);border:1px solid var(--brd2);cursor:pointer;color:var(--txt2);white-space:nowrap">→ מגירה</button>`:'<div style="width:72px"></div>'}
+        </div>`).join('')}
+      <div style="font-size:11px;font-weight:800;color:var(--txt2);margin:12px 0 6px">📂 במגירה ("עוד")</div>
+      ${inDrawer.length===0?`<div style="font-size:12px;color:var(--txt3);padding:6px 0">כל המסכים בתפריט</div>`:''}
+      ${inDrawer.map(item=>`
+        <div class="sound-row" style="margin-bottom:6px">
+          <div class="notif-info">
+            <div class="notif-name">${item.emoji} ${item.label}</div>
+          </div>
+          ${navIds.length<5?`<button onclick="moveToNav('${item.id}')" style="font-size:11px;padding:5px 10px;border-radius:6px;background:rgba(91,141,248,.1);border:1px solid rgba(91,141,248,.3);cursor:pointer;color:var(--blue);white-space:nowrap">← תפריט</button>`:`<span style="font-size:10px;color:var(--txt3)">תפריט מלא</span>`}
+        </div>`).join('')}
+    </div>`;
+}
 
 /* ══════════════ RENDER MASTERY ══════════ */
 /* ══ MASTERY PAGE SORT STATE ══ */
@@ -3945,8 +4058,10 @@ if(S.sortMode){
 setTimeout(scheduleAllNotifs,1000);
 initShabbatTimes();
 applyTheme(S.lightMode !== undefined ? S.lightMode : true);
-renderToday();
+buildNav();
+buildDrawer();
 renderRewards();
+nav(S.homeScreen||'today');
 
 
 /* ══════════════ AI — ANTHROPIC API ══════════════ */
@@ -4554,26 +4669,6 @@ function renderPastJournals(){
   }).join('');
 }
 function escHtml(str){return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-
-/* patch nav for journal */
-(function(){
-  const _orig=window.nav;
-  window.nav=function(tab){
-    if(tab==='journal'){
-      document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
-      // Clear bottom nav highlights
-      NAV_TAB_IDS.forEach(id=>{const b=document.getElementById('btn-'+id);if(b)b.classList.remove('on');});
-      const moreBtn=document.getElementById('btn-more');
-      if(moreBtn)moreBtn.classList.add('on');
-      const pg=document.getElementById('pg-journal');
-      if(pg)pg.classList.add('on');
-      activePage='journal';
-      renderJournalPage();
-    } else {
-      if(_orig)_orig(tab);
-    }
-  };
-})();
 
 
 /* ══════════════ AI FAB & BOTTOMSHEET ══════════════ */

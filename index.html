@@ -87,18 +87,7 @@
       <div class="drawer-title">תפריט</div>
       <button class="drawer-close" onclick="closeDrawer()"><svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
     </div>
-    <div class="drawer-item" id="drawer-levels" onclick="navDrawer('levels')">
-      <span class="drawer-item-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"/><path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"/></svg></span>
-      <div><div>מסלול</div><div class="drawer-item-sub">התקדמות ושלבים</div></div>
-    </div>
-    <div class="drawer-item" id="drawer-journal" onclick="navDrawer('journal')">
-      <span class="drawer-item-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/></svg></span>
-      <div><div>יומן</div><div class="drawer-item-sub">רפלקציה יומית</div></div>
-    </div>
-    <div class="drawer-item" id="drawer-settings" onclick="navDrawer('settings')">
-      <span class="drawer-item-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg></span>
-      <div><div>הגדרות</div><div class="drawer-item-sub">ניהול, גיבוי, AI</div></div>
-    </div>
+<div id="drawer-dynamic-list"></div>
   </div>
 
   <!-- TODAY -->
@@ -307,7 +296,8 @@
         <button class="settings-btn" onclick="fixPoints()" style="color:var(--blue);border-color:rgba(91,141,248,.2);margin-bottom:8px"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:4px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></span> תקן נקודות (חישוב מחדש)</button>
         <button class="settings-btn danger" onclick="resetData()"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:4px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg></span> איפוס כל הנתונים</button>
       </div>
-    </div><!-- /stab-config-panel -->
+<div id="nav-settings-section"></div> 
+   </div><!-- /stab-config-panel -->
 
     <!-- ══ TAB: תזכורות ══ -->
     <div id="stab-notifs-panel" style="display:none">
