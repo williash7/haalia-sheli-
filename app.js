@@ -831,6 +831,15 @@ const DAILY_OCCURRENCES = {
     ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'], // שלב 15
   ],
 };
+(function _patchDailyOccurrences() {
+  const keys = Object.keys(DAILY_OCCURRENCES);
+  keys.forEach(key => {
+    if (!key.startsWith('grp_')) {
+      DAILY_OCCURRENCES['grp_' + key] = DAILY_OCCURRENCES[key];
+    }
+  });
+})();
+
 
 /**
  * מחזיר את מפתח האחסון היומי לחזרות.
@@ -2307,8 +2316,12 @@ const grpForTime = grpId ? (getGroups() || builtinGroups()).find(g => g.id === g
 const autoTime = grpForTime
   ? getTaskAutoTimeInfo(grpForTime, t._displayLevel || getTaskDisplayLevel(_masteryBid(grpId))).displayTime
   : t.time;
-const timeTag = autoTime
-  ? `<span style="font-size:10px;color:var(--blue);font-weight:700;background:var(--blue3);border-radius:4px;padding:1px 5px;margin-right:4px">${autoTime}</span>`
+const _todayDS = new Date().toDateString();
+const _plOv = S.plannerTimeOverrides;
+const _plannerToday = (_plOv && _plOv[_todayDS] && _plOv[_todayDS][t.id]) || null;
+const displayTime = _plannerToday || autoTime;
+const timeTag = displayTime
+  ? `<span style="font-size:10px;color:${_plannerToday?'var(--teal)':'var(--blue)'};font-weight:700;background:var(--blue3);border-radius:4px;padding:1px 5px;margin-right:4px">${displayTime}</span>`
   : '';
 const _bidOcc = _baseIdFromTaskId(t.id);
 const _lvlOcc = getTaskDisplayLevel(_masteryBid(_bidOcc));
@@ -2338,7 +2351,11 @@ if (isOccurrenceTask(_bidOcc) && !S.done[t.id]) {
     : '';
   const subExpandBtn = `<button class="task-snooze-btn" onclick="toggleSubExpand('${safeId}',event)" title="${isExpanded?'סגור':'תתי-משימות'}" style="${isExpanded?'color:var(--gold);border-color:var(--gold2)':''}">${isExpanded?'▲':'☰'}</button>`;
   const subListHtml = isExpanded ? _renderSubTasks(t.id, t.text) : '';
-  const starred = isTaskStarred(t.id);
+ const starred = isTaskStarred(t.id);
+  const _taskBid = _baseId(t.id);
+  const _taskGrpId = 'grp_' + _taskBid;
+  const _subHtml = typeof renderSubtasksForTask==='function' ? renderSubtasksForTask(t, _taskGrpId) : '';
+  const _mergedHtml = typeof renderMergedSubsForTask==='function' ? renderMergedSubsForTask(t) : '';
   return `<div class="task${dn?' done':''}${isBonus&&!dn?' bonus-active':''}${starred?' starred-task':''}"
     oncontextmenu="openQuickEditTask('${safeId}',event)"
     data-task-id="${t.id}" style="flex-wrap:wrap;${extraStyle||''}" onclick="showTaskInfo('${bid}','${safeText}',${ap},event)">
@@ -2373,9 +2390,12 @@ if (isOccurrenceTask(_bidOcc) && !S.done[t.id]) {
       <button class="task-star-btn${starred?' starred':''}" onclick="event.stopPropagation();toggleStar('${safeId}',event)" title="${starred?'הסר עדיפות':'סמן כעדיפות עליונה'}">${starred?'⭐':'☆'}</button>
       ${(()=>{ const _bid=_baseId(t.id); return getTaskDisplayLevel(_bid)>=MAX_LVL ? '' : `<button class="task-snooze-btn" onclick="event.stopPropagation();openAdvancedLevelModal('${safeId}',event)" title="ביצעתי ברמת השלב הבא" style="color:var(--teal)">⬆️</button>`; })()}
       <button class="task-snooze-btn" onclick="event.stopPropagation();snoozeTask('${safeId}',event)" title="לא היום">⏭</button>
+      <button class="task-subtasks-btn" onclick="event.stopPropagation();openAddSubtaskModal('${_taskGrpId}')">+ תת-משימה</button>
+      <button class="task-merge-btn" onclick="event.stopPropagation();openMergeTaskModal('${_taskGrpId}')">🔗 שלב</button>
       <div class="tpts${isBonus?' bonus':''}">+${ap}${isBonus?' 🔥':''}</div>
     </div>
     ${subListHtml}
+    ${_subHtml}${_mergedHtml}
   </div>`;
 }
 
@@ -2940,26 +2960,28 @@ if(teTimeEl) teTimeEl.placeholder = grp ? (getTaskAutoTimeInfo(grp, getTaskDispl
   document.getElementById('te-info-tip').value  = grpInfoOv.tip  !== undefined ? grpInfoOv.tip  : (_builtinInfo.tip  || '');
   document.getElementById('te-info-goal').value = grpInfoOv.goal !== undefined ? grpInfoOv.goal : (_builtinInfo.goal || '');
 
-  const numCol  = document.getElementById('te-levels-rows');
+const numCol  = document.getElementById('te-levels-rows');
   const textCol = document.getElementById('te-levels-rows-text');
+  const timeCol = document.getElementById('te-levels-rows-time');
   const ptsCol  = document.getElementById('te-levels-rows-pts');
-  let numHtml = '', textHtml = '', ptsHtml = '';
-
-  for (let i = 1; i <= MAX_LVL; i++) {
-    const lvlData = grp && grp.levels[i-1] ? grp.levels[i-1] : { text:'', pts:'' };
+  let numHtml = '', textHtml = '', ptsHtml = '', timeHtml = '';
+for (let i = 1; i <= MAX_LVL; i++) {
+    const lvlData = grp && grp.levels[i-1] ? grp.levels[i-1] : { text:'', pts:'', time:'' };
     const isCur = (i === S.level);
     const hlBg = isCur ? 'background:rgba(240,192,64,.09)' : (i % 2 === 0 ? 'background:rgba(255,255,255,.02)' : '');
     const bdr = 'border-bottom:1px solid var(--brd)';
     const curMark = isCur ? '<span style="font-size:8px;color:var(--gold);font-weight:900;display:block;line-height:1">\u2605 נוכחי</span>' : '';
     const safeText = (lvlData.text||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+    const safeTime = (lvlData.time||'');
     numHtml  += `<div style="padding:5px 7px;text-align:center;font-size:11px;font-weight:800;color:${isCur?'var(--gold)':'var(--txt3)'};${hlBg};${bdr}">${i}${curMark}</div>`;
     textHtml += `<div style="${hlBg};${bdr};border-right:1px solid var(--brd)"><input id="te-lvl-text-${i}" value="${safeText}" placeholder="טקסט לשלב ${i}..." maxlength="100" style="width:100%;background:transparent;border:none;color:var(--txt);font-family:'Heebo',sans-serif;font-size:12px;padding:5px 8px;outline:none"></div>`;
+    timeHtml += `<div style="${hlBg};${bdr};border-right:1px solid var(--brd)"><input id="te-lvl-time-${i}" type="time" value="${safeTime}" style="width:100%;background:transparent;border:none;color:var(--teal);font-family:'Heebo',sans-serif;font-size:11px;padding:4px 6px;outline:none"></div>`;
     ptsHtml  += `<div style="${hlBg};${bdr}"><input id="te-lvl-pts-${i}" type="number" value="${lvlData.pts||''}" placeholder="נק'" min="1" max="9999" style="width:100%;background:transparent;border:none;color:var(--gold);font-family:'Heebo',sans-serif;font-size:12px;font-weight:800;padding:5px 6px;outline:none;text-align:center"></div>`;
   }
   numCol.innerHTML  = numHtml;
   textCol.innerHTML = textHtml;
+  document.getElementById('te-levels-rows-time').innerHTML = timeHtml;
   ptsCol.innerHTML  = ptsHtml;
-
   openModal('modal-task-edit');
 }
 
@@ -2993,7 +3015,7 @@ function saveGroupEdit() {
     const pts  = parseInt(document.getElementById(`te-lvl-pts-${i}`)?.value);
     if (!text) { toast(`חסר טקסט לשלב ${i}`); return; }
     if (!pts || pts < 1) { toast(`חסרות נקודות לשלב ${i}`); return; }
-    levels.push({ text, pts });
+    const levelTime = (document.getElementById(`te-lvl-time-${i}`)?.value || '').trim() || undefined;
   }
 
   if (!S.taskGroups) S.taskGroups = builtinGroups();

@@ -866,12 +866,13 @@
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
       <div style="font-size:10px;font-weight:800;color:var(--txt2);text-transform:uppercase;letter-spacing:.8px">📝 משימה נפרדת לכל שלב (שלב 1 → שלב 15)</div>
       <div style="font-size:10px;color:var(--txt3)">15 שורות</div>
-    </div>
-    <div style="display:grid;grid-template-columns:auto 1fr 64px;gap:0;border:1px solid var(--brd);border-radius:10px;overflow:hidden;margin-bottom:14px">
+  </div>
+    <div style="display:grid;grid-template-columns:auto 1fr 80px 64px;gap:0;border:1px solid var(--brd);border-radius:10px;overflow:hidden;margin-bottom:14px">
       <div style="padding:6px 8px;background:var(--sf3);font-size:10px;font-weight:800;color:var(--gold);text-align:center;border-bottom:1px solid var(--brd)">שלב</div>
       <div style="padding:6px 8px;background:var(--sf3);font-size:10px;font-weight:800;color:var(--gold);border-bottom:1px solid var(--brd);border-right:1px solid var(--brd)">טקסט המשימה לשלב זה</div>
+      <div style="padding:6px 8px;background:var(--sf3);font-size:10px;font-weight:800;color:var(--teal);text-align:center;border-bottom:1px solid var(--brd);border-right:1px solid var(--brd)">⏰ שעה</div>
       <div style="padding:6px 8px;background:var(--sf3);font-size:10px;font-weight:800;color:var(--gold);text-align:center;border-bottom:1px solid var(--brd)">נק'</div>
-      <div id="te-levels-rows"></div><div id="te-levels-rows-text"></div><div id="te-levels-rows-pts"></div>
+      <div id="te-levels-rows"></div><div id="te-levels-rows-text"></div><div id="te-levels-rows-time"></div><div id="te-levels-rows-pts"></div>
     </div>
 
     <div class="modal-btns">
@@ -2226,5 +2227,6 @@ function chatClear(){
       </button>
     </div>
 <script src="ai-schedule.js" defer></script>
+<script src="subtasks.js"></script>
 </body>
 </html>

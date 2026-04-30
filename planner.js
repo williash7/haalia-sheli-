@@ -280,9 +280,11 @@ function _plDrag(el,id,type){
       ? await _customConfirm(`להזיז ל-${nt}?`,'✓ כן, הזז')
       : confirm(`להזיז ל-${nt}?`);
     if(!ok){_plBlocks();return;}
-    if(type==='task'){
+ if(type==='task'){
+      const _dds=_plDate?_plDate.toDateString():new Date().toDateString();
       if(!S.plannerTimeOverrides)S.plannerTimeOverrides={};
-      S.plannerTimeOverrides[id]=nt;
+      if(!S.plannerTimeOverrides[_dds])S.plannerTimeOverrides[_dds]={};
+      S.plannerTimeOverrides[_dds][id]=nt;
       if(typeof save==='function')save();
       if(typeof toast==='function')toast('🕐 שעה עודכנה ל-'+nt);
     }else{
@@ -316,7 +318,94 @@ function _plCheck(id,pts){
 }
 
 /* ════════ SLOT CLICK (הוספת אירוע חדש) ════════ */
-function _plSlotClick(time){if(!_plDragging)_plNewEvPop(time);}
+function _plSlotClick(time){
+  if(_plDragging) return;
+  _plOpenModal(`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:15px;font-weight:900;color:var(--txt)">➕ הוסף ליומן</div>
+      <button onclick="_plCloseModal()" style="width:28px;height:28px;border-radius:50%;background:var(--bg3);border:1px solid var(--brd2);color:var(--txt2);cursor:pointer">✕</button>
+    </div>
+    <button onclick="_plCloseModal();_plNewEvPop('${time}')"
+      style="width:100%;padding:13px;background:var(--bg3);border:1.5px solid var(--brd2);border-radius:12px;
+             color:var(--txt);font-size:13px;font-weight:800;cursor:pointer;text-align:right;margin-bottom:10px;
+             font-family:'Heebo',sans-serif;display:flex;align-items:center;gap:10px">
+      <span style="font-size:20px">📅</span>
+      <div>
+        <div>אירוע חדש</div>
+        <div style="font-size:11px;font-weight:500;color:var(--txt3)">פגישה, ביקור, תזכורת אישית</div>
+      </div>
+    </button>
+    <button onclick="_plCloseModal();_plOpenAddExistingTask('${time}')"
+      style="width:100%;padding:13px;background:rgba(45,212,191,.07);border:1.5px solid rgba(45,212,191,.3);border-radius:12px;
+             color:var(--teal);font-size:13px;font-weight:800;cursor:pointer;text-align:right;
+             font-family:'Heebo',sans-serif;display:flex;align-items:center;gap:10px">
+      <span style="font-size:20px">✅</span>
+      <div>
+        <div>הוסף ממשימות קיימות</div>
+        <div style="font-size:11px;font-weight:500;color:var(--txt3)">שריין שעה למשימה מדף הבית</div>
+      </div>
+    </button>
+  `);
+}
+
+function _plOpenAddExistingTask(defaultTime) {
+  const dayType = typeof getDayType === 'function' ? getDayType(_plDate) : 'weekday';
+  let tasks = [];
+  if(typeof getTasksWithIndivLevel === 'function') tasks = getTasksWithIndivLevel(S.level);
+  else if(typeof getTasks === 'function') tasks = getTasks(S.level);
+  tasks = tasks.filter(t => (t.days||['weekday']).includes(dayType));
+
+  const withTime    = tasks.filter(t =>  _plTaskTime(t));
+  const withoutTime = tasks.filter(t => !_plTaskTime(t));
+
+  const mkRow = t => {
+    const isDone = !!(S.done && S.done[t.id]);
+    const tm = _plTaskTime(t) || '';
+    const safeId = t.id.replace(/'/g,"\\'");
+    return `<div onclick="_plSetTaskTimeFromSlot('${safeId}','${defaultTime||'09:00'}')"
+      style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;
+             border:1px solid var(--brd);background:${isDone?'var(--green3)':'var(--surface)'};
+             cursor:pointer;margin-bottom:6px"
+      onmouseenter="this.style.borderColor='var(--teal)'"
+      onmouseleave="this.style.borderColor='var(--brd)'">
+      <span style="font-size:16px">${isDone?'✅':'⬜'}</span>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:700;color:var(--txt)">${t.text||''}</div>
+        ${tm ? `<div style="font-size:10px;color:var(--teal)">⏰ ${tm}</div>` : ''}
+      </div>
+      <span style="font-size:10px;font-weight:800;color:var(--gold)">${t.pts||''}נ</span>
+    </div>`;
+  };
+
+  const section = (title, list) => list.length
+    ? `<div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin:10px 0 6px">${title}</div>${list.map(mkRow).join('')}`
+    : '';
+
+  _plOpenModal(`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-size:14px;font-weight:900;color:var(--txt)">✅ בחר משימה לשעה ${defaultTime||''}</div>
+      <button onclick="_plCloseModal()" style="width:28px;height:28px;border-radius:50%;background:var(--bg3);border:1px solid var(--brd2);color:var(--txt2);cursor:pointer">✕</button>
+    </div>
+    <div style="max-height:55vh;overflow-y:auto">
+      ${section('🕐 משימות עם שעה', withTime)}
+      ${section('📋 משימות ללא שעה', withoutTime)}
+      ${(!withTime.length && !withoutTime.length) ? '<div style="text-align:center;padding:20px;color:var(--txt3)">אין משימות זמינות</div>' : ''}
+    </div>
+  `);
+}
+
+function _plSetTaskTimeFromSlot(taskId, time) {
+  const ds = _plDate ? _plDate.toDateString() : new Date().toDateString();
+  if(!S.plannerTimeOverrides) S.plannerTimeOverrides = {};
+  if(!S.plannerTimeOverrides[ds]) S.plannerTimeOverrides[ds] = {};
+  S.plannerTimeOverrides[ds][taskId] = time;
+  if(typeof save === 'function') save();
+  _plCloseModal();
+  _plBlocks(); _plBar();
+  if(ds === new Date().toDateString() && typeof renderActive === 'function')
+    setTimeout(renderActive, 80);
+  if(typeof toast === 'function') toast(`✅ המשימה נוספה לשעה ${time}`);
+}
 
 /* ════════ POPUP: EDIT BLOCK ════════ */
 function _plEditPop(id,type,curTime,curDur,curLabel){
@@ -368,11 +457,14 @@ function _plSaveEdit(id,type){
   const dur=parseInt(document.getElementById('pl-e-dur')?.value)||30;
   if(!time)return;
 
-  if(type==='task'){
+if(type==='task'){
+    const _ds=_plDate?_plDate.toDateString():new Date().toDateString();
     if(!S.plannerTimeOverrides)S.plannerTimeOverrides={};
-    S.plannerTimeOverrides[id]=time;
+    if(!S.plannerTimeOverrides[_ds])S.plannerTimeOverrides[_ds]={};
+    S.plannerTimeOverrides[_ds][id]=time;
     if(!S.plannerDurOverrides)S.plannerDurOverrides={};
-    S.plannerDurOverrides[id]=dur;
+    if(!S.plannerDurOverrides[_ds])S.plannerDurOverrides[_ds]={};
+    S.plannerDurOverrides[_ds][id]=dur;
     if(typeof save==='function')save();
   }else{
     const ds=_plDate.toDateString();
@@ -386,8 +478,9 @@ function _plSaveEdit(id,type){
 }
 
 function _plResetTime(id){
-  if(S.plannerTimeOverrides)delete S.plannerTimeOverrides[id];
-  if(S.plannerDurOverrides) delete S.plannerDurOverrides[id];
+  const _ds=_plDate?_plDate.toDateString():new Date().toDateString();
+  if(S.plannerTimeOverrides&&S.plannerTimeOverrides[_ds])delete S.plannerTimeOverrides[_ds][id];
+  if(S.plannerDurOverrides&&S.plannerDurOverrides[_ds]) delete S.plannerDurOverrides[_ds][id];
   if(typeof save==='function')save();
   _plCloseModal();_plBlocks();_plBar();
   if(typeof toast==='function')toast('↩ אופס לשעה המקורית');
@@ -519,8 +612,10 @@ function _plGetTasks(dayType){
    2) חילוץ מטקסט — זה מה שמוצג בדף היום (כל שלב מכיל שעה אחרת בטקסט)
    3) t.time מה-data — גיבוי אם אין שעה בטקסט */
 function _plTaskTime(t){
-  if(S.plannerTimeOverrides&&S.plannerTimeOverrides[t.id])
-    return S.plannerTimeOverrides[t.id];
+  const _ds=_plDate?_plDate.toDateString():new Date().toDateString();
+  if(S.plannerTimeOverrides&&S.plannerTimeOverrides[_ds]&&S.plannerTimeOverrides[_ds][t.id])
+    return S.plannerTimeOverrides[_ds][t.id];
+
 
   /* חלץ מהטקסט — כולל 'until' כי "עד 9:00" פירושו השעה הרלוונטית */
   if(t.text){
@@ -557,8 +652,9 @@ function _plTaskText(t){
 /* משך משימה (עם אוברריד) */
 function _plTaskDur(t){
   /* אוורריד ידני מעריכה */
-  if(S.plannerDurOverrides&&S.plannerDurOverrides[t.id])
-    return S.plannerDurOverrides[t.id];
+const _dsd=_plDate?_plDate.toDateString():new Date().toDateString();
+  if(S.plannerDurOverrides&&S.plannerDurOverrides[_dsd]&&S.plannerDurOverrides[_dsd][t.id])
+    return S.plannerDurOverrides[_dsd][t.id];
 
   /* טווח שעות "HH:MM-HH:MM" */
   if(typeof extractStartTimeFromText==='function'&&t.text){
