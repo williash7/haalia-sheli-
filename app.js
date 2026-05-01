@@ -691,17 +691,68 @@ function calcDayPts(){
   const boost = boostActiveToday();
   const scoringLevel = boost ? boost.level : S.level;
   const fd=focusDayForToday();
-  const todayDow=new Date().getDay();
   const dayTasks = getTasksForDay(scoringLevel, getDayType(new Date()));
   const today = todayStr();
-  // Sub-task points for today
-  const subPts = Object.values(S.subTasks||{}).reduce((sum,subs)=>
-    sum + (subs||[]).reduce((s2,sub)=> s2+(sub.doneDate===today?sub.pts:0), 0), 0);
+  const todayDate = new Date().toDateString();
+
+  // נקודות תת-משימות ידניות
+  let manualSubPts = 0;
+  const divideOverride = {}; // taskId -> ptsPerPart (כשיש חלוקת ניקוד)
+
+  if(S.subTasks){
+    const allGroups = (typeof getGroups==='function' ? getGroups() : null) ||
+                      (typeof builtinGroups==='function' ? builtinGroups() : []) || [];
+
+    Object.entries(S.subTasks).forEach(([grpId, subs])=>{
+      const activeSubs = (subs||[]).filter(s => {
+        if(s.scope === 'once') return !Object.keys(S.done||{}).some(k=>k.startsWith(`sub_${grpId}_${s.id}_`));
+        if(s.scope === 'level') return s.createdLevel === scoringLevel;
+        return true;
+      });
+
+      // pointMode='add' — נקודות נוספות כשמסמנים
+      activeSubs.filter(s=>s.pointMode==='add' && s.extraPts).forEach(sub=>{
+        const doneKey = `sub_${grpId}_${sub.id}_${todayDate}`;
+        if(S.done && S.done[doneKey]) manualSubPts += sub.extraPts;
+      });
+
+      // pointMode='divide' — המשימה הראשית מקבלת רק חלק, תת-משימה מקבלת חלק
+      const divSubs = activeSubs.filter(s=>s.pointMode==='divide');
+      if(divSubs.length){
+        const grp = allGroups.find(g => g.id===grpId || g.id===grpId.replace(/^grp_/,'') || 'grp_'+g.id===grpId);
+        if(grp){
+          const rawPts = grp.levels && grp.levels[scoringLevel-1] ? grp.levels[scoringLevel-1].pts : 0;
+          if(rawPts){
+            const mainPts = bonusPts(rawPts);
+            const totalParts = divSubs.length + 1;
+            const ptsPerPart = Math.floor(mainPts / totalParts);
+            // המשימה הראשית תקבל רק את חלקה
+            const taskId = grpId+'_'+scoringLevel;
+            const taskIdShort = grpId.replace(/^grp_/,'')+'_'+scoringLevel;
+            divideOverride[taskId] = ptsPerPart;
+            divideOverride[taskIdShort] = ptsPerPart;
+            // נקודות לתת-משימות שבוצעו
+            divSubs.forEach(sub=>{
+              const doneKey = `sub_${grpId}_${sub.id}_${todayDate}`;
+              if(S.done && S.done[doneKey]) manualSubPts += ptsPerPart;
+            });
+          }
+        }
+      }
+    });
+  }
+
+  const getTaskPts = t => {
+    if(!S.done[t.id]) return 0;
+    const override = divideOverride[t.id];
+    return override !== undefined ? override : bonusPts(t.pts);
+  };
+
   if(fd){
     const anchors=dayTasks.filter(t=>t.anchor);
-    return anchors.reduce((s,t)=>s+(S.done[t.id]?bonusPts(t.pts):0),0) + subPts;
+    return anchors.reduce((s,t)=>s+getTaskPts(t),0) + manualSubPts;
   }
-  return dayTasks.reduce((s,t)=>s+(S.done[t.id]?bonusPts(t.pts):0),0) + subPts;
+  return dayTasks.reduce((s,t)=>s+getTaskPts(t),0) + manualSubPts;
 }
 function calcAvail(){return S.totalPts+calcDayPts();}
 function chkSvg(){return'<svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1.5,5.5 4,8.5 9.5,2.5"/></svg>';}
@@ -942,6 +993,22 @@ if (isOccurrenceTask(_bid)) {
     const done  = getOccurrenceDoneCount(_bid, _lvl);
     toast(`✓ ${done}/${total} +${bonusPts(pts)}${streakBonus()>1?' 🔥':''}`);
   }
+ // עדכן משימה ראשית אם זו תת-משימה ממוזגת
+  if(typeof _stIsSubOf==='function' && S.taskMerges){
+    const _subGrpId2 = _bid.startsWith('grp_') ? _bid : 'grp_' + _bid;
+    const _mainGrpId2 = _stIsSubOf(_subGrpId2);
+    if(_mainGrpId2){
+      const _merge2 = S.taskMerges.find(m=>m.mainGrpId===_mainGrpId2);
+      const _sub2 = _merge2 && _merge2.subs.find(s=>s.grpId===_subGrpId2);
+      if(_sub2 && _sub2.progressMode==='same'){
+        const _mainLvl2 = S.level || 1;
+        const _mainId2 = _mainGrpId2 + '_' + _mainLvl2;
+        const _doneSubs2 = _merge2.subs.filter(s=>!!S.done[s.grpId+'_'+_mainLvl2]).length;
+        if(_doneSubs2 === _merge2.subs.length) S.done[_mainId2] = true;
+        else delete S.done[_mainId2];
+      }
+    }
+  }
   save(); renderActive();
   return;
 }
@@ -958,6 +1025,39 @@ if (isOccurrenceTask(_bid)) {
     if(navigator.vibrate)navigator.vibrate(40);
     toast(`+${bonusPts(pts)} ✓${streakBonus()>1?' 🔥':''}`);
   }
+// עדכן משימה ראשית אם זו תת-משימה ממוזגת
+if(typeof _stIsSubOf==='function' && typeof S.taskMerges!=='undefined'){
+  const _subBid = _baseIdFromTaskId(id);
+  const _subGrpId = _subBid.startsWith('grp_') ? _subBid : 'grp_' + _subBid;
+  const _mainGrpId = _stIsSubOf(_subGrpId);
+  if(_mainGrpId){
+    const _merge = (S.taskMerges||[]).find(m=>m.mainGrpId===_mainGrpId);
+    const _sub = _merge && _merge.subs.find(s=>s.grpId===_subGrpId);
+    if(_sub){
+      const _mainLvl = S.level || 1;
+      const _mainId = _mainGrpId + '_' + _mainLvl;
+      const _totalSubs = _merge.subs.length + 1; // +1 למשימה הראשית עצמה
+      if(_sub.progressMode === 'same'){
+        // בדוק כמה תת-משימות בוצעו
+        const _doneSubs = _merge.subs.filter(s=>{
+          const _sId = s.grpId + '_' + _mainLvl;
+          return !!S.done[_sId];
+        }).length;
+        const _mainDone = !!S.done[_mainId];
+        const _allDone = _doneSubs === _merge.subs.length;
+        if(_allDone && !_mainDone){
+          S.done[_mainId] = true;
+          toast(`✅ כל תת-המשימות בוצעו!`);
+        } else if(!_allDone && _mainDone && S.done[id]===undefined){
+          delete S.done[_mainId];
+        }
+      }
+      if(_sub.pointMode === 'divide'){
+        // הנקודות כבר נכללות במשימה הראשית — לא מוסיפים
+      }
+    }
+  }
+}
   save();renderActive();
   // Refresh task editor list if open (so progress counters update live)
   const _teModal=document.getElementById('modal-task-editor');
@@ -1252,6 +1352,21 @@ function saveStreakTask(){
 function deleteStreakTask(id){
   S.streakTasks=(S.streakTasks||[]).filter(x=>x.id!==id);
   save();renderActive();toast('🗑️ נמחקה');
+}
+function openAddOneTimeTaskWithTime(time) {
+  openAddOneTimeModal();
+  setTimeout(() => {
+    const timeEl = document.getElementById('modal-onetime-time');
+    if(timeEl) timeEl.value = time;
+  }, 50);
+}
+
+function openAddStreakTaskWithTime(time) {
+  openAddStreakModal();
+  setTimeout(() => {
+    const timeEl = document.getElementById('modal-streak-time');
+    if(timeEl) timeEl.value = time;
+  }, 50);
 }
 
 async function redeem(id,pts,minLvl,isGrace){
@@ -2352,10 +2467,14 @@ if (isOccurrenceTask(_bidOcc) && !S.done[t.id]) {
   const subExpandBtn = `<button class="task-snooze-btn" onclick="toggleSubExpand('${safeId}',event)" title="${isExpanded?'סגור':'תתי-משימות'}" style="${isExpanded?'color:var(--gold);border-color:var(--gold2)':''}">${isExpanded?'▲':'☰'}</button>`;
   const subListHtml = isExpanded ? _renderSubTasks(t.id, t.text) : '';
  const starred = isTaskStarred(t.id);
-  const _taskBid = _baseId(t.id);
-  const _taskGrpId = 'grp_' + _taskBid;
-  const _subHtml = typeof renderSubtasksForTask==='function' ? renderSubtasksForTask(t, _taskGrpId) : '';
-  const _mergedHtml = typeof renderMergedSubsForTask==='function' ? renderMergedSubsForTask(t) : '';
+const _taskBid = _baseId(t.id);
+const _taskGrpId = _taskBid.startsWith('grp_') ? _taskBid : 'grp_' + _taskBid;
+const _subHtml = typeof renderSubtasksForTask==='function'
+  ? renderSubtasksForTask(t, _taskGrpId) : '';
+const _mergedHtml = typeof renderMergedSubsForTask==='function'
+  ? renderMergedSubsForTask(t) : '';
+const _occSubHtml = typeof renderOccurrenceSubtasks==='function'
+  ? renderOccurrenceSubtasks(t) : '';
   return `<div class="task${dn?' done':''}${isBonus&&!dn?' bonus-active':''}${starred?' starred-task':''}"
     oncontextmenu="openQuickEditTask('${safeId}',event)"
     data-task-id="${t.id}" style="flex-wrap:wrap;${extraStyle||''}" onclick="showTaskInfo('${bid}','${safeText}',${ap},event)">
@@ -2389,13 +2508,12 @@ if (isOccurrenceTask(_bidOcc) && !S.done[t.id]) {
       ${subExpandBtn}
       <button class="task-star-btn${starred?' starred':''}" onclick="event.stopPropagation();toggleStar('${safeId}',event)" title="${starred?'הסר עדיפות':'סמן כעדיפות עליונה'}">${starred?'⭐':'☆'}</button>
       ${(()=>{ const _bid=_baseId(t.id); return getTaskDisplayLevel(_bid)>=MAX_LVL ? '' : `<button class="task-snooze-btn" onclick="event.stopPropagation();openAdvancedLevelModal('${safeId}',event)" title="ביצעתי ברמת השלב הבא" style="color:var(--teal)">⬆️</button>`; })()}
-      <button class="task-snooze-btn" onclick="event.stopPropagation();snoozeTask('${safeId}',event)" title="לא היום">⏭</button>
-      <button class="task-subtasks-btn" onclick="event.stopPropagation();openAddSubtaskModal('${_taskGrpId}')">+ תת-משימה</button>
-      <button class="task-merge-btn" onclick="event.stopPropagation();openMergeTaskModal('${_taskGrpId}')">🔗 שלב</button>
+      <button class="task-snooze-btn" onclick="event.stopPropagation();snoozeTask('${safeId}',event)" title="לא היום">⏭</button><button class="task-subtasks-btn" onclick="event.stopPropagation();openAddSubtaskModal('${_taskGrpId}')" title="הוסף תת-משימה">＋</button>
+      <button class="task-merge-btn" onclick="event.stopPropagation();openMergeTaskModal('${_taskGrpId}')" title="שלב משימות">🔗</button>
       <div class="tpts${isBonus?' bonus':''}">+${ap}${isBonus?' 🔥':''}</div>
     </div>
     ${subListHtml}
-    ${_subHtml}${_mergedHtml}
+   ${_occSubHtml}${_subHtml}${_mergedHtml}
   </div>`;
 }
 
@@ -2796,7 +2914,7 @@ function builtinGroups() {
 function expandGroupsForLevel(lvl) {
   const groups = getGroups();
   if (!groups) return null;
-  return groups.filter(g => !g.hidden).map(g => ({
+return groups.filter(g => !g.hidden && !(typeof _stIsSubOf==='function' && _stIsSubOf(g.id))).map(g => ({
     id: g.id + '_' + lvl,
     text: (g.levels[lvl - 1] || {}).text || '',
     pts:  (g.levels[lvl - 1] || {}).pts  || 5,
@@ -3009,13 +3127,14 @@ function saveGroupEdit() {
   if(document.getElementById('te-day-shabbat').checked) days.push('shabbat');
   if(!days.length){toast('חובה לבחור לפחות יום אחד');return;}
 
-  const levels = [];
+const levels = [];
   for (let i = 1; i <= MAX_LVL; i++) {
     const text = (document.getElementById(`te-lvl-text-${i}`)?.value || '').trim();
     const pts  = parseInt(document.getElementById(`te-lvl-pts-${i}`)?.value);
     if (!text) { toast(`חסר טקסט לשלב ${i}`); return; }
     if (!pts || pts < 1) { toast(`חסרות נקודות לשלב ${i}`); return; }
     const levelTime = (document.getElementById(`te-lvl-time-${i}`)?.value || '').trim() || undefined;
+    levels.push({ text, pts, ...(levelTime ? { time: levelTime } : {}) });
   }
 
   if (!S.taskGroups) S.taskGroups = builtinGroups();

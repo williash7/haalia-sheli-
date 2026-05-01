@@ -83,15 +83,71 @@ function _stIsSubDone(grpId, subId) {
 function _stToggleSubDone(grpId, subId) {
   const key = _stSubDoneKey(grpId, subId);
   if(!S.done) S.done = {};
-  if(S.done[key]) {
+  const wasDone = !!S.done[key];
+
+  if(wasDone) {
     delete S.done[key];
   } else {
     S.done[key] = true;
   }
+
+  // מצא את נתוני תת-המשימה
+  const subs = _stGetSubs(grpId);
+  const sub = subs.find(s => s.id === subId);
+
+  if(sub) {
+    const lvl = S.level || 1;
+    const allGroups = (typeof getGroups==='function' ? getGroups() : null) ||
+                      (typeof builtinGroups==='function' ? builtinGroups() : []) || [];
+    const grp = allGroups.find(g => g.id === grpId || g.id === grpId.replace(/^grp_/,'') || 'grp_'+g.id === grpId);
+    const rawPts = grp && grp.levels && grp.levels[lvl-1] ? grp.levels[lvl-1].pts : 0;
+
+    // חלוקת ניקוד — כשמסמנים תת-משימה שמחלקת נקודות
+    if(sub.pointMode === 'divide' && rawPts > 0) {
+      const allSubs = subs.filter(s => s.pointMode === 'divide');
+      const totalParts = allSubs.length + 1; // תת-משימות + המשימה הראשית
+      const ptsPerPart = Math.floor((typeof bonusPts==='function' ? bonusPts(rawPts) : rawPts) / totalParts);
+
+      // שמור נקודות לתת-משימה זו (לחישוב ב-calcDayPts)
+      if(!S.subTaskPts) S.subTaskPts = {};
+      const today = typeof todayStr==='function' ? todayStr() : new Date().toDateString();
+      if(!wasDone) {
+        S.subTaskPts[key] = { pts: ptsPerPart, grpId, date: today };
+        if(typeof toast==='function') toast(`+${ptsPerPart} ✓`);
+      } else {
+        delete S.subTaskPts[key];
+      }
+    }
+
+    // progressMode='same' — סמן משימת האם כבוצעה אם כל תתי-המשימות בוצעו
+    if(sub.progressMode === 'same') {
+      const mainTaskId = grpId + '_' + lvl;
+      const allSubsDone = subs.every(s => {
+        const k = _stSubDoneKey(grpId, s.id);
+        return !!S.done[k];
+      });
+      if(allSubsDone) {
+        S.done[mainTaskId] = true;
+        if(!wasDone && typeof toast==='function') toast('✅ כל תת-המשימות בוצעו!');
+      } else {
+        delete S.done[mainTaskId];
+      }
+    }
+  }
+
   if(typeof save === 'function') save();
   if(typeof renderActive === 'function') renderActive();
 }
 
+function _stDeleteSub(grpId, subId) {
+  const subs = _stGetSubs(grpId);
+  _stSaveSubs(grpId, subs.filter(s => s.id !== subId));
+  // מחק גם את מצב ה-done
+  const key = _stSubDoneKey(grpId, subId);
+  if(S.done) delete S.done[key];
+  if(typeof save==='function') save();
+  if(typeof renderActive==='function') renderActive();
+}
 
 /* ═══════════════════════════════
    פיצ'ר ד — מודאל הוספת תת-משימה
@@ -117,7 +173,8 @@ function openAddSubtaskModal(grpId) {
     document.body.appendChild(modal);
   }
 
-  const grp = (typeof getGroups==='function' ? getGroups() : []).find(g=>g.id===grpId);
+const allGroups = (typeof getGroups==='function' ? getGroups() : null) || (typeof builtinGroups==='function' ? builtinGroups() : []) || [];
+const grp = allGroups.find(g=>g.id===grpId) || allGroups.find(g=>g.id==='grp_'+grpId.replace(/^grp_/,''));
   const grpTitle = (grp && grp.title) || grpId;
   const curLevel = S.level;
 
@@ -262,7 +319,7 @@ function saveSubtask() {
 
 function renderSubtasksForTask(t, grpId) {
   const bid  = typeof _baseId==='function' ? _baseId(t.id) : t.id.replace(/_\d+$/,'');
-  const gId  = grpId || ('grp_' + bid);
+const gId  = grpId || (bid.startsWith('grp_') ? bid : 'grp_' + bid);
   const subs = _stGetSubs(gId);
   const curLevel = S.level;
 
@@ -286,19 +343,24 @@ function renderSubtasksForTask(t, grpId) {
     const ptsLabel  = s.pointMode==='add' && s.extraPts ? `<span style="font-size:10px;color:var(--gold)">+${s.extraPts}נ</span>` : '';
     const sepLabel  = s.progressMode==='separate' ? `<span style="font-size:9px;background:rgba(91,141,248,.15);color:var(--blue);border-radius:4px;padding:1px 5px">נפרד</span>` : '';
 
-    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;
+return `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;
       background:${done?'rgba(56,214,138,.07)':'rgba(255,255,255,.02)'};
       border:1px solid ${done?'rgba(56,214,138,.2)':'var(--brd)'};
-      margin-bottom:5px;cursor:pointer"
-      onclick="event.stopPropagation();_stToggleSubDone('${safeGId}','${safeSId}')">
-      <div style="width:16px;height:16px;border-radius:4px;border:1.5px solid ${done?'var(--green2)':'var(--brd2)'};
-        background:${done?'var(--green2)':'transparent'};flex-shrink:0;display:flex;align-items:center;justify-content:center">
-        ${done?'<svg width="10" height="10" viewBox="0 0 20 20" fill="white"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>':''}
+      margin-bottom:5px">
+      <div style="display:flex;align-items:center;gap:8px;flex:1;cursor:pointer"
+        onclick="event.stopPropagation();_stToggleSubDone('${safeGId}','${safeSId}')">
+        <div style="width:16px;height:16px;border-radius:4px;border:1.5px solid ${done?'var(--green2)':'var(--brd2)'};
+          background:${done?'var(--green2)':'transparent'};flex-shrink:0;display:flex;align-items:center;justify-content:center">
+          ${done?'<svg width="10" height="10" viewBox="0 0 20 20" fill="white"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>':''}
+        </div>
+        <div style="flex:1;font-size:11px;font-weight:600;color:${done?'var(--txt3)':'var(--txt)'};${done?'text-decoration:line-through':''}">
+          ${s.text}
+        </div>
+        <div style="display:flex;gap:4px;align-items:center">${timeLabel}${ptsLabel}${sepLabel}</div>
       </div>
-      <div style="flex:1;font-size:11px;font-weight:600;color:${done?'var(--txt3)':'var(--txt)'};${done?'text-decoration:line-through':''}">
-        ${s.text}
-      </div>
-      <div style="display:flex;gap:4px;align-items:center">${timeLabel}${ptsLabel}${sepLabel}</div>
+      <button onclick="event.stopPropagation();_stDeleteSub('${safeGId}','${safeSId}')"
+        style="font-size:12px;color:var(--red);background:rgba(240,80,80,.1);border:1px solid rgba(240,80,80,.2);
+               border-radius:5px;padding:2px 6px;cursor:pointer;flex-shrink:0">🗑</button>
     </div>`;
   }).join('');
 
@@ -346,7 +408,7 @@ function openMergeTaskModal(mainGrpId) {
     document.body.appendChild(modal);
   }
 
-  const groups = typeof getGroups==='function' ? getGroups() : [];
+  const groups = (typeof getGroups==='function' ? getGroups() : null) || (typeof builtinGroups==='function' ? builtinGroups() : []);
   const mainGrp = groups.find(g=>g.id===mainGrpId);
   if(!mainGrp) return;
 
@@ -367,7 +429,7 @@ function openMergeTaskModal(mainGrpId) {
         const safeGId = s.grpId.replace(/'/g,"\\'");
         return `<div style="display:flex;align-items:center;gap:8px;padding:8px 11px;background:var(--bg3);border:1px solid var(--brd);border-radius:9px;margin-bottom:5px">
           <span style="font-size:13px">🔗</span>
-          <div style="flex:1;font-size:12px;font-weight:700;color:var(--txt)">${sg ? (sg.title || sg.id) : s.grpId}</div>
+          <div style="flex:1;font-size:12px;font-weight:700;color:var(--txt)">${sg ? (sg.title || (sg.levels && sg.levels[0] && sg.levels[0].text) || sg.id.replace('grp_','')) : s.grpId}</div>
           <button onclick="_stRemoveMergedSub('${mainGrpId.replace(/'/g,"\\'")}','${safeGId}')"
             style="font-size:10px;color:var(--red);background:rgba(240,80,80,.1);border:1px solid rgba(240,80,80,.2);border-radius:5px;padding:2px 7px;cursor:pointer">הסר</button>
         </div>`;
@@ -386,7 +448,7 @@ function openMergeTaskModal(mainGrpId) {
             onmouseenter="this.style.borderColor='var(--blue)'"
             onmouseleave="this.style.borderColor='var(--brd)'">
             <span style="font-size:14px">📋</span>
-            <div style="flex:1;font-size:12px;font-weight:700;color:var(--txt)">${g.title || g.id.replace('grp_','')}</div>
+            <div style="flex:1;font-size:12px;font-weight:700;color:var(--txt)">${g.title || (g.levels && g.levels[0] && g.levels[0].text) || g.id.replace('grp_','')}</div>
             <span style="font-size:10px;color:var(--txt3)">בחר ›</span>
           </div>`;
         }).join('')}
@@ -408,7 +470,7 @@ function openMergeTaskModal(mainGrpId) {
 }
 
 function _stShowMergeOptions(mainGrpId, subGrpId) {
-  const groups = typeof getGroups==='function' ? getGroups() : [];
+  const groups = (typeof getGroups==='function' ? getGroups() : null) || (typeof builtinGroups==='function' ? builtinGroups() : []);
   const subGrp = groups.find(g=>g.id===subGrpId);
 
   document.getElementById('merge-options-panel').innerHTML = `
@@ -492,13 +554,13 @@ function _stRemoveMergedSub(mainGrpId, subGrpId) {
 ═══════════════════════════════ */
 
 function renderMergedSubsForTask(t) {
-  const bid = typeof _baseId==='function' ? _baseId(t.id) : t.id.replace(/_\d+$/,'');
-  const gId = 'grp_' + bid;
+const bid = typeof _baseId==='function' ? _baseId(t.id) : t.id.replace(/_\d+$/,'');
+const gId = bid.startsWith('grp_') ? bid : 'grp_' + bid;
   const merge = _stGetMerge(gId);
   if(!merge || !merge.subs.length) return '';
 
-  const groups = typeof getGroups==='function' ? getGroups() : [];
-  const curLevel = S.level;
+  const groups = (typeof getGroups==='function' ? getGroups() : null) || (typeof builtinGroups==='function' ? builtinGroups() : []);
+ const curLevel = S.level || 1;
 
   const rows = merge.subs.filter(s => {
     if(s.scope === 'level') return s.createdLevel === curLevel;
@@ -507,10 +569,10 @@ function renderMergedSubsForTask(t) {
     const sg = groups.find(g=>g.id===s.grpId);
     if(!sg) return '';
     // מצא את גרסת השלב הנוכחי של תת-המשימה
-    const lvlData = sg.levels && sg.levels[curLevel-1] ? sg.levels[curLevel-1] : {};
+const globalLevel = S.level || 1;
+    const lvlData = sg.levels && sg.levels[globalLevel-1] ? sg.levels[globalLevel-1] : {};
     const text = lvlData.text || (sg.title || s.grpId.replace('grp_',''));
-    // בדוק אם בוצעה ביומן הנוכחי
-    const subTaskId = s.grpId + '_' + curLevel;
+    const subTaskId = s.grpId + '_' + globalLevel;
     const done = !!(S.done && S.done[subTaskId]);
     const safeSub = subTaskId.replace(/'/g,"\\'");
     const pts = lvlData.pts || '';
@@ -541,6 +603,88 @@ function renderMergedSubsForTask(t) {
 
 
 /* ═══════════════════════════════
+   פיצ'ר ה — משימות חוזרות כתת-משימות
+═══════════════════════════════ */
+
+function renderOccurrenceSubtasks(t) {
+  // מצא את ה-baseId הנקי (בלי grp_ ובלי _lvl)
+  const bid = typeof _baseId==='function' ? _baseId(t.id) : t.id.replace(/_\d+$/,'');
+  const cleanBid = bid.replace(/^grp_/,'');
+
+  // בדוק אם זו משימת occurrence
+  if(typeof DAILY_OCCURRENCES === 'undefined') return '';
+  const lvl = S.level || 1;
+  const occArr = DAILY_OCCURRENCES[cleanBid] || DAILY_OCCURRENCES['grp_'+cleanBid];
+  if(!occArr) return '';
+  const times = occArr[Math.min(lvl,15)-1] || [];
+  if(!times.length) return '';
+
+  // קבל מצב ביצוע
+  const doneArr = typeof getOccurrenceDoneArr==='function'
+    ? (getOccurrenceDoneArr(cleanBid, lvl) || getOccurrenceDoneArr('grp_'+cleanBid, lvl) || new Array(times.length).fill(0))
+    : new Array(times.length).fill(0);
+
+  const rows = times.map((time, idx) => {
+    const done = !!doneArr[idx];
+    const safeCleanBid = cleanBid.replace(/'/g,"\\'");
+    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;
+      background:${done?'rgba(56,214,138,.07)':'rgba(255,255,255,.02)'};
+      border:1px solid ${done?'rgba(56,214,138,.2)':'var(--brd)'};
+      margin-bottom:5px;cursor:pointer"
+      onclick="event.stopPropagation();_toggleOccurrenceSub('${safeCleanBid}',${idx})">
+      <div style="width:16px;height:16px;border-radius:4px;border:1.5px solid ${done?'var(--green2)':'var(--brd2)'};
+        background:${done?'var(--green2)':'transparent'};flex-shrink:0;display:flex;align-items:center;justify-content:center">
+        ${done?'<svg width="10" height="10" viewBox="0 0 20 20" fill="white"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>':''}
+      </div>
+      <div style="flex:1;font-size:11px;font-weight:600;color:${done?'var(--txt3)':'var(--txt)'};${done?'text-decoration:line-through':''}">
+        פעם ${idx+1}
+      </div>
+      <span style="font-size:11px;font-weight:700;color:var(--teal)">⏰ ${time}</span>
+    </div>`;
+  }).join('');
+
+  const doneCount = doneArr.filter(Boolean).length;
+
+  return `<div class="subtasks-container" style="margin-top:4px;padding:6px 8px;background:var(--bg3);border-radius:0 0 10px 10px;border:1px solid var(--brd);border-top:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <span style="font-size:9px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px">חזרות (${doneCount}/${times.length})</span>
+    </div>
+    ${rows}
+  </div>`;
+}
+
+function _toggleOccurrenceSub(cleanBid, idx) {
+  const lvl = S.level || 1;
+  // נסה שניהם
+  let arr = typeof getOccurrenceDoneArr==='function' ? getOccurrenceDoneArr(cleanBid, lvl) : null;
+  if(!arr) arr = typeof getOccurrenceDoneArr==='function' ? getOccurrenceDoneArr('grp_'+cleanBid, lvl) : null;
+  if(!arr) return;
+
+  // החלף מצב
+  arr[idx] = arr[idx] ? 0 : 1;
+
+  // שמור
+  const effectiveBid = (DAILY_OCCURRENCES[cleanBid] ? cleanBid : 'grp_'+cleanBid);
+  if(!S.occurrenceDone) S.occurrenceDone = {};
+  const key = typeof _occKey==='function' ? _occKey(effectiveBid) : effectiveBid+'_today';
+  S.occurrenceDone[key] = arr;
+
+  // אם כולם בוצעו — סמן המשימה כבוצעה
+  const taskId = effectiveBid+'_'+lvl;
+  const altId  = effectiveBid.replace(/^grp_/,'')+'_'+lvl;
+  if(arr.every(Boolean)){
+    S.done[taskId] = true;
+    if(typeof toast==='function') toast('✅ כל החזרות בוצעו!');
+  } else {
+    delete S.done[taskId];
+    delete S.done[altId];
+  }
+
+  if(typeof save==='function') save();
+  if(typeof renderActive==='function') renderActive();
+}
+
+/* ═══════════════════════════════
    CSS — הוסף ל-style.css
 ═══════════════════════════════ */
 (function _injectSubtasksCSS(){
@@ -554,27 +698,38 @@ function renderMergedSubsForTask(t) {
       from { opacity: 0; transform: translateY(-4px); }
       to   { opacity: 1; transform: translateY(0); }
     }
-    /* כפתור תת-משימות בכרטיסי משימה */
+/* כפתור תת-משימות בכרטיסי משימה */
     .task-subtasks-btn {
-      font-size: 10px;
+      font-size: 13px;
       font-weight: 800;
       color: var(--teal);
       background: rgba(45,212,191,.1);
       border: 1px solid rgba(45,212,191,.25);
-      border-radius: 5px;
-      padding: 2px 7px;
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      padding: 0;
     }
     /* כפתור שילוב משימות */
     .task-merge-btn {
-      font-size: 10px;
-      font-weight: 800;
+      font-size: 13px;
       color: var(--purple);
       background: rgba(155,126,248,.1);
       border: 1px solid rgba(155,126,248,.25);
-      border-radius: 5px;
-      padding: 2px 7px;
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      padding: 0;
     }
   `;
   document.head.appendChild(s);

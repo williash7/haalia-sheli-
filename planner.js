@@ -325,6 +325,7 @@ function _plSlotClick(time){
       <div style="font-size:15px;font-weight:900;color:var(--txt)">➕ הוסף ליומן</div>
       <button onclick="_plCloseModal()" style="width:28px;height:28px;border-radius:50%;background:var(--bg3);border:1px solid var(--brd2);color:var(--txt2);cursor:pointer">✕</button>
     </div>
+
     <button onclick="_plCloseModal();_plNewEvPop('${time}')"
       style="width:100%;padding:13px;background:var(--bg3);border:1.5px solid var(--brd2);border-radius:12px;
              color:var(--txt);font-size:13px;font-weight:800;cursor:pointer;text-align:right;margin-bottom:10px;
@@ -335,14 +336,37 @@ function _plSlotClick(time){
         <div style="font-size:11px;font-weight:500;color:var(--txt3)">פגישה, ביקור, תזכורת אישית</div>
       </div>
     </button>
-    <button onclick="_plCloseModal();_plOpenAddExistingTask('${time}')"
-      style="width:100%;padding:13px;background:rgba(45,212,191,.07);border:1.5px solid rgba(45,212,191,.3);border-radius:12px;
-             color:var(--teal);font-size:13px;font-weight:800;cursor:pointer;text-align:right;
+
+  <button onclick="_plCloseModal();openAddOneTimeTaskWithTime('${time}')"
+      style="width:100%;padding:13px;background:rgba(240,192,64,.07);border:1.5px solid rgba(240,192,64,.3);border-radius:12px;
+             color:var(--gold);font-size:13px;font-weight:800;cursor:pointer;text-align:right;margin-bottom:10px;
              font-family:'Heebo',sans-serif;display:flex;align-items:center;gap:10px">
-      <span style="font-size:20px">✅</span>
+      <span style="font-size:20px">⚡</span>
       <div>
-        <div>הוסף ממשימות קיימות</div>
-        <div style="font-size:11px;font-weight:500;color:var(--txt3)">שריין שעה למשימה מדף הבית</div>
+        <div>משימה חד פעמית</div>
+        <div style="font-size:11px;font-weight:500;color:var(--txt3)">משימה שתופיע פעם אחת או מספר פעמים</div>
+      </div>
+    </button>
+
+   <button onclick="_plCloseModal();openAddStreakTaskWithTime('${time}')"
+      style="width:100%;padding:13px;background:rgba(45,212,191,.07);border:1.5px solid rgba(45,212,191,.3);border-radius:12px;
+             color:var(--teal);font-size:13px;font-weight:800;cursor:pointer;text-align:right;margin-bottom:10px;
+             font-family:'Heebo',sans-serif;display:flex;align-items:center;gap:10px">
+      <span style="font-size:20px">🔁</span>
+      <div>
+        <div>משימה עקבית</div>
+        <div style="font-size:11px;font-weight:500;color:var(--txt3)">משימה עם 15 שלבי התקדמות</div>
+      </div>
+    </button>
+
+    <button onclick="_plCloseModal();renderTeGroupList();openModal('modal-task-editor')"
+      style="width:100%;padding:13px;background:rgba(91,141,248,.07);border:1.5px solid rgba(91,141,248,.3);border-radius:12px;
+             color:var(--blue);font-size:13px;font-weight:800;cursor:pointer;text-align:right;
+             font-family:'Heebo',sans-serif;display:flex;align-items:center;gap:10px">
+      <span style="font-size:20px">✏️</span>
+      <div>
+        <div>עורך משימות</div>
+        <div style="font-size:11px;font-weight:500;color:var(--txt3)">ערוך, הסתר או מחק משימות קיימות</div>
       </div>
     </button>
   `);
