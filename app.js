@@ -28,6 +28,7 @@ function def(){
     snoozedTasks:{},      // {taskId: dateString} — tasks hidden for today
     subTasks:{},          // {taskId: [{id,text,pts,scope,doneDate}]} — sub-tasks per parent task
     taskOrder:[],         // [taskId, ...] — custom drag-and-drop order
+    taskMerges:null,      // null = no merges; [{mainGrpId, subs:[...]}] when merges exist
 navItems:null,        // null = ברירת מחדל; מערך של מזהי עמודים בתפריט התחתון
   homeScreen:'today',   // מסך שנפתח בהפעלה
   };
@@ -777,6 +778,47 @@ function calcDayPts(){
     });
   }
 
+  // ── נקודות עבור משימות ממוזגות (taskMerges) ──
+  if(S.taskMerges){
+    const mergeGroups = (typeof getGroups==='function' ? getGroups() : null) ||
+                        (typeof builtinGroups==='function' ? builtinGroups() : []) || [];
+    S.taskMerges.forEach(merge=>{
+      const mainGrpId = merge.mainGrpId;
+      const mainGrp = mergeGroups.find(g=>g.id===mainGrpId||g.id===mainGrpId.replace(/^grp_/,'')||'grp_'+g.id===mainGrpId);
+      if(!mainGrp) return;
+      const rawPts = mainGrp.levels && mainGrp.levels[scoringLevel-1] ? mainGrp.levels[scoringLevel-1].pts : 0;
+      if(!rawPts) return;
+      const mainPts = bonusPts(rawPts);
+      const mainTaskId      = mainGrpId + '_' + scoringLevel;
+      const mainTaskIdShort = mainGrpId.replace(/^grp_/,'') + '_' + scoringLevel;
+      const activeMergeSubs = (merge.subs||[]).filter(s=>{
+        if(s.scope==='level') return s.createdLevel===scoringLevel;
+        return true;
+      });
+      // pointMode='divide' — חלוקת נקודות הראשית בין כל החלקים
+      const mDivSubs = activeMergeSubs.filter(s=>s.pointMode==='divide');
+      if(mDivSubs.length){
+        const totalParts = mDivSubs.length + 1;
+        const ptsPerPart = Math.floor(mainPts / totalParts);
+        divideOverride[mainTaskId]      = ptsPerPart;
+        divideOverride[mainTaskIdShort] = ptsPerPart;
+        mDivSubs.forEach(sub=>{
+          const subId = sub.grpId + '_' + scoringLevel;
+          if(S.done && S.done[subId]) manualSubPts += ptsPerPart;
+        });
+      }
+      // pointMode='add' — התת מוסיפה נקודות משלה
+      activeMergeSubs.filter(s=>s.pointMode==='add').forEach(sub=>{
+        const sg = mergeGroups.find(g=>g.id===sub.grpId||'grp_'+g.id===sub.grpId);
+        if(!sg) return;
+        const subPts = sg.levels && sg.levels[scoringLevel-1] ? sg.levels[scoringLevel-1].pts : 0;
+        if(!subPts) return;
+        const subId = sub.grpId + '_' + scoringLevel;
+        if(S.done && S.done[subId]) manualSubPts += bonusPts(subPts);
+      });
+    });
+  }
+
   const getTaskPts = t => {
     if(!S.done[t.id]) return 0;
     const override = divideOverride[t.id];
@@ -1088,9 +1130,26 @@ if(typeof _stIsSubOf==='function' && typeof S.taskMerges!=='undefined'){
         }
       }
       if(_sub.pointMode === 'divide'){
-        // הנקודות כבר נכללות במשימה הראשית — לא מוסיפים
+        // הנקודות מחולקות דרך calcDayPts — לא מוסיפים כאן
       }
     }
+  }
+}
+// ── סנכרון ראשית → תתים (bidirectional fix) ──
+if(typeof _stGetMerge==='function'){
+  const _mainBid3 = _baseIdFromTaskId(id);
+  const _mainGrpId3 = _mainBid3.startsWith('grp_') ? _mainBid3 : 'grp_' + _mainBid3;
+  const _mainMerge3 = _stGetMerge(_mainGrpId3);
+  if(_mainMerge3){
+    const _lvl3 = S.level || 1;
+    const _isDone3 = !!S.done[id];
+    _mainMerge3.subs.forEach(s=>{
+      if(s.progressMode === 'same'){
+        const _subId3 = s.grpId + '_' + _lvl3;
+        if(_isDone3) S.done[_subId3] = true;
+        else delete S.done[_subId3];
+      }
+    });
   }
 }
   save();renderActive();
