@@ -2495,6 +2495,7 @@ const advLevelBtnHtml = getTaskDisplayLevel(_taskBid) >= MAX_LVL
       <div style="display:flex;align-items:center;gap:8px">
         <div class="tcb" onclick="event.stopPropagation();toggleTask('${safeId}',${t.pts})">${chkSvg()}</div>
         <div style="flex:1;min-width:0;font-size:12px;font-weight:800;color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${displayTitle || ''}</div>
+        <div class="tpts${isBonus?' bonus':''}">+${ap}${isBonus?' 🔥':''}</div>
       </div>
       <div class="tn" ondblclick="inlineEditTask('${safeId}',this)">${stepText}</div>
       <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
@@ -2505,7 +2506,6 @@ const advLevelBtnHtml = getTaskDisplayLevel(_taskBid) >= MAX_LVL
         ${advLevelBtnHtml}
         <button class="task-snooze-btn" onclick="event.stopPropagation();snoozeTask('${safeId}',event)" title="לא היום">⏭</button><button class="task-subtasks-btn" onclick="event.stopPropagation();openAddSubtaskModal('${_taskGrpId}')" title="הוסף תת-משימה">＋</button>
         <button class="task-merge-btn" onclick="event.stopPropagation();openMergeTaskModal('${_taskGrpId}')" title="שלב משימות">🔗</button>
-        <div class="tpts${isBonus?' bonus':''}">+${ap}${isBonus?' 🔥':''}</div>
       </div>
     </div>
     ${subListHtml}
