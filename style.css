@@ -151,7 +151,7 @@ body[dir="rtl"] #side-drawer.on{transform:translateX(0)}
 .tcb{width:21px;height:21px;border-radius:6px;border:1.5px solid var(--brd2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s;cursor:pointer;}
 .task.done .tcb{background:var(--green2);border-color:var(--green2)}
 .tcb svg{display:none}.task.done .tcb svg{display:block}
-.tbody{flex:1;min-width:0;display:flex;flex-direction:column}
+.tbody{flex:1;min-width:0}
 .tn{font-size:13px;font-weight:600;line-height:1.35}
 .tcat{display:inline-block;font-size:10px;font-weight:700;color:var(--txt3);background:var(--bg3);padding:1px 5px;border-radius:4px;margin-top:3px;letter-spacing:.4px;}
 .tpts{font-size:12px;font-weight:900;color:var(--gold);flex-shrink:0;letter-spacing:-.5px}

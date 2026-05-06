@@ -2475,42 +2475,38 @@ const _mergedHtml = typeof renderMergedSubsForTask==='function'
   ? renderMergedSubsForTask(t) : '';
 const _occSubHtml = typeof renderOccurrenceSubtasks==='function'
   ? renderOccurrenceSubtasks(t) : '';
+const _chosenLvl = S.taskAdvancedDisplay && S.taskAdvancedDisplay[_taskBid];
+let stepText = t.text;
+if (_chosenLvl) {
+  const _altTasks = getTasksForDay(_chosenLvl, getDayType(new Date()));
+  const _alt = _altTasks.find(x => _baseId(x.id) === _taskBid);
+  if (_alt) stepText = _alt.text;
+}
+const levelBadgeHtml = _chosenLvl
+  ? `<span style="font-size:10px;font-weight:800;color:${_chosenLvl > S.level ? 'var(--green)' : 'var(--gold)'};background:var(--bg3);border-radius:4px;padding:1px 5px">${_chosenLvl > S.level ? '⬆️' : '⬇️'} שלב ${_chosenLvl}</span>`
+  : '';
+const advLevelBtnHtml = getTaskDisplayLevel(_taskBid) >= MAX_LVL
+  ? ''
+  : `<button class="task-snooze-btn" onclick="event.stopPropagation();openAdvancedLevelModal('${safeId}',event)" title="ביצעתי ברמת השלב הבא" style="color:var(--teal)">⬆️</button>`;
   return `<div class="task${dn?' done':''}${isBonus&&!dn?' bonus-active':''}${starred?' starred-task':''}"
     oncontextmenu="openQuickEditTask('${safeId}',event)"
-    data-task-id="${t.id}" style="flex-wrap:wrap;${extraStyle||''}" onclick="showTaskInfo('${bid}','${safeText}',${ap},event)">
-    <div style="display:flex;align-items:center;gap:11px;width:100%">
-      <div class="tcb" onclick="event.stopPropagation();toggleTask('${safeId}',${t.pts})">${chkSvg()}</div>
-      <div class="tbody">
-        ${titleLine}
-        <div class="tn" ondblclick="inlineEditTask('${safeId}',this)">${(()=>{
-  const _bid = _baseId(t.id);
-  const _chosenLvl = S.taskAdvancedDisplay && S.taskAdvancedDisplay[_bid];
-  if(_chosenLvl){
-    const _altTasks = getTasksForDay(_chosenLvl, getDayType(new Date()));
-    const _alt = _altTasks.find(x => _baseId(x.id) === _bid);
-    return _alt ? _alt.text : t.text;
-  }
-  return t.text;
-})()}</div>
-        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:3px;margin-top:3px">
-      ${occBadge || timeTag}<span class="tcat">${CATS[t.cat]||t.cat}</span>${(()=>{
-  const _bid = _baseId(t.id);
-  const _chosenLvl = S.taskAdvancedDisplay && S.taskAdvancedDisplay[_bid];
-  if(_chosenLvl){
-    const _color = _chosenLvl > S.level ? 'var(--green)' : 'var(--gold)';
-    const _arrow = _chosenLvl > S.level ? '⬆️' : '⬇️';
-    return `<span style="font-size:10px;font-weight:800;color:${_color};background:var(--bg3);border-radius:4px;padding:1px 5px">${_arrow} שלב ${_chosenLvl}</span>`;
-  }
-  return '';
-})()}
-        </div>
+    data-task-id="${t.id}" style="${extraStyle||''}" onclick="showTaskInfo('${bid}','${safeText}',${ap},event)">
+    <div style="display:flex;flex-direction:column;gap:5px;width:100%">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="tcb" onclick="event.stopPropagation();toggleTask('${safeId}',${t.pts})">${chkSvg()}</div>
+        <div style="flex:1;min-width:0;font-size:12px;font-weight:800;color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${displayTitle || ''}</div>
       </div>
-      ${subExpandBtn}
-      <button class="task-star-btn${starred?' starred':''}" onclick="event.stopPropagation();toggleStar('${safeId}',event)" title="${starred?'הסר עדיפות':'סמן כעדיפות עליונה'}">${starred?'⭐':'☆'}</button>
-      ${(()=>{ const _bid=_baseId(t.id); return getTaskDisplayLevel(_bid)>=MAX_LVL ? '' : `<button class="task-snooze-btn" onclick="event.stopPropagation();openAdvancedLevelModal('${safeId}',event)" title="ביצעתי ברמת השלב הבא" style="color:var(--teal)">⬆️</button>`; })()}
-      <button class="task-snooze-btn" onclick="event.stopPropagation();snoozeTask('${safeId}',event)" title="לא היום">⏭</button><button class="task-subtasks-btn" onclick="event.stopPropagation();openAddSubtaskModal('${_taskGrpId}')" title="הוסף תת-משימה">＋</button>
-      <button class="task-merge-btn" onclick="event.stopPropagation();openMergeTaskModal('${_taskGrpId}')" title="שלב משימות">🔗</button>
-      <div class="tpts${isBonus?' bonus':''}">+${ap}${isBonus?' 🔥':''}</div>
+      <div class="tn" ondblclick="inlineEditTask('${safeId}',this)">${stepText}</div>
+      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
+        ${occBadge || timeTag}<span class="tcat">${CATS[t.cat]||t.cat}</span>${levelBadgeHtml}
+        <div style="flex:1"></div>
+        ${subExpandBtn}
+        <button class="task-star-btn${starred?' starred':''}" onclick="event.stopPropagation();toggleStar('${safeId}',event)" title="${starred?'הסר עדיפות':'סמן כעדיפות עליונה'}">${starred?'⭐':'☆'}</button>
+        ${advLevelBtnHtml}
+        <button class="task-snooze-btn" onclick="event.stopPropagation();snoozeTask('${safeId}',event)" title="לא היום">⏭</button><button class="task-subtasks-btn" onclick="event.stopPropagation();openAddSubtaskModal('${_taskGrpId}')" title="הוסף תת-משימה">＋</button>
+        <button class="task-merge-btn" onclick="event.stopPropagation();openMergeTaskModal('${_taskGrpId}')" title="שלב משימות">🔗</button>
+        <div class="tpts${isBonus?' bonus':''}">+${ap}${isBonus?' 🔥':''}</div>
+      </div>
     </div>
     ${subListHtml}
    ${_occSubHtml}${_subHtml}${_mergedHtml}
