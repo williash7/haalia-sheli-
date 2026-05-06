@@ -108,15 +108,7 @@ function _stToggleSubDone(grpId, subId) {
       const totalParts = allSubs.length + 1; // תת-משימות + המשימה הראשית
       const ptsPerPart = Math.floor((typeof bonusPts==='function' ? bonusPts(rawPts) : rawPts) / totalParts);
 
-      // שמור נקודות לתת-משימה זו (לחישוב ב-calcDayPts)
-      if(!S.subTaskPts) S.subTaskPts = {};
-      const today = typeof todayStr==='function' ? todayStr() : new Date().toDateString();
-      if(!wasDone) {
-        S.subTaskPts[key] = { pts: ptsPerPart, grpId, date: today };
-        if(typeof toast==='function') toast(`+${ptsPerPart} ✓`);
-      } else {
-        delete S.subTaskPts[key];
-      }
+      if(!wasDone && typeof toast==='function') toast(`+${ptsPerPart} ✓`);
     }
 
     // progressMode='same' — סמן משימת האם כבוצעה אם כל תתי-המשימות בוצעו
@@ -326,8 +318,10 @@ const gId  = grpId || (bid.startsWith('grp_') ? bid : 'grp_' + bid);
   // סנן לפי היקף
   const relevant = subs.filter(s => {
     if(s.scope === 'once') {
-      // הצג רק אם עדיין לא בוצע כלל (לא today — לכל הזמנים)
-      return !S.done || !Object.keys(S.done).some(k=>k.startsWith(`sub_${gId}_${s.id}`));
+      const prefix = `sub_${gId}_${s.id}`;
+      const doneEver = (S.subTasksDoneOnce && S.subTasksDoneOnce[prefix]) ||
+                       (S.done && Object.keys(S.done).some(k=>k.startsWith(prefix)));
+      return !doneEver;
     }
     if(s.scope === 'level') return s.createdLevel === curLevel;
     return true; // 'all'

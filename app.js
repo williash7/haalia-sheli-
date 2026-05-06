@@ -29,6 +29,7 @@ function def(){
     subTasks:{},          // {taskId: [{id,text,pts,scope,doneDate}]} — sub-tasks per parent task
     taskOrder:[],         // [taskId, ...] — custom drag-and-drop order
     taskMerges:null,      // null = no merges; [{mainGrpId, subs:[...]}] when merges exist
+    subTasksDoneOnce:{},  // {prefix: true} — persistent store for scope='once' completions
 navItems:null,        // null = ברירת מחדל; מערך של מזהי עמודים בתפריט התחתון
   homeScreen:'today',   // מסך שנפתח בהפעלה
   };
@@ -714,6 +715,17 @@ let pendingLU=null;
           S.taskFailStreak[bid]=0;
         }
       }
+    });
+  }
+  // שמור scope='once' לפני ניקוי S.done
+  if(S.subTasks){
+    if(!S.subTasksDoneOnce) S.subTasksDoneOnce={};
+    Object.entries(S.subTasks).forEach(([gId,subs])=>{
+      (subs||[]).filter(s=>s.scope==='once').forEach(sub=>{
+        const prefix=`sub_${gId}_${sub.id}`;
+        if(Object.keys(S.done||{}).some(k=>k.startsWith(prefix)))
+          S.subTasksDoneOnce[prefix]=true;
+      });
     });
   }
   S.done={};S.lastDay=today;
@@ -2560,15 +2572,6 @@ if (isOccurrenceTask(_bidOcc) && !S.done[t.id]) {
     : '';
   const safeId = t.id.replace(/'/g,"\\'");
   const safeText = t.text.replace(/'/g,"\\'");
-  const hasSubs = S.subTasks && S.subTasks[t.id] && S.subTasks[t.id].length > 0;
-  const isExpanded = !!_subExpanded[t.id];
-  const subCount = hasSubs ? S.subTasks[t.id].length : 0;
-  const subDone = hasSubs ? S.subTasks[t.id].filter(s=>s.doneDate===todayStr()).length : 0;
-  const subBadge = hasSubs
-    ? `<span style="font-size:9px;font-weight:800;color:${subDone===subCount?'var(--green2)':'var(--txt3)'};background:var(--bg3);border:1px solid var(--brd);border-radius:99px;padding:1px 6px;margin-right:4px">${subDone}/${subCount} תתי</span>`
-    : '';
-  const subExpandBtn = `<button class="task-snooze-btn" onclick="toggleSubExpand('${safeId}',event)" title="${isExpanded?'סגור':'תתי-משימות'}" style="${isExpanded?'color:var(--gold);border-color:var(--gold2)':''}">${isExpanded?'▲':'☰'}</button>`;
-  const subListHtml = isExpanded ? _renderSubTasks(t.id, t.text) : '';
  const starred = isTaskStarred(t.id);
 const _taskBid = _baseId(t.id);
 const _taskGrpId = _taskBid.startsWith('grp_') ? _taskBid : 'grp_' + _taskBid;
@@ -2604,14 +2607,12 @@ const advLevelBtnHtml = getTaskDisplayLevel(_taskBid) >= MAX_LVL
       <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
         ${occBadge || timeTag}<span class="tcat">${CATS[t.cat]||t.cat}</span>${levelBadgeHtml}
         <div style="flex:1"></div>
-        ${subExpandBtn}
         <button class="task-star-btn${starred?' starred':''}" onclick="event.stopPropagation();toggleStar('${safeId}',event)" title="${starred?'הסר עדיפות':'סמן כעדיפות עליונה'}">${starred?'⭐':'☆'}</button>
         ${advLevelBtnHtml}
         <button class="task-snooze-btn" onclick="event.stopPropagation();snoozeTask('${safeId}',event)" title="לא היום">⏭</button><button class="task-subtasks-btn" onclick="event.stopPropagation();openAddSubtaskModal('${_taskGrpId}')" title="הוסף תת-משימה">＋</button>
         <button class="task-merge-btn" onclick="event.stopPropagation();openMergeTaskModal('${_taskGrpId}')" title="שלב משימות">🔗</button>
       </div>
     </div>
-    ${subListHtml}
    ${_occSubHtml}${_subHtml}${_mergedHtml}
   </div>`;
 }
