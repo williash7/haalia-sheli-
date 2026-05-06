@@ -669,6 +669,8 @@ body.boost-mode {
 .task-done-anim {
   animation: taskDonePop 0.5s cubic-bezier(0.22,1,0.36,1);
 }
+.task-drag-ghost{opacity:.35;background:var(--bg3)!important}
+.task-drag-chosen{box-shadow:0 4px 16px rgba(0,0,0,.3);z-index:9;cursor:grabbing}
 @keyframes ptsFly {
   0%   { opacity: 1; transform: translateY(0) scale(1); }
   100% { opacity: 0; transform: translateY(-26px) scale(0.8); }

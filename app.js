@@ -27,6 +27,7 @@ function def(){
     stagePoints:0,        // points accumulated in current global stage (for stage-up requirement)
     snoozedTasks:{},      // {taskId: dateString} — tasks hidden for today
     subTasks:{},          // {taskId: [{id,text,pts,scope,doneDate}]} — sub-tasks per parent task
+    taskOrder:[],         // [taskId, ...] — custom drag-and-drop order
 navItems:null,        // null = ברירת מחדל; מערך של מזהי עמודים בתפריט התחתון
   homeScreen:'today',   // מסך שנפתח בהפעלה
   };
@@ -39,6 +40,40 @@ const save = function(){
   localStorage.setItem(SK, JSON.stringify(S));
   if(window._fbUser && window._fbSave) window._fbSave(window._fbUser.uid, S);
 };
+
+/* ══════════════ DRAG-AND-DROP ORDER ══════════════ */
+function _customOrderCmp(idA,idB){
+  const order=S.taskOrder||[];
+  const ia=order.indexOf(idA),ib=order.indexOf(idB);
+  if(ia===-1&&ib===-1)return 0;
+  if(ia===-1)return 1;
+  if(ib===-1)return -1;
+  return ia-ib;
+}
+function initSortable(){
+  if(typeof Sortable==='undefined')return;
+  const els=[...document.querySelectorAll('.slot-body'),document.getElementById('sortable-timed')].filter(Boolean);
+  els.forEach(el=>{
+    Sortable.create(el,{
+      animation:120,
+      draggable:'.task:not(.snoozed)',
+      ghostClass:'task-drag-ghost',
+      chosenClass:'task-drag-chosen',
+      onEnd:_saveTaskOrderFromDOM
+    });
+  });
+}
+function _saveTaskOrderFromDOM(){
+  const ids=[];
+  document.querySelectorAll('#today-content .task[data-task-id]').forEach(el=>{
+    ids.push(el.dataset.taskId);
+  });
+  const existing=S.taskOrder||[];
+  const visible=new Set(ids);
+  existing.forEach(id=>{if(!visible.has(id))ids.push(id);});
+  S.taskOrder=ids;
+  save();
+}
 
 /* ══════════════ GRACE LOGIC (SCALED) ══════════════ */
 function gracesPerLevel(lvl){
@@ -2162,10 +2197,13 @@ const _sortTime = t => {
   const mins = h*60+(m||0);
   return h < 4 ? mins + 1440 : mins;
 };
-const timed = tasks.filter(t=>_timeCache.get(t.id)).sort((a,b)=>_sortTime(a)-_sortTime(b));
+const timed = tasks.filter(t=>_timeCache.get(t.id)).sort((a,b)=>{
+  const td=_sortTime(a)-_sortTime(b);
+  return td!==0?td:_customOrderCmp(a.id,b.id);
+});
 const allDay = tasks.filter(t=>!_timeCache.get(t.id));
 if(timed.length){
-  timed.forEach(t=>{ html+=_renderTaskHtml(t,isBonus); });
+  html+=`<div id="sortable-timed">${timed.map(t=>_renderTaskHtml(t,isBonus)).join('')}</div>`;
 }
 if(allDay.length){
   html+=_slotAccordion('tv_allday','📅','כל היום','ללא שעה מוגדרת',allDay, allDay.map(t=>_renderTaskHtml(t,isBonus)).join(''));
@@ -2178,7 +2216,10 @@ if(allDay.length){
       if(!st.length)return;
       const catLabel=CATS[catKey]||catKey;
       let body='';
-      st.sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99')).forEach(t=>{ body+=_renderTaskHtml(t,isBonus); });
+      st.sort((a,b)=>{
+        const td=(a.time||'99:99').localeCompare(b.time||'99:99');
+        return td!==0?td:_customOrderCmp(a.id,b.id);
+      }).forEach(t=>{ body+=_renderTaskHtml(t,isBonus); });
       html+=_slotAccordion('tv_cat_'+catKey,'🏷️',catLabel,'',st,body);
     });
     // custom cats
@@ -2188,8 +2229,10 @@ if(allDay.length){
     SLOTS.forEach((sl,si)=>{
       let st=tasks.filter(t=>t.slot===si);
       if(!st.length)return;
-      // starred tasks float to top
-      st=st.sort((a,b)=>(isTaskStarred(b.id)?1:0)-(isTaskStarred(a.id)?1:0));
+      st=st.sort((a,b)=>{
+        const sd=(isTaskStarred(b.id)?1:0)-(isTaskStarred(a.id)?1:0);
+        return sd!==0?sd:_customOrderCmp(a.id,b.id);
+      });
       let body='';
       st.forEach(t=>{ body+=_renderTaskHtml(t,isBonus); });
       html+=_slotAccordion('slot_'+si,sl.icon,sl.title,sl.label,st,body);
@@ -2206,6 +2249,7 @@ if(allDay.length){
   if(_ts)_ts.style.display=_todayTasksOpen?'block':'none';
   _applyHideDoneSlots();
   _updateStartBtn();
+  initSortable();
 }
 
 function _renderSpecialTasksToday(){
