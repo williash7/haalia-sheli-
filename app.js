@@ -2181,15 +2181,7 @@ function renderToday(){
   const _ssEl=document.getElementById('summary-streak');
   if(_ssEl)_ssEl.textContent=S.streak;
   const isBonus=streakBonus()>1;
-  // Accordion shows only untimed tasks — timed tasks appear exclusively in the planner below
-  const _timedCount = !isFocusDay ? tasks.filter(t=>!!_getTaskTime(t)).length : 0;
-  if(!isFocusDay) tasks = tasks.filter(t=>!_getTaskTime(t));
   let html='';
-  if(_timedCount>0){
-    html+=`<div style="font-size:11px;color:var(--txt3);text-align:center;padding:4px 0 8px;border-bottom:1px solid var(--brd);margin-bottom:10px">
-      📅 ${_timedCount} משימות עם שעה — ראה לוח הזמנים למטה
-    </div>`;
-  }
   if(isToday_Shabbat){
     html+=`<div style="background:rgba(155,126,248,.08);border:1px solid rgba(155,126,248,.25);border-radius:var(--r-sm);padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--purple);font-weight:700">✡️ שבת — משימות מיוחדות לשבת</div>`;
   }else if(isToday_Friday){
@@ -2445,9 +2437,26 @@ function renderWhatNow(){
   if(!task){
     const done=tasks.filter(t=>S.done[t.id]).length;
     const pct=tasks.length?Math.round(done/tasks.length*100):0;
-    card.innerHTML=pct===100
-      ?`<div style="background:rgba(56,214,138,.08);border:1px solid rgba(56,214,138,.2);border-radius:var(--r);padding:14px 16px;text-align:center"><div style="font-size:22px;margin-bottom:4px">🏆</div><div style="font-size:13px;font-weight:800;color:var(--green)">כל המשימות הושלמו!</div></div>`
-      :`<div style="background:var(--sf2);border:1px solid var(--brd);border-radius:var(--r);padding:12px 16px;text-align:center;font-size:12px;color:var(--txt3)">אין משימות ממתינות עם שעה</div>`;
+    if(pct===100){
+      card.innerHTML=`<div style="background:rgba(56,214,138,.08);border:1px solid rgba(56,214,138,.2);border-radius:var(--r);padding:14px 16px;text-align:center"><div style="font-size:22px;margin-bottom:4px">🏆</div><div style="font-size:13px;font-weight:800;color:var(--green)">כל המשימות הושלמו!</div></div>`;
+      return;
+    }
+    // Look for first timed task tomorrow
+    const tmr=new Date(); tmr.setDate(tmr.getDate()+1);
+    const tmrType=getDayType(tmr);
+    let tmrTasks=typeof getTasksWithIndivLevel==='function'?getTasksWithIndivLevel(S.level):getTasksForDay(S.level,tmrType);
+    const tmrFirst=tmrTasks.map(t=>({...t,_time:_getTaskTime(t),_dur:_getTaskDur(t)})).filter(t=>t._time).sort((a,b)=>a._time.localeCompare(b._time))[0];
+    if(tmrFirst){
+      card.innerHTML=`<div style="background:var(--sf2);border:1px solid var(--brd);border-radius:var(--r);padding:13px 16px;display:flex;align-items:center;gap:12px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">▷ מחר ראשון</div>
+          <div style="font-size:14px;font-weight:900;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px">${tmrFirst.text}</div>
+          <div style="font-size:11px;color:var(--txt3)">${tmrFirst._time}${tmrFirst._dur!==30?` · ${tmrFirst._dur} דק'`:''}</div>
+        </div>
+      </div>`;
+    } else {
+      card.innerHTML=`<div style="background:var(--sf2);border:1px solid var(--brd);border-radius:var(--r);padding:12px 16px;text-align:center;font-size:12px;color:var(--txt3)">אין משימות ממתינות עם שעה</div>`;
+    }
     return;
   }
   const taskMin=toMin(task._time);
@@ -2719,7 +2728,7 @@ const advLevelBtnHtml = getTaskDisplayLevel(_taskBid) >= MAX_LVL
   : `<button class="task-snooze-btn" onclick="event.stopPropagation();openAdvancedLevelModal('${safeId}',event)" title="ביצעתי ברמת השלב הבא" style="color:var(--teal)">⬆️</button>`;
   return `<div class="task${dn?' done':''}${isBonus&&!dn?' bonus-active':''}${starred?' starred-task':''}"
     oncontextmenu="openQuickEditTask('${safeId}',event)"
-    data-task-id="${t.id}" style="${extraStyle||''}" onclick="showTaskInfo('${bid}','${safeText}',${ap},event)">
+    data-task-id="${t.id}" style="${extraStyle||''}" onclick="event.stopPropagation();toggleTask('${safeId}',${t.pts})">
     <div style="display:flex;flex-direction:column;gap:5px;width:100%">
       <div style="display:flex;align-items:center;gap:8px">
         <div class="tcb" onclick="event.stopPropagation();toggleTask('${safeId}',${t.pts})">${chkSvg()}</div>
@@ -2732,8 +2741,10 @@ const advLevelBtnHtml = getTaskDisplayLevel(_taskBid) >= MAX_LVL
         <div style="flex:1"></div>
         <button class="task-star-btn${starred?' starred':''}" onclick="event.stopPropagation();toggleStar('${safeId}',event)" title="${starred?'הסר עדיפות':'סמן כעדיפות עליונה'}">${starred?'⭐':'☆'}</button>
         ${advLevelBtnHtml}
-        <button class="task-snooze-btn" onclick="event.stopPropagation();snoozeTask('${safeId}',event)" title="לא היום">⏭</button><button class="task-subtasks-btn" onclick="event.stopPropagation();openAddSubtaskModal('${_taskGrpId}')" title="הוסף תת-משימה">＋</button>
+        <button class="task-snooze-btn" onclick="event.stopPropagation();snoozeTask('${safeId}',event)" title="לא היום">⏭</button>
+        <button class="task-subtasks-btn" onclick="event.stopPropagation();openAddSubtaskModal('${_taskGrpId}')" title="הוסף תת-משימה">＋</button>
         <button class="task-merge-btn" onclick="event.stopPropagation();openMergeTaskModal('${_taskGrpId}')" title="שלב משימות">🔗</button>
+        <button class="task-info-btn" onclick="event.stopPropagation();showTaskInfo('${bid}','${safeText}',${ap},event)" title="מידע על המשימה">ℹ️</button>
       </div>
     </div>
    ${_occSubHtml}${_subHtml}${_mergedHtml}
@@ -4361,6 +4372,8 @@ const timeBadge = displayTime
 
       const lvlColor = atMaxFlag ? 'var(--gold)' : aheadOfGlobal ? 'var(--purple)' : atGlobalCap ? 'var(--green)' : catColor;
 
+      const _masteryInfoBid = storeBid.replace('grp_','');
+      const _masteryInfoText = (TASK_INFO[_masteryInfoBid]?.title) || titleText;
       h += `<div style="background:var(--surface);border:1px solid var(--brd);border-radius:var(--r-sm);margin-bottom:8px;overflow:hidden">
         <!-- Task header — click to edit -->
         <div onclick="openEditGroupModal('${bid}')" style="padding:12px 13px;cursor:pointer;user-select:none">
@@ -4390,7 +4403,13 @@ const timeBadge = displayTime
             </div>
           </div>`:''}
         </div>
-
+        <!-- Action buttons -->
+        <div style="display:flex;gap:0;border-top:1px solid var(--brd)" onclick="event.stopPropagation()">
+          <button onclick="showTaskInfo('${_masteryInfoBid}','${_masteryInfoText.replace(/'/g,"\\'")}',${(g.levels[indivLvl-1]||g.levels[0]||{}).pts||5},event)" style="flex:1;padding:7px 4px;background:none;border:none;border-left:1px solid var(--brd);font-size:11px;color:var(--txt3);cursor:pointer;font-family:'Heebo',sans-serif" title="מידע על המשימה">ℹ️ מידע</button>
+          ${!atMaxFlag?`<button onclick="openAdvancedLevelModal('${bid}_${indivLvl}',event)" style="flex:1;padding:7px 4px;background:none;border:none;border-left:1px solid var(--brd);font-size:11px;color:var(--teal);cursor:pointer;font-family:'Heebo',sans-serif" title="עלה שלב">⬆️ שלב</button>`:'<div style="flex:1;padding:7px 4px;font-size:11px;color:var(--gold);text-align:center">✦ מקסימום</div>'}
+          <button onclick="openAddSubtaskModal('${bid}')" style="flex:1;padding:7px 4px;background:none;border:none;border-left:1px solid var(--brd);font-size:11px;color:var(--txt3);cursor:pointer;font-family:'Heebo',sans-serif" title="הוסף תת-משימה">＋ תת-משימה</button>
+          <button onclick="openMergeTaskModal('${bid}')" style="flex:1;padding:7px 4px;background:none;border:none;font-size:11px;color:var(--txt3);cursor:pointer;font-family:'Heebo',sans-serif" title="חבר משימות">🔗 חיבור</button>
+        </div>
       </div>`;
     });
   });
