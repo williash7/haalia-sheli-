@@ -1919,6 +1919,11 @@ function renderStats(){
   document.getElementById('s-today').textContent=calcDayPts();
   document.getElementById('s-bank').textContent=calcAvail();
   document.getElementById('s-streak').textContent=S.streak;
+  // mini-stats bar
+  const msStreak=document.getElementById('ms-streak');
+  const msBank=document.getElementById('ms-bank');
+  if(msStreak)msStreak.textContent=S.streak;
+  if(msBank)msBank.textContent=calcAvail();
   document.getElementById('hdr-lvl').textContent=`שלב ${S.level} מ-${MAX_LVL}`;
   const ov=Math.round(domainProgress(S.level).reduce((s,d)=>s+d.val,0)/6);
   document.getElementById('hdr-pct').textContent=`${ov}% מהחזון`;
@@ -1977,33 +1982,11 @@ function _slotAccordion(slotId, icon, name, time, tasks, bodyHtml){
 }
 
 /* ══════════════ TODAY PAGE — SUMMARY CARD LOGIC ══════════════ */
-let _todayTasksOpen = false;
+let _todayTasksOpen = true;
 let _hideDoneSlots = false;
 
-function toggleTodayTasks(){
-  _todayTasksOpen = !_todayTasksOpen;
-  const sec = document.getElementById('tasks-section');
-  if(sec) sec.style.display = _todayTasksOpen ? 'block' : 'none';
-  _updateStartBtn();
-}
-
-function _updateStartBtn(){
-  const btn = document.getElementById('start-day-btn');
-  if(!btn) return;
-  const taskEls = document.querySelectorAll('#today-content .task');
-  const doneEls = document.querySelectorAll('#today-content .task.done');
-  const allDone = taskEls.length > 0 && doneEls.length === taskEls.length;
-  if(allDone){
-    btn.textContent = '🏆 יום הושלם! ' + (_todayTasksOpen ? '▲ סגור' : '▼ הצג');
-    btn.className = 'start-day-btn all-done';
-  } else if(_todayTasksOpen){
-    btn.textContent = '▲ סגור רשימת משימות';
-    btn.className = 'start-day-btn open';
-  } else {
-    btn.textContent = '▼ התחל יום';
-    btn.className = 'start-day-btn';
-  }
-}
+function toggleTodayTasks(){ /* tasks are always visible */ }
+function _updateStartBtn(){ /* start-day button removed */ }
 
 function toggleHideDoneSlots(){
   _hideDoneSlots = !_hideDoneSlots;
@@ -2315,12 +2298,12 @@ if(allDay.length){
   _renderSpecialTasksToday();
 
   applyFocusMode();
-  // Re-apply open state (survives re-renders on task toggle)
-  const _ts=document.getElementById('tasks-section');
-  if(_ts)_ts.style.display=_todayTasksOpen?'block':'none';
   _applyHideDoneSlots();
-  _updateStartBtn();
   initSortable();
+  // update ms-pct in mini-stats
+  const _msPct=document.getElementById('ms-pct');
+  if(_msPct)_msPct.textContent=pct+'%';
+  renderWhatNow();
 }
 
 function _renderSpecialTasksToday(){
@@ -2394,6 +2377,122 @@ function _renderSpecialTasksToday(){
   }
 
   container.innerHTML+=extra;
+}
+
+/* ══════════════ WHAT'S NOW CARD ══════════ */
+
+function _getTaskTime(t){
+  const ds=new Date().toDateString();
+  if(S.plannerTimeOverrides&&S.plannerTimeOverrides[ds]&&S.plannerTimeOverrides[ds][t.id])
+    return S.plannerTimeOverrides[ds][t.id];
+  if(t.text){
+    if(typeof extractStartTimeFromText==='function'){
+      const ex=extractStartTimeFromText(t.text);
+      if(ex&&ex.time)return ex.time;
+    }
+    const m=t.text.match(/\b(\d{1,2}):(\d{2})\b/);
+    if(m){const h=parseInt(m[1]),mn=parseInt(m[2]);if(h>=0&&h<=23&&mn>=0&&mn<=59)return `${String(h).padStart(2,'0')}:${String(mn).padStart(2,'0')}`;}
+  }
+  return t.time||null;
+}
+
+function _getTaskDur(t){
+  const ds=new Date().toDateString();
+  if(S.plannerDurOverrides&&S.plannerDurOverrides[ds]&&S.plannerDurOverrides[ds][t.id])
+    return S.plannerDurOverrides[ds][t.id];
+  if(t.text){
+    const dm=t.text.match(/(\d{1,3})\s*דק/);if(dm)return Math.min(parseInt(dm[1]),120);
+    const hm=t.text.match(/(\d{1,2}(?:\.\d)?)\s*שעות?/);if(hm)return Math.min(Math.round(parseFloat(hm[1])*60),120);
+    if(typeof extractStartTimeFromText==='function'){
+      const ex=extractStartTimeFromText(t.text);
+      if(ex&&ex.type==='range'&&ex.endTime){
+        const[h1,m1]=ex.time.split(':').map(Number);
+        const[h2,m2]=ex.endTime.split(':').map(Number);
+        const d=(h2*60+m2)-(h1*60+m1);
+        if(d>0)return Math.min(d,120);
+      }
+    }
+  }
+  return 30;
+}
+
+function renderWhatNow(){
+  const card=document.getElementById('what-now-card');
+  if(!card)return;
+  const now=new Date();
+  const nowMin=now.getHours()*60+now.getMinutes();
+  const dayType=getDayType(now);
+  let tasks=[];
+  if(typeof getTasksWithIndivLevel==='function') tasks=getTasksWithIndivLevel(S.level);
+  else if(typeof getTasksForDay==='function') tasks=getTasksForDay(S.level,dayType);
+  const toMin=tm=>{const[h,m]=tm.split(':').map(Number);return h*60+m;};
+  const pending=tasks
+    .filter(t=>!S.done[t.id])
+    .map(t=>({...t,_time:_getTaskTime(t),_dur:_getTaskDur(t)}))
+    .filter(t=>t._time)
+    .sort((a,b)=>a._time.localeCompare(b._time));
+  const current=pending.find(t=>{const s=toMin(t._time);return s<=nowMin&&nowMin<s+t._dur;});
+  const next=pending.find(t=>toMin(t._time)>nowMin);
+  const task=current||next;
+  if(!task){
+    const done=tasks.filter(t=>S.done[t.id]).length;
+    const pct=tasks.length?Math.round(done/tasks.length*100):0;
+    card.innerHTML=pct===100
+      ?`<div style="background:rgba(56,214,138,.08);border:1px solid rgba(56,214,138,.2);border-radius:var(--r);padding:14px 16px;text-align:center"><div style="font-size:22px;margin-bottom:4px">🏆</div><div style="font-size:13px;font-weight:800;color:var(--green)">כל המשימות הושלמו!</div></div>`
+      :`<div style="background:var(--sf2);border:1px solid var(--brd);border-radius:var(--r);padding:12px 16px;text-align:center;font-size:12px;color:var(--txt3)">אין משימות ממתינות עם שעה</div>`;
+    return;
+  }
+  const taskMin=toMin(task._time);
+  const isNow=!!current;
+  const diffMin=taskMin-nowMin;
+  let timeLabel,timeColor;
+  if(isNow){timeLabel='עכשיו';timeColor='var(--green)';}
+  else if(diffMin<=5){timeLabel='בעוד דקות ספורות';timeColor='var(--gold)';}
+  else if(diffMin<60){timeLabel=`בעוד ${diffMin} דק'`;timeColor='var(--txt2)';}
+  else{const hrs=Math.floor(diffMin/60),mins=diffMin%60;timeLabel=`בעוד ${hrs}:${String(mins).padStart(2,'0')}`;timeColor='var(--txt3)';}
+  const accent=isNow?'var(--green)':'var(--blue)';
+  const bg=isNow?'rgba(56,214,138,.07)':'rgba(91,141,248,.06)';
+  const br=isNow?'rgba(56,214,138,.25)':'rgba(91,141,248,.2)';
+  card.innerHTML=`<div style="background:${bg};border:1px solid ${br};border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:12px">
+    <div style="flex:1;min-width:0">
+      <div style="font-size:10px;font-weight:800;color:${accent};text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">${isNow?'● עכשיו':'▷ הבא'}</div>
+      <div style="font-size:14px;font-weight:900;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px">${task.text}</div>
+      <div style="font-size:11px;color:var(--txt3)">${task._time}${task._dur!==30?` · ${task._dur} דק'`:''} <span style="color:${timeColor};font-weight:700;margin-right:4px">${timeLabel}</span></div>
+    </div>
+    <button onclick="toggleTask('${task.id}',${task.pts})"
+      style="flex-shrink:0;width:40px;height:40px;border-radius:50%;background:${accent};border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2)">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="white"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+    </button>
+  </div>`;
+}
+
+function openDayModifiers(){
+  const existing=document.getElementById('day-modifiers-popup');
+  if(existing){existing.remove();return;}
+  const btn=document.getElementById('day-modifiers-btn');
+  if(!btn)return;
+  const rect=btn.getBoundingClientRect();
+  const graceRem=typeof totalGraceAvailable==='function'?totalGraceAvailable():0;
+  const fdToday=typeof focusDayForToday==='function'?focusDayForToday():null;
+  const boostToday=typeof boostActiveToday==='function'?boostActiveToday():null;
+  const pop=document.createElement('div');
+  pop.id='day-modifiers-popup';
+  pop.style.cssText=`position:fixed;top:${Math.round(rect.bottom)+6}px;right:12px;background:var(--surface);border:1px solid var(--brd2);border-radius:12px;padding:8px;min-width:210px;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.3)`;
+  pop.innerHTML=`
+    <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;padding:4px 8px 8px">מצבי יום</div>
+    <button onclick="useGrace();document.getElementById('day-modifiers-popup')?.remove()"
+      style="width:100%;text-align:right;padding:10px 10px;background:none;border:none;border-radius:8px;cursor:pointer;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;color:${graceRem>0?'var(--gold)':'var(--txt3)'}">
+      🛡️ יום חסד${graceRem>0?` (${graceRem} נותרו)`:'  (מוצה)'}</button>
+    <button onclick="openBoostDayModal();document.getElementById('day-modifiers-popup')?.remove()"
+      style="width:100%;text-align:right;padding:10px 10px;background:none;border:none;border-radius:8px;cursor:pointer;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;color:${boostToday?'var(--teal)':'var(--txt2)'}">
+      ⚡ יום בוסט${boostToday?' (פעיל)':''}</button>
+    <button onclick="openFocusDayModal();document.getElementById('day-modifiers-popup')?.remove()"
+      style="width:100%;text-align:right;padding:10px 10px;background:none;border:none;border-radius:8px;cursor:pointer;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;color:${fdToday?'var(--teal)':'var(--txt2)'}">
+      🎯 יום עשייה${fdToday?' (פעיל)':''}</button>`;
+  document.body.appendChild(pop);
+  setTimeout(()=>document.addEventListener('click',function _dm(e){
+    if(!pop.contains(e.target)&&e.target!==btn){pop.remove();document.removeEventListener('click',_dm);}
+  }),10);
 }
 
 /* ══════════════ RENDER LEVELS ══════════ */

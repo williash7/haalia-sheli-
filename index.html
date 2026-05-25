@@ -89,53 +89,48 @@
 
   <!-- TODAY -->
   <div id="pg-today" class="pg on">
-    <div class="sh"><span class="sh-t">היום</span><span class="sh-s" id="sh-sub"></span></div>
 
-    <!-- STATS CARD -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
-      <div class="stat"><div class="stat-n" id="s-today" style="color:var(--blue)">0</div><div class="stat-l">היום</div></div>
-      <div class="stat"><div class="stat-n" id="s-bank" style="color:var(--gold)">0</div><div class="stat-l">בנק</div></div>
-      <div class="stat"><div class="stat-n" id="s-streak" style="color:var(--green)">0</div><div class="stat-l">רצף</div></div>
+    <!-- TOP BAR: mini-stats + day modifiers button -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800">
+        <span style="color:var(--green)">🔥 <span id="ms-streak">0</span></span>
+        <span style="color:var(--brd3);font-weight:400">•</span>
+        <span style="color:var(--gold)">💰 <span id="ms-bank">0</span></span>
+        <span style="color:var(--brd3);font-weight:400">•</span>
+        <span style="color:var(--txt2)"><span id="ms-pct">0%</span> <span style="font-size:11px;font-weight:600;color:var(--txt3)">היום</span></span>
+      </div>
+      <button onclick="openDayModifiers()" id="day-modifiers-btn"
+        style="display:flex;align-items:center;gap:5px;padding:6px 13px;
+               background:var(--sf2);border:1px solid var(--brd2);border-radius:99px;
+               font-size:12px;font-weight:800;color:var(--txt2);cursor:pointer;font-family:'Heebo',sans-serif">
+        ⚡ יום
+      </button>
     </div>
 
-    <!-- SUMMARY CARD -->
-    <div class="day-summary-card">
-      <div class="day-summary-inner">
-        <!-- Ring -->
-        <div class="day-ring-box" style="flex-shrink:0">
-          <svg width="100" height="100" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="42" fill="none" stroke="var(--sf2)" stroke-width="8"/>
-            <circle id="ring-arc" cx="50" cy="50" r="42" fill="none" stroke="var(--green)" stroke-width="8"
-              stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="264"
-              style="transition:stroke-dashoffset .9s cubic-bezier(.22,1,.36,1)"/>
-          </svg>
-          <div class="day-ring-label">
-            <div class="day-ring-pct" id="ring-pct">0%</div>
-            <div class="day-ring-sub" id="ring-sub">הושלם</div>
-          </div>
-        </div>
-        <!-- hidden elements to keep JS references alive -->
-        <span id="summary-today-pts" style="display:none">0</span>
-        <span id="summary-streak" style="display:none">0</span>
-      </div>
-      <!-- Badges -->
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
-        <span class="grace-badge" id="grace-badge" onclick="useGrace()"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:4px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg></span> יום חסד</span>
-<span class="boost-badge" id="boost-day-badge" onclick="openBoostDayModal()">⚡ יום בוסט</span>
-<div id="boost-day-active-wrap"></div>
-        <span class="focus-day-badge" id="focus-day-badge" onclick="openFocusDayModal()"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:4px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/></svg></span> יום עשייה</span>
-      </div>
-      <!-- CTA button -->
-      <button class="start-day-btn" id="start-day-btn" onclick="toggleTodayTasks()"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></span> התחל יום</button>
-    </div>
+    <!-- WHAT'S NOW CARD -->
+    <div id="what-now-card" style="margin-bottom:12px"></div>
 
+    <!-- SHABBAT / FOCUS DAY / BOOST DAY -->
     <div id="shabbat-mode-wrap"></div>
     <div id="focus-day-active-wrap"></div>
     <div id="boost-day-active-wrap"></div>
 
-    <!-- TASKS SECTION — revealed on button click -->
-    <div id="tasks-section" style="display:none;">
-      <!-- Focus mode bar -->
+    <!-- HIDDEN LEGACY ELEMENTS (JS hooks) -->
+    <span id="sh-sub" style="display:none"></span>
+    <span id="s-today" style="display:none">0</span>
+    <span id="s-bank" style="display:none">0</span>
+    <span id="s-streak" style="display:none">0</span>
+    <span id="summary-today-pts" style="display:none">0</span>
+    <span id="summary-streak" style="display:none">0</span>
+    <svg style="display:none" aria-hidden="true"><circle id="ring-arc"/></svg>
+    <span id="ring-pct" style="display:none"></span>
+    <span id="ring-sub" style="display:none"></span>
+    <span id="grace-badge" style="display:none" onclick="useGrace()"></span>
+    <span id="boost-day-badge" style="display:none" onclick="openBoostDayModal()"></span>
+    <span id="focus-day-badge" style="display:none" onclick="openFocusDayModal()"></span>
+
+    <!-- TASKS -->
+    <div id="tasks-section">
       <div class="focus-bar">
         <div>
           <div class="focus-label">מצב מיקוד</div>
@@ -143,13 +138,7 @@
         </div>
         <button class="focus-btn" id="focus-btn" onclick="toggleFocus()"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.381z" clip-rule="evenodd"/></svg></span> מיקוד</button>
       </div>
-      <!-- Hide completed slots toggle -->
-      <div class="hide-done-bar" style="justify-content:space-between;align-items:center">
-        <div style="display:flex;gap:5px">
-          <button class="hide-done-btn on" id="tv-slot"  onclick="setTodayView('slot')">⏱ סלוטים</button>
-          <button class="hide-done-btn"    id="tv-time"  onclick="setTodayView('time')">🕐 שעה</button>
-          <button class="hide-done-btn"    id="tv-cat"   onclick="setTodayView('cat')">🏷️ קטגוריה</button>
-        </div>
+      <div class="hide-done-bar" style="justify-content:flex-end;align-items:center;gap:6px">
         <button class="hide-done-btn" id="hide-passed-btn" onclick="toggleHidePassedTasks()">⏰ הסתר שעברו</button>
         <button class="hide-done-btn" id="hide-done-btn" onclick="toggleHideDoneSlots()"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg></span> הסתר הושלמו</button>
       </div>
