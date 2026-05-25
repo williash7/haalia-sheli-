@@ -2458,6 +2458,21 @@ function renderWhatNow(){
   else if(diffMin<=5){timeLabel='בעוד דקות ספורות';timeColor='var(--gold)';}
   else if(diffMin<60){timeLabel=`בעוד ${diffMin} דק'`;timeColor='var(--txt2)';}
   else{const hrs=Math.floor(diffMin/60),mins=diffMin%60;timeLabel=`בעוד ${hrs}:${String(mins).padStart(2,'0')}`;timeColor='var(--txt3)';}
+  // Free window: time available before next task starts (only when not currently in a task)
+  let freeHtml='';
+  if(!isNow && diffMin>5){
+    if(diffMin<60){
+      freeHtml=`<div style="font-size:11px;color:var(--teal);margin-top:5px">⏳ ${diffMin} דק' חופשיות עכשיו</div>`;
+    } else {
+      const fh=Math.floor(diffMin/60),fm=diffMin%60;
+      freeHtml=`<div style="font-size:11px;color:var(--teal);margin-top:5px">⏳ ${fh}${fm>0?`:${String(fm).padStart(2,'0')}`:''} שעות חופשיות עכשיו</div>`;
+    }
+  } else if(isNow){
+    // Show remaining time in current task
+    const endMin=taskMin+task._dur;
+    const remMin=endMin-nowMin;
+    if(remMin>0) freeHtml=`<div style="font-size:11px;color:var(--txt3);margin-top:5px">נותרו ${remMin} דק' למשימה</div>`;
+  }
   const accent=isNow?'var(--green)':'var(--blue)';
   const bg=isNow?'rgba(56,214,138,.07)':'rgba(91,141,248,.06)';
   const br=isNow?'rgba(56,214,138,.25)':'rgba(91,141,248,.2)';
@@ -2466,6 +2481,7 @@ function renderWhatNow(){
       <div style="font-size:10px;font-weight:800;color:${accent};text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">${isNow?'● עכשיו':'▷ הבא'}</div>
       <div style="font-size:14px;font-weight:900;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px">${task.text}</div>
       <div style="font-size:11px;color:var(--txt3)">${task._time}${task._dur!==30?` · ${task._dur} דק'`:''} <span style="color:${timeColor};font-weight:700;margin-right:4px">${timeLabel}</span></div>
+      ${freeHtml}
     </div>
     <button onclick="toggleTask('${task.id}',${task.pts})"
       style="flex-shrink:0;width:40px;height:40px;border-radius:50%;background:${accent};border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2)">
