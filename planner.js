@@ -77,14 +77,18 @@ let _plDate=new Date(),_plDragging=null;
   document.head.appendChild(s);
 })();
 
-/* ── patch renderJournalPage ── */
+/* ── patch renderToday ── */
 (function(){
   let n=0;
   const iv=setInterval(()=>{
     n++;
-    if(typeof window.renderJournalPage==='function'&&!window._plv3){
+    if(typeof window.renderToday==='function'&&!window._plv3){
       clearInterval(iv);window._plv3=true;
-      window.renderJournalPage=plRender;
+      const orig=window.renderToday;
+      window.renderToday=function(){
+        orig.apply(this,arguments);
+        plRender();
+      };
     }
     if(n>150)clearInterval(iv);
   },100);
@@ -92,7 +96,7 @@ let _plDate=new Date(),_plDragging=null;
 
 /* ════════ RENDER MAIN ════════ */
 function plRender(){
-  const page=document.getElementById('pg-journal');
+  const page=document.getElementById('pg-planner-wrap');
   if(!page)return;
   if(!document.getElementById('pl-wrap')){
     page.innerHTML=`
@@ -597,8 +601,8 @@ function _plScrollNow(){
 
 /* ════════ GOOGLE CALENDAR ════════ */
 function _plGcal(){
-  if(typeof cjExportDay==='function')cjExportDay(_plDate.toDateString());
-  else if(typeof _showGcalSyncModal==='function')_showGcalSyncModal();
+  // TODO: Google Calendar read integration (שלב 4 ב-PLAN.md)
+  alert('חיבור Google Calendar — בקרוב');
 }
 
 /* ════════ HELPERS ════════ */
@@ -705,7 +709,7 @@ function _plAllEvs(){try{return JSON.parse(localStorage.getItem(PL_EVSK)||'{}');
 function _plCustEvs(ds){return _plAllEvs()[ds]||[];}
 function _plSaveEvs(ds,evs){const a=_plAllEvs();if(evs.length)a[ds]=evs;else delete a[ds];localStorage.setItem(PL_EVSK,JSON.stringify(a));}
 
-/* ── patch renderActive ── */
+/* ── patch renderActive — עדכן בלוקים כשמשימה מסומנת בדף היום ── */
 (function(){
   let n=0;
   const iv=setInterval(()=>{
@@ -715,7 +719,7 @@ function _plSaveEvs(ds,evs){const a=_plAllEvs();if(evs.length)a[ds]=evs;else del
       const orig=window.renderActive;
       window.renderActive=function(){
         orig.apply(this,arguments);
-        if(typeof activePage!=='undefined'&&activePage==='journal'){_plBlocks();_plBar();}
+        if(typeof activePage!=='undefined'&&activePage==='today'){_plBlocks();_plBar();}
       };
     }
     if(n>150)clearInterval(iv);
