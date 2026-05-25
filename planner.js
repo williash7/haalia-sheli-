@@ -77,18 +77,15 @@ let _plDate=new Date(),_plDragging=null;
   document.head.appendChild(s);
 })();
 
-/* ── patch renderToday ── */
+/* ── initial render + patch renderToday ── */
 (function(){
   let n=0;
   const iv=setInterval(()=>{
     n++;
     if(typeof window.renderToday==='function'&&!window._plv3){
       clearInterval(iv);window._plv3=true;
-      const orig=window.renderToday;
-      window.renderToday=function(){
-        orig.apply(this,arguments);
-        plRender();
-      };
+      /* render immediately if today page is active */
+      plRender();
     }
     if(n>150)clearInterval(iv);
   },100);

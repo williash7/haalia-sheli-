@@ -2304,6 +2304,7 @@ if(allDay.length){
   const _msPct=document.getElementById('ms-pct');
   if(_msPct)_msPct.textContent=pct+'%';
   renderWhatNow();
+  if(typeof plRender==='function') plRender();
 }
 
 function _renderSpecialTasksToday(){
