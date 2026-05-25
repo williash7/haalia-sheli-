@@ -634,7 +634,7 @@ function _formatDurationHeb(minutes) {
 /* ══════════════ ROLLOVER ══════════════ */
 let pendingLU=null;
 (function(){
-  const today=getAppNow().toDateString();
+  const today=new Date().toDateString();
   if(S.lastDay===today)return;
   const yesterdayBoost = (S.boostDay && S.boostDay.date !== today) ? S.boostDay : null;
   if(yesterdayBoost){ _checkBoostRollover(yesterdayBoost); }
