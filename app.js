@@ -2181,7 +2181,15 @@ function renderToday(){
   const _ssEl=document.getElementById('summary-streak');
   if(_ssEl)_ssEl.textContent=S.streak;
   const isBonus=streakBonus()>1;
+  // Accordion shows only untimed tasks — timed tasks appear exclusively in the planner below
+  const _timedCount = !isFocusDay ? tasks.filter(t=>!!_getTaskTime(t)).length : 0;
+  if(!isFocusDay) tasks = tasks.filter(t=>!_getTaskTime(t));
   let html='';
+  if(_timedCount>0){
+    html+=`<div style="font-size:11px;color:var(--txt3);text-align:center;padding:4px 0 8px;border-bottom:1px solid var(--brd);margin-bottom:10px">
+      📅 ${_timedCount} משימות עם שעה — ראה לוח הזמנים למטה
+    </div>`;
+  }
   if(isToday_Shabbat){
     html+=`<div style="background:rgba(155,126,248,.08);border:1px solid rgba(155,126,248,.25);border-radius:var(--r-sm);padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--purple);font-weight:700">✡️ שבת — משימות מיוחדות לשבת</div>`;
   }else if(isToday_Friday){
