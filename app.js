@@ -1985,8 +1985,8 @@ function _slotAccordion(slotId, icon, name, time, tasks, bodyHtml){
 let _todayTasksOpen = true;
 let _hideDoneSlots = false;
 
-function toggleTodayTasks(){ /* tasks are always visible */ }
-function _updateStartBtn(){ /* start-day button removed */ }
+function toggleTodayTasks(){}
+function _updateStartBtn(){}
 
 function toggleHideDoneSlots(){
   _hideDoneSlots = !_hideDoneSlots;

@@ -38,17 +38,6 @@
       await new Promise(r=>setTimeout(r,100)); waited+=100;
     }
     if(!window._getS||!window._setS)return;
-    // Sync encrypted API key between devices
-    try{
-      var keySnap=await _db.collection("users").doc(user.uid).collection("prefs").doc("apikey").get();
-      if(keySnap.exists&&!localStorage.getItem('anthropic_api_key')){
-        var enc=keySnap.data().k;
-        if(enc)localStorage.setItem('anthropic_api_key',atob(enc));
-      } else if(localStorage.getItem('anthropic_api_key')){
-        var raw=localStorage.getItem('anthropic_api_key');
-        await _db.collection("users").doc(user.uid).collection("prefs").doc("apikey").set({k:btoa(raw)});
-      }
-    }catch(e){}
     // Sync app state
     var cloud=await window._fbLoad(user.uid);
     if(cloud){
