@@ -60,13 +60,10 @@
       <span class="ntab-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></span>היום
     </button>
     <button class="ntab" id="btn-mastery" onclick="nav('mastery')">
-      <span class="ntab-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h7a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h4a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg></span>משימות
+      <span class="ntab-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h7a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h4a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg></span>ניהול
     </button>
     <button class="ntab" id="btn-rewards" onclick="nav('rewards')">
       <span class="ntab-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 2a1 1 0 011 1v1h8V3a1 1 0 112 0v1h.5A1.5 1.5 0 0118 5.5v1A2.5 2.5 0 0115.5 9H15v7a1 1 0 01-1 1H6a1 1 0 01-1-1V9h-.5A2.5 2.5 0 012 6.5v-1A1.5 1.5 0 013.5 4H4V3a1 1 0 011-1zm3 7v6h4V9H8z" clip-rule="evenodd"/></svg></span>פרסים
-    </button>
-    <button class="ntab" id="btn-cal" onclick="nav('cal')">
-      <span class="ntab-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h10a2 2 0 002-2V5a1 1 0 100-2H3zm4 4a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm0 3a1 1 0 011-1h2a1 1 0 110 2H8a1 1 0 01-1-1z" clip-rule="evenodd"/></svg></span>מעקב
     </button>
     <button class="ntab" id="btn-more" onclick="openDrawer()">
       <span class="ntab-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"/></svg></span>עוד
@@ -153,25 +150,60 @@
     <div id="levels-content"></div>
   </div>
 
-  <!-- MASTERY / TASKS -->
+  <!-- MASTERY / TASKS + TRACKING (merged) -->
   <div id="pg-mastery" class="pg">
-    <div class="sh"><span class="sh-t">משימות</span><span class="sh-s" id="mastery-sub">כל המסלול שלך</span></div>
-    <!-- Quick action buttons -->
-    <div style="display:flex;gap:7px;margin-bottom:16px">
-      <button onclick="openTaskEditor()" style="flex:1;padding:9px 8px;background:var(--surface);border:1px solid rgba(91,141,248,.3);border-radius:10px;color:var(--blue);font-family:\'Heebo\',sans-serif;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px">
-        <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg>
-        עורך משימות
-      </button>
-      <button onclick="openAddOneTimeModal()" style="flex:1;padding:9px 8px;background:var(--surface);border:1px solid rgba(240,120,64,.3);border-radius:10px;color:var(--orange);font-family:\'Heebo\',sans-serif;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px">
-        <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
-        חד פעמית
-      </button>
-      <button onclick="openAddStreakModal()" style="flex:1;padding:9px 8px;background:var(--surface);border:1px solid rgba(56,214,138,.3);border-radius:10px;color:var(--green);font-family:\'Heebo\',sans-serif;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px">
-        <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
-        עקביות
-      </button>
+    <div class="sh"><span class="sh-t">ניהול</span><span class="sh-s" id="mastery-sub">כל המסלול שלך</span></div>
+    <!-- Sub-tabs -->
+    <div style="display:flex;gap:3px;background:var(--sf2);border:1px solid var(--brd);border-radius:11px;padding:4px;margin-bottom:16px">
+      <button id="mtab-btn-mastery" onclick="switchMasteryTab('mastery')"
+        style="flex:1;padding:8px 4px;border-radius:8px;font-size:12px;font-weight:800;background:var(--surface);border:1px solid var(--brd2);color:var(--txt);transition:all .18s;font-family:'Heebo',sans-serif;cursor:pointer">
+        📋 משימות</button>
+      <button id="mtab-btn-cal" onclick="switchMasteryTab('cal')"
+        style="flex:1;padding:8px 4px;border-radius:8px;font-size:12px;font-weight:800;background:transparent;border:1px solid transparent;color:var(--txt3);transition:all .18s;font-family:'Heebo',sans-serif;cursor:pointer">
+        📊 מעקב</button>
     </div>
-    <div id="mastery-content"></div>
+    <!-- Panel: משימות -->
+    <div id="mtab-mastery-panel">
+      <div style="display:flex;gap:7px;margin-bottom:16px">
+        <button onclick="openTaskEditor()" style="flex:1;padding:9px 8px;background:var(--surface);border:1px solid rgba(91,141,248,.3);border-radius:10px;color:var(--blue);font-family:\'Heebo\',sans-serif;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg>
+          עורך משימות
+        </button>
+        <button onclick="openAddOneTimeModal()" style="flex:1;padding:9px 8px;background:var(--surface);border:1px solid rgba(240,120,64,.3);border-radius:10px;color:var(--orange);font-family:\'Heebo\',sans-serif;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+          חד פעמית
+        </button>
+        <button onclick="openAddStreakModal()" style="flex:1;padding:9px 8px;background:var(--surface);border:1px solid rgba(56,214,138,.3);border-radius:10px;color:var(--green);font-family:\'Heebo\',sans-serif;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+          עקביות
+        </button>
+      </div>
+      <div id="mastery-content"></div>
+    </div>
+    <!-- Panel: מעקב -->
+    <div id="mtab-cal-panel" style="display:none">
+      <div class="chart-box">
+        <div class="chart-title"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:5px"><svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg></span> נקודות — 30 יום אחרונים</div>
+        <div class="pts-chart" id="pts-chart"></div>
+        <div class="pts-chart-labels" id="pts-chart-labels"></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:5px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg></span> הצלחה לפי קטגוריה</div>
+        <div class="cat-chart" id="cat-chart"></div>
+        <div class="insight-row" id="insight-row"></div>
+      </div>
+      <div class="cal-box">
+        <div class="cal-mth" id="cal-mth"></div>
+        <div class="cal-grid" id="cal-dows"></div>
+        <div class="cal-grid" id="cal-grid" style="margin-top:0"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <span style="font-size:11px;display:flex;align-items:center;gap:4px;color:var(--txt2)"><span style="width:10px;height:10px;border-radius:2px;background:var(--green2);display:inline-block"></span>ביצוע מלא</span>
+        <span style="font-size:11px;display:flex;align-items:center;gap:4px;color:var(--txt2)"><span style="width:10px;height:10px;border-radius:2px;background:rgba(45,212,191,.25);display:inline-block"></span>יום עשייה</span>
+        <span style="font-size:11px;display:flex;align-items:center;gap:4px;color:var(--txt2)"><span style="width:10px;height:10px;border-radius:2px;background:rgba(155,126,248,.2);display:inline-block"></span>שבת</span>
+      </div>
+      <div id="hist-list"></div>
+    </div>
   </div>
 
   <!-- REWARDS -->
@@ -207,31 +239,8 @@
     </div>
   </div>
 
-  <!-- CALENDAR + ANALYTICS -->
-  <div id="pg-cal" class="pg">
-    <div class="sh"><span class="sh-t">מעקב והיסטוריה</span></div>
-    <div class="chart-box">
-      <div class="chart-title"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:5px"><svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg></span> נקודות — 30 יום אחרונים</div>
-      <div class="pts-chart" id="pts-chart"></div>
-      <div class="pts-chart-labels" id="pts-chart-labels"></div>
-    </div>
-    <div class="chart-box">
-      <div class="chart-title"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:5px"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg></span> הצלחה לפי קטגוריה</div>
-      <div class="cat-chart" id="cat-chart"></div>
-      <div class="insight-row" id="insight-row"></div>
-    </div>
-    <div class="cal-box">
-      <div class="cal-mth" id="cal-mth"></div>
-      <div class="cal-grid" id="cal-dows"></div>
-      <div class="cal-grid" id="cal-grid" style="margin-top:0"></div>
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-      <span style="font-size:11px;display:flex;align-items:center;gap:4px;color:var(--txt2)"><span style="width:10px;height:10px;border-radius:2px;background:var(--green2);display:inline-block"></span>ביצוע מלא</span>
-      <span style="font-size:11px;display:flex;align-items:center;gap:4px;color:var(--txt2)"><span style="width:10px;height:10px;border-radius:2px;background:rgba(45,212,191,.25);display:inline-block"></span>יום עשייה</span>
-      <span style="font-size:11px;display:flex;align-items:center;gap:4px;color:var(--txt2)"><span style="width:10px;height:10px;border-radius:2px;background:rgba(155,126,248,.2);display:inline-block"></span>שבת</span>
-    </div>
-    <div id="hist-list"></div>
-  </div>
+  <!-- pg-cal is now embedded inside pg-mastery as a sub-tab -->
+  <div id="pg-cal" class="pg"></div>
 
   <!-- SETTINGS -->
   <div id="pg-settings" class="pg">

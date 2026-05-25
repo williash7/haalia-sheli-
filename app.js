@@ -4018,7 +4018,7 @@ const ALL_NAV_ITEMS=[
   {id:'levels',   label:'מסלול',  emoji:'📈', svg:'<path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"/><path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"/>'},
   {id:'settings', label:'הגדרות', emoji:'⚙️', svg:'<path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>'},
 ];
-const DEFAULT_NAV_IDS=['today','mastery','rewards','cal'];
+const DEFAULT_NAV_IDS=['today','mastery','rewards'];
 
 function getNavIds(){return S.navItems||DEFAULT_NAV_IDS;}
 function getDrawerIds(){return ALL_NAV_ITEMS.filter(x=>!getNavIds().includes(x.id)).map(x=>x.id);}
@@ -4058,7 +4058,7 @@ function buildDrawer(){
   const list=document.getElementById('drawer-dynamic-list');
   if(!list)return;
   list.innerHTML='';
-  const subLabels={today:'משימות יומיות',mastery:'כל המשימות',rewards:'חנות פרסים',cal:'גרפים ולוח שנה',levels:'התקדמות ושלבים',settings:'ניהול וגיבוי'};
+  const subLabels={today:'משימות יומיות',mastery:'משימות + מעקב',rewards:'חנות פרסים',cal:'גרפים ולוח שנה',levels:'התקדמות ושלבים',settings:'ניהול וגיבוי'};
   DRAWER_PAGES.forEach(id=>{
     const item=ALL_NAV_ITEMS.find(x=>x.id===id);
     if(!item)return;
@@ -4106,6 +4106,29 @@ function navDrawer(p){
 }
 
 function renderActive(){PAGES.find(x=>x.id===activePage)?.render();}
+
+let _masteryActiveTab='mastery';
+function switchMasteryTab(tab){
+  _masteryActiveTab=tab;
+  const mp=document.getElementById('mtab-mastery-panel');
+  const cp=document.getElementById('mtab-cal-panel');
+  const mb=document.getElementById('mtab-btn-mastery');
+  const cb=document.getElementById('mtab-btn-cal');
+  if(!mp||!cp)return;
+  const onStyle='background:var(--surface);border:1px solid var(--brd2);color:var(--txt)';
+  const offStyle='background:transparent;border:1px solid transparent;color:var(--txt3)';
+  if(tab==='mastery'){
+    mp.style.display='';cp.style.display='none';
+    if(mb)mb.style.cssText+=';'+onStyle;
+    if(cb)cb.style.cssText+=';'+offStyle;
+    renderMastery();
+  } else {
+    mp.style.display='none';cp.style.display='';
+    if(cb)cb.style.cssText+=';'+onStyle;
+    if(mb)mb.style.cssText+=';'+offStyle;
+    renderCal();
+  }
+}
 
 /* ══════════════ NAV SETTINGS ══════════════ */
 function moveToDrawer(id){
@@ -4194,6 +4217,8 @@ function _masteryBid(gId){
 }
 
 function renderMastery(){
+  // If the cal sub-tab is active, render cal instead
+  if(_masteryActiveTab==='cal'){renderCal();return;}
   const groups = getGroups() || builtinGroups();
   const tl = S.taskIndivLevel || {};
   const tfs = S.taskFailStreak || {};
