@@ -668,7 +668,7 @@ function _getDefaultTasks(lvl){
   return [
     // ── משימות כלליות / כל היום (slot 0) ──
     {id:`p5_${lvl}`,  cat:'limud',    text:kavanaTexts[L],          pts:12+lvl, slot:0, days:['weekday','friday','saturday']},
-    {id:`c1_${lvl}`,  cat:'bayit',    text:coupleTimeTexts[L],      pts:15+lvl, slot:0, days:['weekday','friday','saturday']},
+    {id:`c1_${lvl}`,  cat:'bayit',    text:coupleTimeTexts[L],      pts:15+lvl, slot:0, days:['weekday','friday','saturday'], time:'19:30'},
     {id:`b1_${lvl}`,  cat:'briut',    text:bodyMaintenanceTexts[L], pts:10+lvl, slot:0, days:['weekday','friday','saturday']},
     {id:`f1_${lvl}`,  cat:'briut',    text:mindfulEatingTexts[L],   pts:12+lvl, slot:0, days:['weekday','friday','saturday']},
     {id:`h4_${lvl}`,  cat:'bayit',    text:generalOrderTexts[L],    pts:10+lvl, slot:0, days:['weekday']},

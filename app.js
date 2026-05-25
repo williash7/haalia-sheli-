@@ -2825,10 +2825,8 @@ function _findTaskForPanel(taskId){
 /* פאנל פעולות משימה */
 function openTaskPanel(taskId, occIdx){
 try{
-  console.log('openTaskPanel called:', taskId, occIdx);
   const occIdxN = (occIdx === undefined || occIdx === null) ? -1 : parseInt(occIdx);
   const t = _findTaskForPanel(taskId);
-  console.log('task found:', t ? t.text : 'NULL');
   if(!t){ toast('המשימה לא נמצאה — id: '+taskId); return; }
   const bid = _baseIdFromTaskId(taskId);
   const ap = bonusPts(t.pts);
@@ -2890,7 +2888,6 @@ try{
     </div>
     <button onclick="closeModal('task-panel')" style="width:100%;padding:11px;background:var(--bg3);border:1px solid var(--brd);border-radius:10px;color:var(--txt3);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">סגור</button>
   `;
-  console.log('opening modal task-panel');
   openModal('task-panel');
 }catch(e){console.error('openTaskPanel error:',e);toast('שגיאה: '+e.message);}
 }
