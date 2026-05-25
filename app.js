@@ -4840,7 +4840,7 @@ function animateTaskDone(taskId) {
 function trackTaskTimestamp(taskId) {
   const hour = new Date().getHours();
   if (!S.hourlyActivity) S.hourlyActivity = {};
-  const todayKey = getTodayKey ? getTodayKey() : new Date().toLocaleDateString('he-IL',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\./g,'-');
+  const todayKey = new Date().toISOString().slice(0,10);
   if (!S.hourlyActivity[todayKey]) S.hourlyActivity[todayKey] = {};
   S.hourlyActivity[todayKey][hour] = (S.hourlyActivity[todayKey][hour] || 0) + 1;
   save();
