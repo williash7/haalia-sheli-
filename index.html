@@ -126,13 +126,18 @@
 
     <!-- TASKS -->
     <div id="tasks-section">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:6px">
         <div style="font-size:11px;color:var(--txt3)" id="focus-count">מציג הכל</div>
         <div style="display:flex;gap:5px">
-          <button class="hide-done-btn" id="focus-btn" onclick="toggleFocus()">⚡ מיקוד</button>
-          <button class="hide-done-btn" id="hide-passed-btn" onclick="toggleHidePassedTasks()">⏰ שעברו</button>
-          <button class="hide-done-btn" id="hide-done-btn" onclick="toggleHideDoneSlots()">✓ הושלמו</button>
+          <button class="hide-done-btn" id="focus-btn" onclick="toggleFocus()">&#9889; מיקוד</button>
+          <button class="hide-done-btn" id="hide-passed-btn" onclick="toggleHidePassedTasks()">&#9200; שעברו</button>
+          <button class="hide-done-btn" id="hide-done-btn" onclick="toggleHideDoneSlots()">&#10003; הושלמו</button>
         </div>
+      </div>
+      <div style="display:flex;gap:5px;margin-bottom:8px">
+        <button class="hide-done-btn" id="tv-slot" onclick="setTodayView('slot')">&#128204; סלוט</button>
+        <button class="hide-done-btn" id="tv-time" onclick="setTodayView('time')">&#9201; זמן</button>
+        <button class="hide-done-btn" id="tv-cat"  onclick="setTodayView('cat')">&#127991; קטגוריה</button>
       </div>
       <div id="today-content"></div>
     </div>

@@ -2768,13 +2768,7 @@ const advLevelBtnHtml = getTaskDisplayLevel(_taskBid) >= MAX_LVL
       <div class="tn" ondblclick="inlineEditTask('${safeId}',this)">${stepText}</div>
       <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
         ${occBadge || timeTag}<span class="tcat">${CATS[t.cat]||t.cat}</span>${levelBadgeHtml}
-        <div style="flex:1"></div>
-        <button class="task-star-btn${starred?' starred':''}" onclick="event.stopPropagation();toggleStar('${safeId}',event)" title="${starred?'הסר עדיפות':'סמן כעדיפות עליונה'}">${starred?'⭐':'☆'}</button>
-        ${advLevelBtnHtml}
-        <button class="task-snooze-btn" onclick="event.stopPropagation();snoozeTask('${safeId}',event)" title="לא היום">⏭</button>
-        <button class="task-subtasks-btn" onclick="event.stopPropagation();openAddSubtaskModal('${_taskGrpId}')" title="הוסף תת-משימה">＋</button>
-        <button class="task-merge-btn" onclick="event.stopPropagation();openMergeTaskModal('${_taskGrpId}')" title="שלב משימות">🔗</button>
-        <button class="task-info-btn" onclick="event.stopPropagation();showTaskInfo('${bid}','${safeText}',${ap},event)" title="מידע על המשימה">ℹ️</button>
+        ${starred?'<span style="font-size:11px;margin-right:2px">&#11088;</span>':''}
       </div>
     </div>
    ${_occSubHtml}${_subHtml}${_mergedHtml}
@@ -2830,6 +2824,7 @@ function _findTaskForPanel(taskId){
 
 /* פאנל פעולות משימה */
 function openTaskPanel(taskId, occIdx){
+try{
   const occIdxN = (occIdx === undefined || occIdx === null) ? -1 : parseInt(occIdx);
   const t = _findTaskForPanel(taskId);
   if(!t){ if(typeof toast==='function') toast('המשימה לא נמצאה'); return; }
@@ -2894,6 +2889,7 @@ function openTaskPanel(taskId, occIdx){
     <button onclick="closeModal('task-panel')" style="width:100%;padding:11px;background:var(--bg3);border:1px solid var(--brd);border-radius:10px;color:var(--txt3);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">סגור</button>
   `;
   openModal('task-panel');
+}catch(e){console.error('openTaskPanel error:',e);if(typeof toast==='function')toast('שגיאה: '+e.message);}
 }
 
 /* Quick-edit task from home screen (long-press / right-click) */
