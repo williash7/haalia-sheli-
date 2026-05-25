@@ -311,10 +311,9 @@
     <div id="stab-info-panel" style="display:none">
 
       <!-- כותרת -->
-<div style="background:linear-gradient(135deg,rgba(240,192,64,.08),rgba(91,141,248,.06));border:1px solid rgba(240,192,64,.2);border-radius:var(--r-lg);padding:18px;margin-bottom:12px;text-align:center">
+      <div style="background:linear-gradient(135deg,rgba(240,192,64,.08),rgba(91,141,248,.06));border:1px solid rgba(240,192,64,.2);border-radius:var(--r-lg);padding:18px;margin-bottom:12px;text-align:center">
         <div style="font-size:18px;font-weight:900;color:var(--gold);margin-bottom:6px">✨ העלייה שלי</div>
         <div style="font-size:12px;color:var(--txt2);line-height:1.7">אפליקציה לשיפור עצמי יומי עם <strong style="color:var(--txt)">15 שלבים</strong> של התקדמות.<br>בכל יום מבצעים משימות, צוברים נקודות, ומתקדמים לשלב הבא.<br><span style="color:var(--gold)">המטרה:</span> לבנות רצף ימים עקבי שמשנה הרגלים לאמת.</div>
-        <button onclick="obReplay()" style="margin-top:14px;padding:9px 20px;background:rgba(240,192,64,.15);border:1px solid rgba(240,192,64,.35);border-radius:99px;font-size:12px;font-weight:800;color:var(--gold);cursor:pointer;font-family:'Heebo',sans-serif">📖 הצג מדריך פתיחה מחדש</button>
       </div>
 
       <style>
@@ -324,7 +323,7 @@
       .info-acc-title{font-size:13px;font-weight:800;}
       .info-acc-arrow{font-size:12px;color:var(--txt3);transition:transform .22s;}
       .info-acc-body{padding:0 16px;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;}
-      .info-acc.open .info-acc-body{max-height:3000px;padding:0 16px 14px;}
+      .info-acc.open .info-acc-body{max-height:4000px;padding:0 16px 14px;}
       .info-acc.open .info-acc-arrow{transform:rotate(180deg);}
       .info-row{font-size:12px;color:var(--txt2);line-height:1.8;margin-bottom:4px;}
       .info-row strong{color:var(--txt);}
@@ -332,27 +331,62 @@
       .info-divider{height:1px;background:var(--brd);margin:10px 0;}
       .info-highlight{background:rgba(240,192,64,.06);border:1px solid rgba(240,192,64,.18);border-radius:9px;padding:10px 12px;margin:8px 0;}
       .info-tip{background:rgba(56,214,138,.06);border:1px solid rgba(56,214,138,.2);border-radius:9px;padding:10px 12px;margin:8px 0;font-size:11px;color:var(--txt2);line-height:1.7;}
+      .info-step{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start;}
+      .info-step-num{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--blue3);border:1.5px solid rgba(91,141,248,.4);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:var(--blue);margin-top:1px;}
+      .info-step-body{flex:1;font-size:12px;color:var(--txt2);line-height:1.7;}
+      .info-where{background:rgba(91,141,248,.06);border:1px solid rgba(91,141,248,.2);border-radius:8px;padding:7px 11px;margin:6px 0;font-size:11px;color:var(--blue);font-weight:700;}
       </style>
 
-      <!-- 1. ניווט ומסכים -->
+      <!-- 1. התחלה מהירה -->
       <div class="info-acc" onclick="toggleAcc(this)">
         <div class="info-acc-hd">
-          <span class="info-acc-title" style="color:var(--blue)">🗺️ ניווט — מה יש באפליקציה?</span>
+          <span class="info-acc-title" style="color:var(--green)">🚀 התחלה מהירה — צעד אחר צעד</span>
           <span class="info-acc-arrow">▼</span>
         </div>
-       <div class="info-acc-body">
-          <div class="info-row" style="margin-bottom:6px">האפליקציה מורכבת ממסכים בתפריט התחתון + מסכים נוספים במגירה (כפתור "עוד"). <strong style="color:var(--gold)">ניתן להתאים אישית</strong> אילו מסכים בתפריט ואילו במגירה בהגדרות ← ⚙️ כללי.</div>
+        <div class="info-acc-body">
+          <div class="info-step">
+            <div class="info-step-num">1</div>
+            <div class="info-step-body"><strong>היכנס עם Google</strong> — לחץ "כניסה עם Google" בהגדרות ← ⚙️ כללי. הנתונים יסתנכרנו אוטומטית בין מכשירים.</div>
+          </div>
+          <div class="info-step">
+            <div class="info-step-num">2</div>
+            <div class="info-step-body"><strong>פתח את דף היום</strong> — לחץ "היום" בתפריט התחתון. תראה את כרטיס "מה עכשיו" — המשימה הנוכחית לפי השעה.</div>
+          </div>
+          <div class="info-step">
+            <div class="info-step-num">3</div>
+            <div class="info-step-body"><strong>סמן משימות</strong> — לחץ על כל משימה שביצעת. המשימות ללא שעה קבועה מופיעות ברשימה למטה; משימות עם שעה — בלוח הזמנים מתחת לרשימה.</div>
+          </div>
+          <div class="info-step">
+            <div class="info-step-num">4</div>
+            <div class="info-step-body"><strong>בסוף היום</strong> — בדוק את האחוז בראש הדף (🔥 רצף · 💰 נקודות · % היום). רצף של ≥80% ביצוע שומר על הניקוד.</div>
+          </div>
+          <div class="info-step">
+            <div class="info-step-num">5</div>
+            <div class="info-step-body"><strong>ממש נקודות</strong> — כשצברת מספיק, לחץ "פרסים" בתפריט התחתון ורכוש את הפינוקים שהגדרת.</div>
+          </div>
+          <div class="info-step">
+            <div class="info-step-num">6</div>
+            <div class="info-step-body"><strong>התחל להתאים אישית</strong> — לך לניהול ← 📋 משימות לעריכת המשימות, הוספת משימות חדשות, ושינוי הרמה לכל משימה.</div>
+          </div>
+          <div class="info-tip">💡 ביום קשה? לחץ <strong>⚡ יום</strong> בראש הדף — שם תמצא ימי חסד, יום בוסט, ויום עשייה.</div>
+        </div>
+      </div>
+
+      <!-- 2. ניווט -->
+      <div class="info-acc" onclick="toggleAcc(this)">
+        <div class="info-acc-hd">
+          <span class="info-acc-title" style="color:var(--blue)">🗺️ ניווט — איפה כל דבר?</span>
+          <span class="info-acc-arrow">▼</span>
+        </div>
+        <div class="info-acc-body">
+          <div class="info-row" style="margin-bottom:6px">האפליקציה מורכבת מ-<strong>3 מסכים בתפריט התחתון</strong> + מסכים נוספים במגירה (כפתור ☰ למעלה מימין).</div>
           <div class="info-divider"></div>
-          <div class="info-row"><strong style="color:var(--green)">✅ היום</strong> — משימות יומיות, עיגול ביצוע, כפתורי יום חסד / יום עשייה.</div>
-          <div class="info-row"><strong style="color:var(--blue)">📋 משימות</strong> — צפייה בכל המסלול שלך עם שלבים אישיים, הוספת משימות חד-פעמיות ועקביות, פתיחת עורך המשימות.</div>
-          <div class="info-row"><strong style="color:var(--gold)">🎁 פרסים</strong> — חנות הצ'ופרים: ממשים נקודות תמורת פינוקים, מנהלים פרס חלום.</div>
-          <div class="info-row"><strong style="color:var(--teal)">📊 מעקב</strong> — גרף נקודות, גרף קטגוריות, לוח שנה, היסטוריה ועריכה רטרואקטיבית.</div>
-          <div class="info-row"><strong style="color:var(--purple)">💬 עוזר</strong> — עוזר AI אישי בצ'אט: שאלות, ניתוח ביצועים, ייעוץ על משימות.</div>
-          <div class="info-row"><strong>⚙️ הגדרות</strong> — כללי, תזכורות, מידע (ניהול ימי חסד/עשייה).</div>
+          <div class="info-row"><strong style="color:var(--green)">📋 היום</strong> — מסך הבית. כרטיס "מה עכשיו", mini-stats, רשימת משימות ולוח זמנים יומי.</div>
+          <div class="info-row"><strong style="color:var(--blue)">⚙️ ניהול</strong> — שתי לשוניות: <strong>📋 משימות</strong> (עריכה, הוספת משימות חדשות, שלבים אישיים) + <strong>📊 מעקב</strong> (גרפים, לוח שנה, היסטוריה ועריכה רטרואקטיבית).</div>
+          <div class="info-row"><strong style="color:var(--gold)">🎁 פרסים</strong> — חנות הצ'ופרים. ממשים נקודות תמורת פינוקים אמיתיים, מנהלים פרס חלום.</div>
           <div class="info-divider"></div>
-          <div class="info-row"><strong style="color:var(--gold)">📈 מסלול</strong> (מגירה) — מפת כל 15 השלבים: מה משתנה בכל שלב, איפה אתה עומד.</div>
-          <div class="info-row"><strong style="color:var(--blue)">📓 יומן</strong> (מגירה) — רשומה יומית חופשית + לו"ז יומי חזותי + ניתוח AI.</div>
-          <div class="info-row"><strong>⚙️ הגדרות</strong> (מגירה) — גישה מהירה לאותו מסך הגדרות.</div>
+          <div class="info-row"><strong style="color:var(--gold)">📈 מסלול</strong> (מגירה ☰) — מפת כל 15 השלבים: מה משתנה בכל שלב, איפה אתה עומד.</div>
+          <div class="info-row"><strong>⚙️ הגדרות</strong> (מגירה ☰) — כללי (חשבון, גיבוי), תזכורות, מידע (ניהול ימי חסד ועשייה).</div>
         </div>
       </div>
 
@@ -363,22 +397,16 @@
           <span class="info-acc-arrow">▼</span>
         </div>
         <div class="info-acc-body">
-          <div class="info-row">לוחצים "התחל יום" כדי לפתוח את רשימת המשימות. המשימות מאורגנות לפי <strong>4 סלוטי זמן</strong>:</div>
-          <div class="info-row"><span class="info-tag" style="background:rgba(91,141,248,.12);color:var(--blue)">🌅 בוקר</span> קימה, תפילה, מים, סמארטפון — עבודת הבוקר הבסיסית</div>
-          <div class="info-row"><span class="info-tag" style="background:rgba(240,120,64,.12);color:var(--orange)">⚡ עשייה</span> בניין ועשייה פעילה — יציאה, ביצוע, פגישות</div>
-          <div class="info-row"><span class="info-tag" style="background:rgba(56,214,138,.12);color:var(--green)">📖 לימוד</span> עומק ולימוד — לימוד ממוקד, לו"ז, ספורט</div>
-          <div class="info-row"><span class="info-tag" style="background:rgba(155,126,248,.12);color:var(--purple)">🌙 ערב</span> סיום יום — כוסות מים אחרונות, שינה בזמן</div>
+          <div class="info-row" style="margin-bottom:6px">מסך הבית מחולק לכמה אזורים, מלמעלה למטה:</div>
           <div class="info-divider"></div>
-          <div class="info-row"><strong>3 מצבי תצוגה למשימות:</strong></div>
-          <div class="info-row">• <strong style="color:var(--blue)">⏱ סלוטים</strong> — ברירת מחדל, מחולק לפי 4 תקופות יום</div>
-          <div class="info-row">• <strong style="color:var(--teal)">🕐 שעה</strong> — ממוין לפי שעת ביצוע מוקדם לאיחור</div>
-          <div class="info-row">• <strong style="color:var(--gold)">🏷️ קטגוריה</strong> — מקובץ לפי תחום (זמנים / בריאות / לימוד / בית וכד')</div>
+          <div class="info-row"><strong style="color:var(--blue)">▷ כרטיס "מה עכשיו"</strong> — מציג את המשימה הנוכחית לפי שעה עם כפתור ✓ לסימון ישיר. כשאין משימה פעילה, מציג את הבאה ואת זמן החופש עד אליה.</div>
+          <div class="info-row"><strong>🔥 Mini-stats</strong> — פס עם רצף ·  נקודות ·  אחוז ביצוע היום. לחיצה על <strong>⚡ יום</strong> פותחת תפריט עם: 🛡️ יום חסד · ⚡ יום בוסט · 🎯 יום עשייה.</div>
           <div class="info-divider"></div>
-          <div class="info-row"><strong style="color:var(--teal)">⚡ מצב מיקוד</strong> — מסתיר משימות שכבר בוצעו, מציג רק מה שנותר. מאפשר להתרכז במה שעדיין חסר.</div>
-          <div class="info-row"><strong>👁 הסתר הושלמו</strong> — מכווץ סלוטים שכל משימותיהם בוצעו — פחות עומס ויזואלי.</div>
+          <div class="info-row"><strong>📋 רשימת משימות</strong> — מציגה רק משימות <strong>ללא שעה קבועה</strong>. משימות עם שעה מופיעות בלוח הזמנים למטה. 3 כפתורי סינון:</div>
+          <div class="info-row" style="padding-right:12px;color:var(--txt2)">⚡ מיקוד — מסתיר שבוצעו · ⏰ שעברו — מסתיר שזמנם עבר · ✓ הושלמו — מסתיר סלוטים שהושלמו</div>
           <div class="info-divider"></div>
-          <div class="info-row"><strong style="color:var(--gold)">🛡️ יום חסד</strong> — שומר על הרצף ביום קשה (ראה פירוט בהמשך).</div>
-          <div class="info-row"><strong style="color:var(--teal)">🎯 יום עשייה</strong> — הצהרה על יום ייעודי לפרויקט גדול (ראה פירוט בהמשך).</div>
+          <div class="info-row"><strong style="color:var(--teal)">📅 לוח זמנים (Planner)</strong> — מוצג מתחת לרשימה. ציר שעות מ-04:00 עד 04:00. כל משימה עם שעה מוצגת כבלוק. ניתן <strong>לגרור בלוקים</strong> לשינוי שעה. ניתן לחבר <strong>Google Calendar</strong> לצפייה באירועים כבלוקים אפורים.</div>
+          <div class="info-divider"></div>
           <div class="info-row"><strong style="color:var(--purple)">✡️ מוצאי שבת</strong> — מופיע כפתור לעדכון שישי+שבת רטרואקטיבי אחרי השבת.</div>
         </div>
       </div>
@@ -434,7 +462,7 @@
         </div>
         <div class="info-acc-body">
           <div class="info-row" style="margin-bottom:6px"><strong style="color:var(--teal)">📶 משימות מדורגות (הליבה)</strong></div>
-          <div class="info-row">המשימות הקבועות של האפליקציה שמשתנות אוטומטית לפי שלב. ניתן לערוך בהגדרות ← ✏️ משימות. ה-AI יכול לבנות מסלול מותאם אישית: הכנס מטרה + מצב נוכחי + מספר שלבים רצויים.</div>
+          <div class="info-row">המשימות הקבועות של האפליקציה שמשתנות אוטומטית לפי שלב. ניתן לערוך בניהול ← 📋 משימות.</div>
           <div class="info-divider"></div>
           <div class="info-row" style="margin-bottom:6px"><strong style="color:var(--orange)">⚡ משימה חד פעמית</strong></div>
           <div class="info-row">משימה עם <strong>מספר ביצועים קצוב</strong> — לאחר שמשלימים אותם, היא נעלמת אוטומטית. דוגמה: "קרא פרק בספר × 20". כל לחיצה = פעם אחת ביום. <strong>לא משפיעה על אחוז הרצף הכללי</strong> — נקודות בונוס בלבד.</div>
@@ -466,15 +494,13 @@
           <span class="info-acc-arrow">▼</span>
         </div>
         <div class="info-acc-body">
-          <div class="info-row">נמצא בהגדרות ← ✏️ משימות. מאפשר שליטה מלאה בכל משימה:</div>
+          <div class="info-row">נמצא בניהול ← 📋 משימות. מאפשר שליטה מלאה בכל משימה:</div>
           <div class="info-divider"></div>
           <div class="info-row"><strong>עריכת פרטים</strong> — שם המשימה, כמות הנקודות, סלוט הזמן, הקטגוריה, ואילו ימים היא פעילה (חול / שישי / שבת).</div>
           <div class="info-row"><strong style="color:var(--teal)">קבוצות משימות</strong> — אפשר לאחד מספר משימות לקבוצה אחת שמספיק לבצע <strong>אחת מהן</strong> לקבלת הנקודות. שימושי למשימות חלופיות — "ספורט או הליכה", "ספר או פודקאסט".</div>
           <div class="info-row"><strong>תזכורת אישית</strong> — כל משימה יכולה לקבל שעת התראה ייעודית שלה.</div>
           <div class="info-row"><strong style="color:var(--txt3)">הסתרת משימה</strong> — להסתיר זמנית מבלי למחוק. שימושי לתקופות מיוחדות (חופשה, מחלה).</div>
-          <div class="info-row"><strong>ציון שעה</strong> — ניתן לציין שעת ביצוע מומלצת, שמשפיעה על המיון בתצוגת "שעה".</div>
-          <div class="info-divider"></div>
-          <div class="info-tip">💡 <strong>טיפ:</strong> ה-AI יכול לבנות מסלול שלם של 5–15 שלבים למשימה מותאמת אישית — מנקודת המוצא שלך עד ליעד שהגדרת.</div>
+          <div class="info-row"><strong>ציון שעה</strong> — ניתן לציין שעת ביצוע, שמציגה את המשימה כבלוק בלוח הזמנים.</div>
         </div>
       </div>
 
@@ -492,72 +518,10 @@
           <div class="info-divider"></div>
           <div class="info-row"><strong style="color:var(--purple)">⬆️ סימון מתקדם ידני</strong> — ליד כל משימה (שאינה במקסימום) מופיע כפתור ⬆️ עם מונה X/5. לחיצה עליו מסמנת ביצוע מתקדם — לאחר <strong>5 סימונים</strong> כאלה המשימה עולה שלב אוטומטית. מאפשר לך להאיץ עלייה כשאתה מרגיש שאתה מוכן לאתגר גדול יותר. סימון אחד ביום בלבד.</div>
           <div class="info-divider"></div>
-          <div class="info-row">בלשונית <strong>משימות</strong> (ניווט תחתון) ניתן לראות לכל משימה: שלב נוכחי, גרף 30 יום של ביצועים, ואחוז הצלחה כולל — כדי לזהות איפה אתה חזק ואיפה יש מקום לשיפור.</div>
+          <div class="info-row">בלשונית <strong>📋 משימות</strong> (ניהול ← 📋 משימות) ניתן לראות לכל משימה: שלב נוכחי, גרף 30 יום של ביצועים, ואחוז הצלחה כולל — כדי לזהות איפה אתה חזק ואיפה יש מקום לשיפור.</div>
         </div>
       </div>
 
-      <!-- 8. AI -->
-      <div class="info-acc" onclick="toggleAcc(this)">
-        <div class="info-acc-hd">
-          <span class="info-acc-title" style="color:var(--purple)">🤖 יצירה עם AI</span>
-          <span class="info-acc-arrow">▼</span>
-        </div>
-        <div class="info-acc-body">
-      <div class="info-divider"></div>
-          <div class="info-row" style="margin-bottom:4px"><strong style="color:var(--purple)">💬 עוזר AI אישי</strong></div>
-          <div class="info-row">בלשונית <strong>עוזר</strong> (תפריט תחתון) — שיחה חופשית עם AI שמכיר את כל הנתונים שלך: היסטוריה, רצף, ביצועים, פרסים. שאל שאלות, קבל ניתוח, בקש עצות ספציפיות.</div>
-          <div class="info-divider"></div>
-          <div class="info-row" style="margin-bottom:4px"><strong style="color:var(--teal)">📅 יצירת לו"ז יומי אוטומטית</strong></div>
-          <div class="info-row">בלשונית יומן ← לו"ז יומי — לחץ "✨ צור לו"ז" וה-AI יבנה סדר יום מותאם אישית לשעות שנותרו, תוך כיבוד עוגני הזמן הקבועים שלך.</div>
-          <div class="info-divider"></div>
-          <div class="info-row" style="margin-bottom:4px"><strong style="color:var(--teal)">✏️ יצירת מסלול משימה</strong></div>
-          <div class="info-row">הכנס: מה המטרה שלך + היכן אתה נמצא כעת + כמה שלבים (5–15) + סלוט זמן. ה-AI בונה מסלול התקדמות מדויק מנקודה א' לנקודה ב', עם גרסה שונה לכל שלב. כל שלב מקשה מעט יותר מהקודם עד להגעה ליעד.</div>
-          <div class="info-divider"></div>
-          <div class="info-row" style="margin-bottom:4px"><strong style="color:var(--gold)">🎁 יצירת צ'ופרים</strong></div>
-          <div class="info-row">ספר ל-AI על מה שאתה אוהב — סרטים, ספרים, אוכל, תחביבים, ויתקין פרסים <strong>ספציפיים ומוחשיים</strong>: שם סרט אמיתי, מוצר אוכל קונקרטי, פעילות מוגדרת. לא "פינוק כלשהו" אלא "פיצה ממסעדה X".</div>
-          <div class="info-divider"></div>
-          <div class="info-row" style="margin-bottom:4px"><strong style="color:var(--blue)">📓 ניתוח יומן</strong></div>
-          <div class="info-row">בלשונית יומן — כתוב על היום שלך וה-AI ינתח את הביצועים, יציין מה עבד ומה לא, ויציע שיפורים קונקרטיים בהתאם להקשר שכתבת.</div>
-          <div class="info-divider"></div>
-          <div style="background:rgba(155,126,248,.08);border:1px solid rgba(155,126,248,.2);border-radius:10px;padding:12px 14px">
-            <div class="info-row" style="margin-bottom:8px"><strong style="color:var(--purple)">🔑 הגדרת מפתח AI — צעד אחר צעד</strong></div>
-            <div class="info-row"><span style="color:var(--txt3)">1.</span> כנס לכתובת: <strong style="color:var(--blue)">console.anthropic.com</strong></div>
-            <div class="info-row"><span style="color:var(--txt3)">2.</span> התחבר או צור חשבון חדש</div>
-            <div class="info-row"><span style="color:var(--txt3)">3.</span> לחץ על <strong>"API Keys"</strong> בתפריט הצד</div>
-            <div class="info-row"><span style="color:var(--txt3)">4.</span> לחץ <strong>"Create Key"</strong> ← העתק את המפתח שמתחיל ב-<strong style="color:var(--teal)">sk-ant-...</strong></div>
-            <div class="info-row"><span style="color:var(--txt3)">5.</span> חזור לאפליקציה ← כפתור AI ← לשונית <strong>🔑 מפתח</strong></div>
-            <div class="info-row"><span style="color:var(--txt3)">6.</span> הדבק את המפתח ולחץ <strong>"שמור"</strong></div>
-            <div style="height:8px"></div>
-            <div class="info-row" style="color:var(--orange)">⚠️ <strong>עלות:</strong> pay-as-you-go — כל שיחה עולה כמה סנטים. אין מנוי חודשי. המפתח נשמר <strong>מוצפן</strong> ומסתנכרן בין מכשירים.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 9. יומן -->
-      <div class="info-acc" onclick="toggleAcc(this)">
-        <div class="info-acc-hd">
-          <span class="info-acc-title" style="color:var(--blue)">📓 יומן יומי</span>
-          <span class="info-acc-arrow">▼</span>
-        </div>
-        <div class="info-acc-body">
-         <div class="info-row">בלשונית <strong>יומן</strong> (מגירה ← 📓) יש שני חלקים עיקריים: יומן אישי ולו"ז יומי חזותי.</div>
-          <div class="info-divider"></div>
-          <div class="info-row" style="margin-bottom:4px"><strong style="color:var(--blue)">✍️ יומן אישי</strong></div>
-          <div class="info-row"><strong>סיכום יום אוטומטי</strong> — בראש הדף: כמה משימות בוצעו, אחוז ביצוע, פירוט לפי קטגוריות.</div>
-          <div class="info-row"><strong style="color:var(--purple)">🤖 ניתוח AI</strong> — לחץ "✨ צור" וה-AI ינתח את הרשומה + נתוני הביצוע. ניתן לכוון: על מה להתמקד, סגנון הכתיבה, אורך התשובה, והנחיה חופשית.</div>
-          <div class="info-row"><strong>רשומות קודמות</strong> — ניתן לצפות ברשומות ובניתוחי AI קודמים. ניתן לייצא את כל היומן לקובץ טקסט.</div>
-          <div class="info-divider"></div>
-          <div class="info-row" style="margin-bottom:4px"><strong style="color:var(--teal)">📅 לו"ז יומי חזותי</strong></div>
-          <div class="info-row">לוח שעות גרפי המציג את כל המשימות של היום ממוקמות על ציר זמן. ניתן לנווט בין ימים.</div>
-          <div class="info-row"><strong>גרירה לשינוי שעה</strong> — גרור בלוק משימה לשעה אחרת. האפליקציה תשאל אישור לפני שמירה. השינוי נשמר ומסתנכרן.</div>
-          <div class="info-row"><strong>✏️ עריכת שעה ומשך</strong> — לחץ על אייקון העיפרון בבלוק לעריכה מדויקת של שעת התחלה ומשך. כפתור "↩ אפס" מחזיר לשעה המקורית.</div>
-          <div class="info-row"><strong>➕ אירוע מותאם אישית</strong> — לחץ על חלק ריק בלוח להוספת אירוע שלך (פגישה, שיעור, ביקור).</div>
-          <div class="info-row"><strong style="color:var(--purple)">🤖 יצירת לו"ז אוטומטית</strong> — לחץ "✨ צור לו"ז" וה-AI יבנה סדר יום מותאם לשעות שנותרו ביום, תוך כיבוד עוגני הזמן הקבועים.</div>
-          <div class="info-row"><strong style="color:var(--blue)">📅 Google Calendar</strong> — ייצוא המשימות עם שעות קבועות ל-Google Calendar (קובץ ICS או ישירות דרך API).</div>
-          <div class="info-divider"></div>
-          <div class="info-row" style="color:var(--txt3)">הרשומות והגדרות הלו"ז נשמרות מקומית ומסתנכרנות לענן כשמחובר לחשבון Google.</div>
-        </div>
-      </div>
 
       <!-- 10. פרסים -->
       <div class="info-acc" onclick="toggleAcc(this)">
@@ -604,7 +568,7 @@
           <span class="info-acc-arrow">▼</span>
         </div>
         <div class="info-acc-body">
-          <div class="info-row">יום חסד הוא "כרית ביטחון" שמשמרת את הרצף גם ביום שלא הגעת ל-80%. מצהירים עליו בלחיצה על כפתור 🛡️ במסך הראשי — ניתן להצהיר עד שעת חצות.</div>
+          <div class="info-row">יום חסד הוא "כרית ביטחון" שמשמרת את הרצף גם ביום שלא הגעת ל-80%. מצהירים עליו דרך <strong>⚡ יום</strong> בראש מסך היום ← 🛡️ יום חסד — ניתן להצהיר עד שעת חצות.</div>
           <div class="info-divider"></div>
           <div class="info-row"><span class="info-tag" style="background:rgba(240,192,64,.1);color:var(--gold)">שלבים 1–5</span> 1 יום חסד / חודש</div>
           <div class="info-row"><span class="info-tag" style="background:rgba(240,192,64,.1);color:var(--gold)">שלבים 6–10</span> 2 ימי חסד / חודש</div>
@@ -630,7 +594,7 @@
           <div class="info-row">2. לשמור על <strong>3 משימות עוגן</strong> שנשארות גם ביום עשייה:</div>
           <div class="info-row" style="color:var(--txt3);padding-right:12px">⚓ קימה בזמן &nbsp;·&nbsp; ⚓ חת"ת/רמב"ם &nbsp;·&nbsp; ⚓ שתיית מים</div>
           <div class="info-divider"></div>
-          <div class="info-row"><strong>מצהירים יום לפני</strong> — לוחצים 🎯 במסך הראשי ומגדירים את יעד המחרת. לא ניתן להצהיר רטרואקטיבית.</div>
+          <div class="info-row"><strong>מצהירים יום לפני</strong> — לוחצים <strong>⚡ יום</strong> בראש מסך היום ← 🎯 יום עשייה ומגדירים את יעד המחרת. לא ניתן להצהיר רטרואקטיבית.</div>
           <div class="info-row" style="color:var(--teal)">מגבלה: עד <strong>3 ימי עשייה בחודש</strong>. ניתן לבטל בהגדרות ← מידע.</div>
           <div style="font-size:12px;color:var(--txt3);margin-top:6px" id="focus-day-status-txt"></div>
         </div>
@@ -643,7 +607,7 @@
           <span class="info-acc-arrow">▼</span>
         </div>
         <div class="info-acc-body">
-          <div class="info-row">מסך <strong>מעקב</strong> (ניווט תחתון) מציג ניתוחים מלאים של הביצועים שלך:</div>
+          <div class="info-row">לשונית <strong>📊 מעקב</strong> (ניהול ← 📊 מעקב) מציגה ניתוחים מלאים של הביצועים שלך:</div>
           <div class="info-divider"></div>
           <div class="info-row"><strong>📈 גרף נקודות</strong> — 30 הימים האחרונים עם ציון יומי. ניתן לראות ימים חזקים וחלשים.</div>
           <div class="info-row"><strong>🏷️ גרף קטגוריות</strong> — אחוז הצלחה לפי תחום: זמנים, בריאות, אכילה, לימוד, בית, סמארטפון. מאפשר לזהות תחומים שדורשים תשומת לב.</div>
@@ -662,10 +626,9 @@
           <span class="info-acc-arrow">▼</span>
         </div>
         <div class="info-acc-body">
-        <div class="info-row"><strong>⚙️ כללי</strong> — מראה (בהיר/כהה), צלילים בסימון משימה, גיבוי ושחזור נתונים, תיקון נקודות (חישוב מחדש), סנכרון Google.</div>
-          <div class="info-row"><strong style="color:var(--gold)">🗂️ תפריט ניווט מותאם אישית</strong> — בהגדרות ← ⚙️ כללי ניתן לבחור אילו מסכים יופיעו בתפריט התחתון (עד 4) ואילו יעברו למגירה. ניתן גם לקבוע איזה מסך ייפתח בהפעלת האפליקציה (מסך הבית).</div>
+        <div class="info-row"><strong>⚙️ כללי</strong> — מראה (בהיר/כהה), צלילים בסימון משימה, חיבור/ניתוק Google (לסנכרון ענן), גיבוי ושחזור נתונים, תיקון נקודות (חישוב מחדש).</div>
           <div class="info-row"><strong>🔔 תזכורות</strong> — הגדרת התראות לכל אחד מ-4 הסלוטים, תזכורת מוצאי שבת, ותזכורות אישיות למשימות ספציפיות. כל התזכורות מושהות אוטומטית בשבת.</div>
-          <div class="info-row"><strong>ℹ️ מידע</strong> (אתה כאן) — ניהול ימי חסד ועשייה פעילים, סטטוס שבת, מדריך האפליקציה + כפתור להצגת מדריך הפתיחה מחדש.</div>
+          <div class="info-row"><strong>ℹ️ מידע</strong> (אתה כאן) — ניהול ימי חסד ועשייה פעילים, סטטוס שבת, ומדריך האפליקציה.</div>
           <div class="info-divider"></div>
           <div class="info-row"><strong style="color:var(--red)">⚠️ איפוס כל הנתונים</strong> — מחיקה מוחלטת של היסטוריה, נקודות, הגדרות ומשימות מותאמות. <strong>לא ניתן לשחזר</strong> — מומלץ לגבות קודם.</div>
           <div class="info-row"><strong>תיקון נקודות</strong> — אם הנקודות נראות לא נכונות, לחץ "חשב מחדש" לחישוב מחדש מהיסטוריה.</div>
@@ -696,7 +659,7 @@
         <div class="info-acc-body">
           <div class="info-row">התחברות עם <strong>Google</strong> (בהגדרות ← ⚙️ כללי) מפעילה סנכרון אוטומטי דרך Firebase. הרציונל: הנתונים שלך לא ייאבדו אם תחליף מכשיר, תנקה דפדפן, או תשתמש בכמה מכשירים.</div>
           <div class="info-divider"></div>
-          <div class="info-row"><strong>מה מסתנכרן:</strong> כל ההיסטוריה · נקודות · הגדרות · משימות מותאמות · פרסים אישיים · מפתח ה-API · רשומות יומן.</div>
+          <div class="info-row"><strong>מה מסתנכרן:</strong> כל ההיסטוריה · נקודות · הגדרות · משימות מותאמות · פרסים אישיים.</div>
           <div class="info-row"><strong>לוגיקת סנכרון</strong> — כשמתחברים, האפליקציה משווה בין הגרסה המקומית לענן ומאחדת לפי הנתונים העדכניים ביותר (לפי אורך ההיסטוריה).</div>
           <div class="info-row"><strong>מעבר בין מכשירים</strong> — היכנס עם אותו חשבון Google בכל מכשיר לקבל את כל הנתונים.</div>
           <div class="info-divider"></div>
