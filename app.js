@@ -4006,17 +4006,17 @@ const PAGES=[
   {id:'levels', render:renderLevels},
   {id:'rewards',render:renderRewards},
   {id:'mastery',render:renderMastery},
-  {id:'cal',    render:renderCal},
+  {id:'cal',    render:function(){nav('mastery');switchMasteryTab('cal');}},
   {id:'settings',render:renderSettings},
 ];
 let activePage='today';
 
 // ── רשימת כל המסכים האפשריים עם אייקון SVG ──
+// 'cal' הוסר — מעקב הוא sub-tab בתוך mastery
 const ALL_NAV_ITEMS=[
   {id:'today',    label:'היום',   emoji:'✅', locked:true, svg:'<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>'},
-  {id:'mastery',  label:'משימות', emoji:'📋', svg:'<path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h7a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h4a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>'},
+  {id:'mastery',  label:'ניהול',  emoji:'📋', svg:'<path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h7a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h4a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>'},
   {id:'rewards',  label:'פרסים',  emoji:'🎁', svg:'<path fill-rule="evenodd" d="M5 2a1 1 0 011 1v1h8V3a1 1 0 112 0v1h.5A1.5 1.5 0 0118 5.5v1A2.5 2.5 0 0115.5 9H15v7a1 1 0 01-1 1H6a1 1 0 01-1-1V9h-.5A2.5 2.5 0 012 6.5v-1A1.5 1.5 0 013.5 4H4V3a1 1 0 011-1zm3 7v6h4V9H8z" clip-rule="evenodd"/>'},
-  {id:'cal',      label:'מעקב',   emoji:'📊', svg:'<path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h10a2 2 0 002-2V5a1 1 0 100-2H3zm4 4a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm0 3a1 1 0 011-1h2a1 1 0 110 2H8a1 1 0 01-1-1z" clip-rule="evenodd"/>'},
   {id:'levels',   label:'מסלול',  emoji:'📈', svg:'<path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"/><path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"/>'},
   {id:'settings', label:'הגדרות', emoji:'⚙️', svg:'<path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>'},
 ];
@@ -4438,6 +4438,9 @@ if(S.sortMode){
 setTimeout(scheduleAllNotifs,1000);
 initShabbatTimes();
 applyTheme(S.lightMode !== undefined ? S.lightMode : true);
+// ניקוי navItems ישן — 'cal' עבר להיות sub-tab בתוך mastery
+if(S.navItems){S.navItems=S.navItems.filter(id=>id!=='cal');if(!S.navItems.length)S.navItems=null;}
+if(S.homeScreen==='cal') S.homeScreen='mastery';
 buildNav();
 buildDrawer();
 renderRewards();
