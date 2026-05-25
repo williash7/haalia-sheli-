@@ -121,6 +121,7 @@ function plRender(){
     document.getElementById('pl-dlbl').onclick=()=>{_plDate=new Date();plRender()};
   }
   _plHead();_plGrid();_plScrollNow();
+  _loadAndRenderGcal();
 }
 
 /* ════════ HEADER ════════ */
@@ -600,9 +601,158 @@ function _plScrollNow(){
 }
 
 /* ════════ GOOGLE CALENDAR ════════ */
+
+const GCAL_TOKEN_KEY='gcal_access_token';
+const GCAL_TOKEN_EXP_KEY='gcal_token_expiry';
+let _gcalEvCache={};
+
+function _gcalGetToken(){
+  const exp=parseInt(localStorage.getItem(GCAL_TOKEN_EXP_KEY)||'0');
+  if(Date.now()>exp-60000)return null;
+  return localStorage.getItem(GCAL_TOKEN_KEY)||null;
+}
+
+async function _fetchGcalEvents(date){
+  const token=_gcalGetToken();
+  if(!token)return[];
+  const ds=date.toDateString();
+  if(_gcalEvCache[ds])return _gcalEvCache[ds];
+  const tMin=new Date(date);tMin.setHours(0,0,0,0);
+  const tMax=new Date(date);tMax.setHours(23,59,59,999);
+  try{
+    const r=await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/primary/events`+
+      `?timeMin=${tMin.toISOString()}&timeMax=${tMax.toISOString()}`+
+      `&singleEvents=true&orderBy=startTime&maxResults=30`,
+      {headers:{Authorization:`Bearer ${token}`}}
+    );
+    if(r.status===401){
+      localStorage.removeItem(GCAL_TOKEN_KEY);
+      localStorage.removeItem(GCAL_TOKEN_EXP_KEY);
+      return[];
+    }
+    if(!r.ok)return[];
+    const data=await r.json();
+    const evs=(data.items||[])
+      .filter(e=>e.start?.dateTime)
+      .map(e=>({
+        id:'gcal_'+e.id,
+        type:'gcal',
+        time:e.start.dateTime.slice(11,16),
+        endTime:e.end.dateTime.slice(11,16),
+        label:e.summary||'אירוע',
+      }));
+    _gcalEvCache[ds]=evs;
+    return evs;
+  }catch(e){return[];}
+}
+
+async function _loadAndRenderGcal(){
+  if(!_gcalGetToken())return;
+  const evs=await _fetchGcalEvents(_plDate);
+  const grid=document.getElementById('pl-grid');
+  if(!grid)return;
+  grid.querySelectorAll('.pl-blk-gcal').forEach(b=>b.remove());
+  if(!evs.length)return;
+  const bW=Math.min(window.innerWidth,500)-56;
+  evs.forEach(ev=>{
+    const h1=_plH(ev.time);
+    const h2=ev.endTime?_plH(ev.endTime):h1+0.5;
+    const top=_plPx(h1);
+    const height=Math.max(22,Math.round((h2-h1)*PL_HOUR_H));
+    const blk=document.createElement('div');
+    blk.className='pl-blk pl-blk-gcal';
+    blk.style.cssText=`top:${top}px;height:${height}px;right:3px;width:${bW}px;`+
+      `background:rgba(128,128,128,.13);border-right:3px solid rgba(128,128,128,.5);`+
+      `opacity:.8;cursor:default;pointer-events:none;z-index:2`;
+    blk.innerHTML=`<div class="pl-bt" style="color:var(--txt3);font-size:10px;font-weight:700">${ev.label}</div>`+
+      `<div class="pl-bs" style="color:var(--txt3)">${ev.time}–${ev.endTime||''}</div>`;
+    grid.appendChild(blk);
+  });
+  _plBar();
+}
+
 function _plGcal(){
-  // TODO: Google Calendar read integration (שלב 4 ב-PLAN.md)
-  alert('חיבור Google Calendar — בקרוב');
+  const existing=document.getElementById('gcal-modal');
+  if(existing){existing.remove();return;}
+  const connected=!!_gcalGetToken();
+  const m=document.createElement('div');
+  m.id='gcal-modal';
+  m.style.cssText=`position:fixed;bottom:74px;left:50%;transform:translateX(-50%);`+
+    `max-width:460px;width:calc(100% - 24px);background:var(--surface);`+
+    `border:1px solid var(--brd2);border-radius:16px;padding:20px;z-index:400;`+
+    `box-shadow:0 8px 32px rgba(0,0,0,.35)`;
+  if(connected){
+    const exp=parseInt(localStorage.getItem(GCAL_TOKEN_EXP_KEY)||'0');
+    const expStr=exp?new Date(exp).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}):'';
+    m.innerHTML=`
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="font-size:15px;font-weight:900;color:var(--txt)">📅 Google Calendar</div>
+        <button onclick="document.getElementById('gcal-modal').remove()"
+          style="background:none;border:none;color:var(--txt3);font-size:18px;cursor:pointer">✕</button>
+      </div>
+      <div style="font-size:12px;background:rgba(56,214,138,.08);border:1px solid rgba(56,214,138,.2);border-radius:8px;padding:10px 12px;margin-bottom:14px;color:var(--green)">
+        ✓ מחובר · תוקף עד ${expStr}
+      </div>
+      <button onclick="_gcalDisconnect()"
+        style="width:100%;padding:10px;background:rgba(240,80,80,.08);color:var(--red);border:1px solid rgba(240,80,80,.2);border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif">
+        🔌 נתק Google Calendar
+      </button>`;
+  }else{
+    m.innerHTML=`
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="font-size:15px;font-weight:900;color:var(--txt)">📅 Google Calendar</div>
+        <button onclick="document.getElementById('gcal-modal').remove()"
+          style="background:none;border:none;color:var(--txt3);font-size:18px;cursor:pointer">✕</button>
+      </div>
+      <div style="font-size:12px;color:var(--txt2);line-height:1.7;margin-bottom:16px">
+        ראה את האירועים שלך על ציר הזמן לצד המשימות.<br>
+        <span style="color:var(--txt3);font-size:11px">קריאה בלבד — האפליקציה לא תכתוב ליומן.</span>
+      </div>
+      <button id="gcal-connect-btn" onclick="_gcalConnect()"
+        style="width:100%;padding:12px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;font-family:'Heebo',sans-serif">
+        🔗 חבר Google Calendar
+      </button>`;
+  }
+  document.body.appendChild(m);
+  setTimeout(()=>document.addEventListener('click',function _gcm(e){
+    const modal=document.getElementById('gcal-modal');
+    if(modal&&!modal.contains(e.target)){modal.remove();document.removeEventListener('click',_gcm);}
+  }),50);
+}
+
+async function _gcalConnect(){
+  const btn=document.getElementById('gcal-connect-btn');
+  if(btn){btn.textContent='⏳ מתחבר...';btn.disabled=true;}
+  try{
+    if(typeof firebase==='undefined')throw new Error('Firebase לא נטען');
+    const provider=new firebase.auth.GoogleAuthProvider();
+    provider.addScope('https://www.googleapis.com/auth/calendar.readonly');
+    const result=await firebase.auth().signInWithPopup(provider);
+    const token=result.credential?.accessToken;
+    if(!token)throw new Error('לא התקבל token');
+    localStorage.setItem(GCAL_TOKEN_KEY,token);
+    localStorage.setItem(GCAL_TOKEN_EXP_KEY,String(Date.now()+3600*1000));
+    _gcalEvCache={};
+    document.getElementById('gcal-modal')?.remove();
+    if(typeof toast==='function')toast('✅ Google Calendar מחובר!');
+    _loadAndRenderGcal();
+    _plBar();
+  }catch(e){
+    if(btn){btn.textContent='🔗 חבר Google Calendar';btn.disabled=false;}
+    const msg=e.code==='auth/popup-closed-by-user'?'החלון נסגר — נסה שוב':(e.message||'שגיאה בחיבור');
+    if(typeof toast==='function')toast('⚠️ '+msg);
+  }
+}
+
+function _gcalDisconnect(){
+  localStorage.removeItem(GCAL_TOKEN_KEY);
+  localStorage.removeItem(GCAL_TOKEN_EXP_KEY);
+  _gcalEvCache={};
+  document.getElementById('gcal-modal')?.remove();
+  document.querySelectorAll('.pl-blk-gcal').forEach(b=>b.remove());
+  _plBar();
+  if(typeof toast==='function')toast('Google Calendar נותק');
 }
 
 /* ════════ HELPERS ════════ */
