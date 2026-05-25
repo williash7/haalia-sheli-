@@ -3822,6 +3822,8 @@ function renderCustomRewardsSection(){
     }else da.innerHTML='<div style="font-size:12px;color:var(--txt3)">עבור לדף הצ\'ופרים ולחץ ☆ ליד הפרס שבחרת</div>';
   }
 }
+function toggleAcc(el){ el.classList.toggle('open'); }
+
 function renderSettings(){
   renderAuthSection();
   renderGraceSection();
