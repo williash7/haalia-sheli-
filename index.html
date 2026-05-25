@@ -126,16 +126,13 @@
 
     <!-- TASKS -->
     <div id="tasks-section">
-      <div class="focus-bar">
-        <div>
-          <div class="focus-label">מצב מיקוד</div>
-          <div class="focus-count" id="focus-count">מציג הכל</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px">
+        <div style="font-size:11px;color:var(--txt3)" id="focus-count">מציג הכל</div>
+        <div style="display:flex;gap:5px">
+          <button class="hide-done-btn" id="focus-btn" onclick="toggleFocus()">⚡ מיקוד</button>
+          <button class="hide-done-btn" id="hide-passed-btn" onclick="toggleHidePassedTasks()">⏰ שעברו</button>
+          <button class="hide-done-btn" id="hide-done-btn" onclick="toggleHideDoneSlots()">✓ הושלמו</button>
         </div>
-        <button class="focus-btn" id="focus-btn" onclick="toggleFocus()"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.381z" clip-rule="evenodd"/></svg></span> מיקוד</button>
-      </div>
-      <div class="hide-done-bar" style="justify-content:flex-end;align-items:center;gap:6px">
-        <button class="hide-done-btn" id="hide-passed-btn" onclick="toggleHidePassedTasks()">⏰ הסתר שעברו</button>
-        <button class="hide-done-btn" id="hide-done-btn" onclick="toggleHideDoneSlots()"><span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg></span> הסתר הושלמו</button>
       </div>
       <div id="today-content"></div>
     </div>
