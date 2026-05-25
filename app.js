@@ -1059,6 +1059,25 @@ function isOccurrenceTask(baseId) {
   return !!DAILY_OCCURRENCES[baseId];
 }
 
+/* סמן/בטל חזרה ספציפית לפי אינדקס */
+function toggleOccurrenceAt(taskId, occIdx){
+  const bid = _baseIdFromTaskId(taskId);
+  const lvl = getTaskDisplayLevel(_masteryBid(bid));
+  const arr = getOccurrenceDoneArr(bid, lvl);
+  if(!arr || occIdx < 0 || occIdx >= arr.length) return;
+  if(arr[occIdx]){
+    arr[occIdx] = 0;
+    if(getOccurrenceDoneCount(bid, lvl) === 0) delete S.done[taskId];
+    playUncheck();
+  } else {
+    arr[occIdx] = 1;
+    if(arr.every(v=>v)) S.done[taskId] = true;
+    animateTaskDone(taskId);
+  }
+  recalcStreakAndProgress();
+  save();
+  renderActive();
+}
 
 /* ══════════════ ACTIONS ══════════════ */
 function toggleTask(id,pts,isAnchorOnly){
@@ -2231,37 +2250,47 @@ function renderToday(){
       html+=_slotAccordion('shab_'+si,'✡️',shabbatSlotLabels[si]||'שבת','',st,body);
     });
   } else if(todayViewMode==='time'){
-    // ── מיון לפי שעה ──
-    const _timeCache = new Map();
+    // ── מיון לפי שעה — פריסת occurrence tasks לשורות נפרדות ──
+    const timeItems = [];
     tasks.forEach(t => {
-      const _gid = t._grpId || (t.id && t.id.includes("_") ? t.id.replace(/_\d+$/, "") : null);
-      const _grp = _gid ? (getGroups() || builtinGroups()).find(g => g.id === _gid || g.id === "grp_" + _gid) : null;
-      const _bid2 = _baseIdFromTaskId(t.id);
-      const _lvl2 = getTaskDisplayLevel(_masteryBid(_bid2));
-      let tm = null;
-      if (isOccurrenceTask(_bid2)) tm = getNextOccurrenceTime(_bid2, _lvl2) || null;
-      else if (_grp) tm = getTaskAutoTimeInfo(_grp, _lvl2).displayTime || t.time || null;
-      else tm = t.time || null;
-      _timeCache.set(t.id, tm);
+      const bid2 = _baseIdFromTaskId(t.id);
+      const lvl2 = getTaskDisplayLevel(_masteryBid(bid2));
+      if(isOccurrenceTask(bid2)){
+        const occKey = bid2.replace(/^grp_/,'');
+        const occArr = DAILY_OCCURRENCES[occKey] || DAILY_OCCURRENCES['grp_'+occKey];
+        const occTimes = (occArr ? occArr[Math.min(lvl2,15)-1] : null) || [];
+        const doneArr = getOccurrenceDoneArr(bid2, lvl2) || new Array(occTimes.length).fill(0);
+        occTimes.forEach((tm, idx) => {
+          timeItems.push({t, time: tm, occIdx: idx, occDone: !!doneArr[idx], occTotal: occTimes.length});
+        });
+      } else {
+        const tm = _getTaskTime(t) || null;
+        timeItems.push({t, time: tm, occIdx: -1, occDone: false, occTotal: 0});
+      }
     });
-const _sortTime = t => {
-  const raw = (_timeCache.get(t.id)||'').replace(/[^\d:]/g,'').trim().slice(0,5);
-  if(!raw) return 9999;
-  const [h,m] = raw.split(':').map(Number);
-  const mins = h*60+(m||0);
-  return h < 4 ? mins + 1440 : mins;
-};
-const timed = tasks.filter(t=>_timeCache.get(t.id)).sort((a,b)=>{
-  const td=_sortTime(a)-_sortTime(b);
-  return td!==0?td:_customOrderCmp(a.id,b.id);
-});
-const allDay = tasks.filter(t=>!_timeCache.get(t.id));
-if(timed.length){
-  html+=`<div id="sortable-timed">${timed.map(t=>_renderTaskHtml(t,isBonus)).join('')}</div>`;
-}
-if(allDay.length){
-  html+=_slotAccordion('tv_allday','📅','כל היום','ללא שעה מוגדרת',allDay, allDay.map(t=>_renderTaskHtml(t,isBonus)).join(''));
-}
+    const _toMin = tm => {
+      if(!tm) return 9999;
+      const parts = tm.split(':').map(Number);
+      const mins = parts[0]*60+(parts[1]||0);
+      return parts[0] < 4 ? mins + 1440 : mins;
+    };
+    const timed = timeItems.filter(x=>x.time).sort((a,b)=>_toMin(a.time)-_toMin(b.time));
+    const allDay = timeItems.filter(x=>!x.time);
+    if(timed.length){
+      html += '<div id="sortable-timed">';
+      timed.forEach(x => {
+        if(x.occIdx >= 0){
+          html += _renderOccurrenceRow(x.t, x.time, x.occIdx, x.occDone, x.occTotal, isBonus);
+        } else {
+          html += _renderTaskHtml(x.t, isBonus);
+        }
+      });
+      html += '</div>';
+    }
+    if(allDay.length){
+      const allDayBody = allDay.map(x=>_renderTaskHtml(x.t,isBonus)).join('');
+      html += _slotAccordion('tv_allday','📌','ללא שעה מוגדרת','משימות כלליות',allDay.map(x=>x.t), allDayBody);
+    }
   } else if(todayViewMode==='cat'){
     // ── מיון לפי קטגוריה ──
     const catOrder=['zman','limud','briut','achila','bayit','smart','erev','shabbat'];
@@ -2729,7 +2758,7 @@ const advLevelBtnHtml = getTaskDisplayLevel(_taskBid) >= MAX_LVL
   : `<button class="task-snooze-btn" onclick="event.stopPropagation();openAdvancedLevelModal('${safeId}',event)" title="ביצעתי ברמת השלב הבא" style="color:var(--teal)">⬆️</button>`;
   return `<div class="task${dn?' done':''}${isBonus&&!dn?' bonus-active':''}${starred?' starred-task':''}"
     oncontextmenu="openQuickEditTask('${safeId}',event)"
-    data-task-id="${t.id}" style="${extraStyle||''}" onclick="event.stopPropagation();toggleTask('${safeId}',${t.pts})">
+    data-task-id="${t.id}" style="${extraStyle||''}" onclick="event.stopPropagation();openTaskPanel('${safeId}')">
     <div style="display:flex;flex-direction:column;gap:5px;width:100%">
       <div style="display:flex;align-items:center;gap:8px">
         <div class="tcb" onclick="event.stopPropagation();toggleTask('${safeId}',${t.pts})">${chkSvg()}</div>
@@ -2750,6 +2779,121 @@ const advLevelBtnHtml = getTaskDisplayLevel(_taskBid) >= MAX_LVL
     </div>
    ${_occSubHtml}${_subHtml}${_mergedHtml}
   </div>`;
+}
+
+/* שורת occurrence (חזרה בודדת) בתצוגת זמן */
+function _renderOccurrenceRow(t, time, occIdx, isDone, occTotal, isBonus){
+  const bid = _baseIdFromTaskId(t.id);
+  const ptsPerOcc = Math.max(1, Math.round(bonusPts(t.pts) / Math.max(occTotal,1)));
+  const safeId = t.id.replace(/'/g,"\\'");
+  const catColor = CAT_COLORS[t.cat] || 'var(--blue)';
+  const starred = isTaskStarred(t.id);
+  return `<div class="task${isDone?' done':''}${isBonus&&!isDone?' bonus-active':''}${starred?' starred-task':''}"
+    data-task-id="${t.id}" data-occ-idx="${occIdx}"
+    onclick="event.stopPropagation();openTaskPanel('${safeId}',${occIdx})">
+    <div style="display:flex;flex-direction:column;gap:5px;width:100%">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="tcb" onclick="event.stopPropagation();toggleOccurrenceAt('${safeId}',${occIdx})">${chkSvg()}</div>
+        <div style="flex:1;min-width:0;font-size:13px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.text}</div>
+        <div class="tpts${isBonus?' bonus':''}">+${ptsPerOcc}${isBonus?' 🔥':''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px">
+        <span style="font-size:10px;color:var(--blue);font-weight:700;background:var(--blue3);border-radius:4px;padding:1px 5px">${time}</span>
+        <span class="tcat" style="color:${catColor}">${CATS[t.cat]||t.cat}</span>
+        <span style="font-size:10px;color:var(--txt3)">${occIdx+1}/${occTotal}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* מציאת משימה לפאנל */
+function _findTaskForPanel(taskId){
+  const dayType = getDayType(new Date());
+  const boost = boostActiveToday();
+  const renderLevel = boost ? boost.level : S.level;
+  const all = getTasksForDay(renderLevel, dayType);
+  let t = all.find(x => x.id === taskId);
+  if(t){
+    const bid = _baseId(t.id);
+    const indivLvl = getTaskDisplayLevel(bid);
+    if(indivLvl !== S.level){
+      const alts = _getDefaultTasks(indivLvl);
+      const alt = alts.find(x => _baseId(x.id) === bid);
+      if(alt) t = {...alt, id: t.id, _displayLevel: indivLvl, anchor: t.anchor};
+    }
+    return t;
+  }
+  t = (S.oneTimeTasks||[]).find(x => x.id === taskId);
+  if(t) return t;
+  return (S.streakTasks||[]).find(x => x.id === taskId) || null;
+}
+
+/* פאנל פעולות משימה */
+function openTaskPanel(taskId, occIdx){
+  const occIdxN = (occIdx === undefined || occIdx === null) ? -1 : parseInt(occIdx);
+  const t = _findTaskForPanel(taskId);
+  if(!t){ if(typeof toast==='function') toast('המשימה לא נמצאה'); return; }
+  const bid = _baseIdFromTaskId(taskId);
+  const ap = bonusPts(t.pts);
+  const safeId = taskId.replace(/'/g,"\\'");
+  const safeText = (t.text||'').replace(/'/g,"\\'");
+  const grpId = bid.startsWith('grp_') ? bid : 'grp_' + bid;
+  const catColor = CAT_COLORS[t.cat] || 'var(--blue)';
+  const catLabel = CATS[t.cat] || t.cat;
+  const isOcc = isOccurrenceTask(bid);
+  const lvl = getTaskDisplayLevel(_masteryBid(bid));
+  let isDone;
+  if(isOcc && occIdxN >= 0){
+    const doneArr = getOccurrenceDoneArr(bid, lvl) || [];
+    isDone = !!doneArr[occIdxN];
+  } else {
+    isDone = !!S.done[taskId];
+  }
+  const toggleFn = isOcc && occIdxN >= 0
+    ? `closeModal('task-panel');toggleOccurrenceAt('${safeId}',${occIdxN})`
+    : `closeModal('task-panel');toggleTask('${safeId}',${t.pts})`;
+  const atMax = lvl >= MAX_LVL;
+  const snoozed = isTaskSnoozed(taskId);
+  const starred = isTaskStarred(taskId);
+  const grp = (getGroups()||builtinGroups()).find(g => g.id === grpId);
+  const baseKey = bid.replace(/^grp_/,'');
+  const infoTitle = TASK_INFO[baseKey] ? TASK_INFO[baseKey].title : null;
+  const groupTitle = (grp && grp.title) ? grp.title : infoTitle;
+  const B = 'padding:12px 8px;border-radius:10px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;border:1.5px solid ';
+  const body = document.getElementById('task-panel-body');
+  if(!body) return;
+  body.innerHTML = `
+    <div style="margin-bottom:14px">
+      ${groupTitle?`<div style="font-size:10px;font-weight:800;color:${catColor};text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px">${groupTitle}</div>`:''}
+      <div style="font-size:15px;font-weight:900;color:var(--txt);line-height:1.4;margin-bottom:7px">${t.text}</div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <span style="font-size:11px;background:var(--bg3);border:1px solid var(--brd);border-radius:99px;padding:2px 9px;color:${catColor};font-weight:700">${catLabel}</span>
+        ${occIdxN>=0?`<span style="font-size:11px;background:rgba(45,212,191,.12);border:1px solid rgba(45,212,191,.3);border-radius:99px;padding:2px 9px;color:var(--teal);font-weight:700">חזרה ${occIdxN+1}</span>`:''}
+        <span style="font-size:11px;color:var(--gold);font-weight:800">+${ap}</span>
+      </div>
+    </div>
+    <button onclick="${toggleFn}" style="width:100%;padding:14px;${isDone?'background:var(--green3);border:1.5px solid var(--green2);color:var(--green2)':'background:rgba(56,214,138,.08);border:1.5px solid rgba(56,214,138,.35);color:var(--green)'};border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">
+      ${isDone?'↩️ בטל ביצוע':`✅ סמן כבוצע · +${ap}`}
+    </button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <button onclick="closeModal('task-panel');showTaskInfo('${bid}','${safeText}',${ap},null)"
+        style="${B}var(--brd2);background:var(--bg3);color:var(--txt2)">ℹ️ מידע</button>
+      ${!atMax
+        ?`<button onclick="closeModal('task-panel');openAdvancedLevelModal('${safeId}',null)"
+          style="${B}rgba(45,212,191,.35);background:rgba(45,212,191,.08);color:var(--teal)">⬆️ שלב</button>`
+        :`<div style="${B}var(--brd);background:var(--bg3);color:var(--txt3);opacity:.4">✦ מקסימום</div>`}
+      <button onclick="closeModal('task-panel');openAddSubtaskModal('${grpId}')"
+        style="${B}rgba(91,141,248,.35);background:var(--blue3);color:var(--blue)">＋ תת-משימה</button>
+      <button onclick="closeModal('task-panel');openMergeTaskModal('${grpId}')"
+        style="${B}rgba(155,126,248,.35);background:rgba(155,126,248,.08);color:var(--purple)">🔗 חיבור</button>
+      <button onclick="closeModal('task-panel');snoozeTask('${safeId}',null)"
+        style="${B}rgba(240,192,64,.35);background:rgba(240,192,64,.08);color:var(--gold)">${snoozed?'↩️ בטל דחייה':'⏭ לא היום'}</button>
+      <button onclick="toggleStar('${safeId}',null);openTaskPanel('${safeId}',${occIdxN<0?'undefined':occIdxN})"
+        style="${B}var(--brd2);background:var(--bg3);color:var(--gold)">${starred?'⭐ הסר':'☆ עדיפות'}</button>
+    </div>
+    <button onclick="closeModal('task-panel')" style="width:100%;padding:11px;background:var(--bg3);border:1px solid var(--brd);border-radius:10px;color:var(--txt3);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">סגור</button>
+  `;
+  openModal('task-panel');
 }
 
 /* Quick-edit task from home screen (long-press / right-click) */

@@ -1727,6 +1727,14 @@ setTimeout(obStart, 600);
         הפעל בוסט ⚡
       </button>
     </div>
+<!-- TASK ACTION PANEL -->
+<div class="bs-bg" id="task-panel" onclick="if(event.target===this)closeModal('task-panel')">
+  <div class="bs-sheet" style="max-height:85vh;overflow-y:auto">
+    <div class="bs-handle"></div>
+    <div id="task-panel-body" style="padding:0 4px 8px"></div>
+  </div>
+</div>
+
 <script src="subtasks.js"></script>
 </body>
 </html>
