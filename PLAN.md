@@ -91,6 +91,8 @@
 | `f0acc50` | הסרת chat, journal, כל קוד AI — ניקוי 2,700 שורות |
 | `05375a2` | תיקון planner: מרנדר ב-pg-today, תיקון `_plGcal()` |
 | `789da8b` | רידיזיין today: mini-stats, כרטיס "מה עכשיו", כפתור "⚡ יום", הסרת "התחל יום" |
+| `a8533d1` | תיקון getAppNow is not defined בapp.js |
+| `c89734b` | Google Calendar: fetch + הצגת אירועים כבלוקים אפורים בציר הזמן |
 
 ### 🔲 עדיין לביצוע
 
@@ -99,12 +101,15 @@
 - **אפשרות א'** (מומלץ): ה-accordion יציג רק משימות **ללא שעה**; הlוח יציג משימות **עם שעה**
 - **אפשרות ב'**: הסרת ה-accordion לגמרי — הlוח הוא הכל (דורש שלכל משימה תהיה שעה)
 
-#### שלב 4 — Google Calendar (read-only)
-- הוספת scope `calendar.readonly` לGoogle Auth
-- פונקציה `_fetchGcalEvents(date)` — קורא Calendar API
-- הצגת אירועי גוגל בציר כבלוקים אפורים
-- חישוב "חלון פנוי" — זמן ללא משימה ו-ללא אירוע גוגל
-- תיקון כפתור `📅 Google` שיפתח dialog חיבור
+#### ✅ שלב 4 — Google Calendar (read-only) — בוצע
+- ✅ scope `calendar.readonly` + Firebase signInWithPopup
+- ✅ `_fetchGcalEvents(date)` — קורא Calendar API v3, cache לפי תאריך
+- ✅ בלוקים אפורים על הציר (`.pl-blk-gcal`)
+- ✅ `_plGcal()` — modal חיבור / ניתוק
+
+#### שלב 5 — חלון פנוי
+- חישוב "חלון פנוי" — זמן ללא משימה וללא אירוע גוגל
+- הצגה בכרטיס "מה עכשיו" ("יש לך X דקות חופשיות")
 
 ---
 
@@ -113,7 +118,7 @@
 ### planner.js — מצב נוכחי
 - `plRender()` מחובר ל-`renderToday` (מתעדכן אוטומטית)
 - מרנדר לתוך `#pg-planner-wrap` בתוך `#pg-today`
-- `_plGcal()` — stub בינתיים (מציג alert)
+- `_plGcal()` — modal חיבור/ניתוק Google Calendar
 - כשמשימה מסומנת → `renderActive` → `_plBlocks()` מתעדכן
 - ציר שעות: 04:00–28:00 (4 בבוקר עד 4 לאחר חצות)
 - גרירה לשינוי שעה שמורה ב-`S.plannerTimeOverrides[dateStr][taskId]`
@@ -152,6 +157,6 @@ Authorization: Bearer {accessToken}
 |------|--------|
 | הplanner = דף ראשי? | ✅ embedded בתוך "היום" |
 | לצמצם או למחוק? | צמצום — כל פונקציה נשארת |
-| Google Calendar — קריאה בלבד? | ✅ כן בשלב ראשון |
+| Google Calendar — קריאה בלבד? | ✅ בוצע — בלוקים אפורים על הציר |
 | chat + journal? | ✅ נמחקו לצמיתות |
 | כפילות accordion + planner? | ⏳ לפתור בשלב הבא |
