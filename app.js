@@ -2181,6 +2181,11 @@ function renderToday(){
     return t;
   });
 
+  // הסתרת משימות מדולגות להיום
+  const _skipDs=new Date().toDateString();
+  const _skipped=(S.skippedToday&&S.skippedToday[_skipDs])||[];
+  if(_skipped.length) tasks=tasks.filter(t=>!_skipped.includes(t.id));
+
   // הסתרת משימות שעברו
   if(hidePassedTasks){
     const _nowMin = new Date().getHours()*60 + new Date().getMinutes();
