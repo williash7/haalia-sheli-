@@ -28,7 +28,7 @@ button{font-family:'Heebo',sans-serif;cursor:pointer;border:none;background:none
 #app{max-width:500px;margin:0 auto;padding:0 16px}
 
 /* ── HEADER ── */
-.hdr{padding:24px 0 16px;text-align:center}
+.hdr{padding:24px 0 16px;text-align:center;position:sticky;top:0;z-index:200;background:var(--bg);}
 .hdr-title{font-size:30px;font-weight:900;letter-spacing:-1.5px;background:linear-gradient(135deg,var(--gold) 0%,#fff 55%,var(--gold) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline-block;}
 body.light .hdr-title{background:linear-gradient(135deg,var(--gold) 0%,#5a3a00 50%,var(--gold) 100%);-webkit-background-clip:text;background-clip:text;}
 .hdr-sub{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:4px 14px;background:var(--sf2);border:1px solid var(--brd2);border-radius:99px;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--gold);}

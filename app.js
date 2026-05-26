@@ -52,18 +52,36 @@ function _customOrderCmp(idA,idB){
   if(ib===-1)return -1;
   return ia-ib;
 }
+let _sortables=[];
+let _sortModeActive=false;
 function initSortable(){
+  _sortables.forEach(s=>{try{s.destroy();}catch(e){}});
+  _sortables=[];
+  _sortModeActive=false;
+  const btn=document.getElementById('sort-mode-btn');
+  if(btn){btn.textContent='⇅ סדר';btn.style.background='';btn.style.color='';btn.style.borderColor='';}
   if(typeof Sortable==='undefined')return;
   const els=[...document.querySelectorAll('.slot-body'),document.getElementById('sortable-timed')].filter(Boolean);
   els.forEach(el=>{
-    Sortable.create(el,{
+    const s=Sortable.create(el,{
       animation:120,
       draggable:'.task:not(.snoozed)',
       ghostClass:'task-drag-ghost',
       chosenClass:'task-drag-chosen',
+      disabled:true,
       onEnd:_saveTaskOrderFromDOM
     });
+    _sortables.push(s);
   });
+}
+function toggleSortMode(){
+  _sortModeActive=!_sortModeActive;
+  _sortables.forEach(s=>s.option('disabled',!_sortModeActive));
+  const btn=document.getElementById('sort-mode-btn');
+  if(btn){
+    if(_sortModeActive){btn.textContent='✓ סיים';btn.style.background='var(--gold)';btn.style.color='#000';btn.style.borderColor='var(--gold)';}
+    else{btn.textContent='⇅ סדר';btn.style.background='';btn.style.color='';btn.style.borderColor='';}
+  }
 }
 function _saveTaskOrderFromDOM(){
   const ids=[];
@@ -2333,6 +2351,9 @@ function renderToday(){
   const _msPct=document.getElementById('ms-pct');
   if(_msPct)_msPct.textContent=pct+'%';
   renderWhatNow();
+  const _hdr=document.querySelector('.hdr');
+  const _sw=document.getElementById('sticky-whatnow');
+  if(_hdr&&_sw)_sw.style.top=_hdr.offsetHeight+'px';
   if(typeof plRender==='function') plRender();
 }
 
@@ -2446,9 +2467,66 @@ function _getTaskDur(t){
   return 30;
 }
 
+function skipTaskToday(taskId){
+  const ds=new Date().toDateString();
+  if(!S.skippedToday)S.skippedToday={};
+  if(!S.skippedToday[ds])S.skippedToday[ds]=[];
+  if(!S.skippedToday[ds].includes(taskId))S.skippedToday[ds].push(taskId);
+  save();
+  renderWhatNow();
+}
+
+function _whatNowTaskCard(task,label,accent,bg,br,nowMin,toMin,showFree){
+  const bid=_baseIdFromTaskId(task.id);
+  const baseKey=bid.replace(/^grp_/,'');
+  const infoTitle=typeof TASK_INFO!=='undefined'&&TASK_INFO[baseKey]?TASK_INFO[baseKey].title:null;
+  const grp=(getGroups()||builtinGroups()).find(g=>g.id==='grp_'+baseKey||g.id===bid);
+  const displayTitle=(grp&&grp.title)?grp.title:infoTitle;
+  const taskMin=toMin(task._time);
+  const diffMin=taskMin-nowMin;
+  let timeLabel,timeColor;
+  if(label==='עכשיו'){timeLabel='עכשיו';timeColor='var(--green)';}
+  else if(diffMin<=5){timeLabel='בעוד דקות ספורות';timeColor='var(--gold)';}
+  else if(diffMin<60){timeLabel=`בעוד ${diffMin} דק'`;timeColor='var(--txt2)';}
+  else{const hrs=Math.floor(diffMin/60),mins=diffMin%60;timeLabel=`בעוד ${hrs}:${String(mins).padStart(2,'0')}`;timeColor='var(--txt3)';}
+  let freeHtml='';
+  if(showFree){
+    if(label==='עכשיו'){
+      const remMin=taskMin+task._dur-nowMin;
+      if(remMin>0)freeHtml=`<div style="font-size:11px;color:var(--txt3);margin-top:4px">נותרו ${remMin} דק' למשימה</div>`;
+    } else if(diffMin>5){
+      if(diffMin<60)freeHtml=`<div style="font-size:11px;color:var(--teal);margin-top:4px">⏳ ${diffMin} דק' חופשיות עכשיו</div>`;
+      else{const fh=Math.floor(diffMin/60),fm=diffMin%60;freeHtml=`<div style="font-size:11px;color:var(--teal);margin-top:4px">⏳ ${fh}${fm>0?`:${String(fm).padStart(2,'0')}`:''} שעות חופשיות עכשיו</div>`;}
+    }
+  }
+  const safeId=task.id.replace(/'/g,"\\'");
+  return `<div style="background:${bg};border:1px solid ${br};border-radius:var(--r);padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:6px">
+    <div style="flex:1;min-width:0">
+      <div style="font-size:10px;font-weight:800;color:${accent};text-transform:uppercase;letter-spacing:.7px;margin-bottom:2px">● ${label}</div>
+      ${displayTitle?`<div style="font-size:10px;font-weight:700;color:var(--txt3);margin-bottom:2px">${displayTitle}</div>`:''}
+      <div style="font-size:13px;font-weight:900;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px">${task.text}</div>
+      <div style="font-size:11px;color:var(--txt3)">${task._time}${task._dur!==30?` · ${task._dur} דק'`:''} <span style="color:${timeColor};font-weight:700;margin-right:4px">${timeLabel}</span></div>
+      ${freeHtml}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+      <button onclick="toggleTask('${safeId}',${task.pts})"
+        style="width:36px;height:36px;border-radius:50%;background:${accent};border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2)">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="white"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+      </button>
+      <button onclick="skipTaskToday('${safeId}')"
+        style="width:36px;height:36px;border-radius:50%;background:var(--sf2);border:1px solid var(--brd2);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--txt3);font-size:16px;line-height:1">✕</button>
+    </div>
+  </div>`;
+}
+
 function renderWhatNow(){
   const card=document.getElementById('what-now-card');
   if(!card)return;
+  // update sticky top position
+  const hdr=document.querySelector('.hdr');
+  const sw=document.getElementById('sticky-whatnow');
+  if(hdr&&sw)sw.style.top=hdr.offsetHeight+'px';
+
   const now=new Date();
   const nowMin=now.getHours()*60+now.getMinutes();
   const dayType=getDayType(now);
@@ -2456,28 +2534,28 @@ function renderWhatNow(){
   if(typeof getTasksWithIndivLevel==='function') tasks=getTasksWithIndivLevel(S.level);
   else if(typeof getTasksForDay==='function') tasks=getTasksForDay(S.level,dayType);
   const toMin=tm=>{const[h,m]=tm.split(':').map(Number);return h*60+m;};
+  const ds=new Date().toDateString();
+  const skipped=(S.skippedToday&&S.skippedToday[ds])||[];
   const pending=tasks
-    .filter(t=>!S.done[t.id])
+    .filter(t=>!S.done[t.id]&&!skipped.includes(t.id))
     .map(t=>({...t,_time:_getTaskTime(t),_dur:_getTaskDur(t)}))
     .filter(t=>t._time)
     .sort((a,b)=>a._time.localeCompare(b._time));
-  const current=pending.find(t=>{const s=toMin(t._time);return s<=nowMin&&nowMin<s+t._dur;});
-  const next=pending.find(t=>toMin(t._time)>nowMin);
-  const task=current||next;
-  if(!task){
+  const currentAll=pending.filter(t=>{const s=toMin(t._time);return s<=nowMin&&nowMin<s+t._dur;});
+  const next=pending.find(t=>toMin(t._time)>nowMin&&!currentAll.includes(t));
+  if(!currentAll.length&&!next){
     const done=tasks.filter(t=>S.done[t.id]).length;
     const pct=tasks.length?Math.round(done/tasks.length*100):0;
     if(pct===100){
-      card.innerHTML=`<div style="background:rgba(56,214,138,.08);border:1px solid rgba(56,214,138,.2);border-radius:var(--r);padding:14px 16px;text-align:center"><div style="font-size:22px;margin-bottom:4px">🏆</div><div style="font-size:13px;font-weight:800;color:var(--green)">כל המשימות הושלמו!</div></div>`;
+      card.innerHTML=`<div style="background:rgba(56,214,138,.08);border:1px solid rgba(56,214,138,.2);border-radius:var(--r);padding:14px 16px;text-align:center;margin-bottom:6px"><div style="font-size:22px;margin-bottom:4px">🏆</div><div style="font-size:13px;font-weight:800;color:var(--green)">כל המשימות הושלמו!</div></div>`;
       return;
     }
-    // Look for first timed task tomorrow
-    const tmr=new Date(); tmr.setDate(tmr.getDate()+1);
+    const tmr=new Date();tmr.setDate(tmr.getDate()+1);
     const tmrType=getDayType(tmr);
     let tmrTasks=typeof getTasksWithIndivLevel==='function'?getTasksWithIndivLevel(S.level):getTasksForDay(S.level,tmrType);
     const tmrFirst=tmrTasks.map(t=>({...t,_time:_getTaskTime(t),_dur:_getTaskDur(t)})).filter(t=>t._time).sort((a,b)=>a._time.localeCompare(b._time))[0];
     if(tmrFirst){
-      card.innerHTML=`<div style="background:var(--sf2);border:1px solid var(--brd);border-radius:var(--r);padding:13px 16px;display:flex;align-items:center;gap:12px">
+      card.innerHTML=`<div style="background:var(--sf2);border:1px solid var(--brd);border-radius:var(--r);padding:13px 16px;display:flex;align-items:center;gap:12px;margin-bottom:6px">
         <div style="flex:1;min-width:0">
           <div style="font-size:10px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">▷ מחר ראשון</div>
           <div style="font-size:14px;font-weight:900;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px">${tmrFirst.text}</div>
@@ -2485,48 +2563,20 @@ function renderWhatNow(){
         </div>
       </div>`;
     } else {
-      card.innerHTML=`<div style="background:var(--sf2);border:1px solid var(--brd);border-radius:var(--r);padding:12px 16px;text-align:center;font-size:12px;color:var(--txt3)">אין משימות ממתינות עם שעה</div>`;
+      card.innerHTML=`<div style="background:var(--sf2);border:1px solid var(--brd);border-radius:var(--r);padding:12px 16px;text-align:center;font-size:12px;color:var(--txt3);margin-bottom:6px">אין משימות ממתינות עם שעה</div>`;
     }
     return;
   }
-  const taskMin=toMin(task._time);
-  const isNow=!!current;
-  const diffMin=taskMin-nowMin;
-  let timeLabel,timeColor;
-  if(isNow){timeLabel='עכשיו';timeColor='var(--green)';}
-  else if(diffMin<=5){timeLabel='בעוד דקות ספורות';timeColor='var(--gold)';}
-  else if(diffMin<60){timeLabel=`בעוד ${diffMin} דק'`;timeColor='var(--txt2)';}
-  else{const hrs=Math.floor(diffMin/60),mins=diffMin%60;timeLabel=`בעוד ${hrs}:${String(mins).padStart(2,'0')}`;timeColor='var(--txt3)';}
-  // Free window: time available before next task starts (only when not currently in a task)
-  let freeHtml='';
-  if(!isNow && diffMin>5){
-    if(diffMin<60){
-      freeHtml=`<div style="font-size:11px;color:var(--teal);margin-top:5px">⏳ ${diffMin} דק' חופשיות עכשיו</div>`;
-    } else {
-      const fh=Math.floor(diffMin/60),fm=diffMin%60;
-      freeHtml=`<div style="font-size:11px;color:var(--teal);margin-top:5px">⏳ ${fh}${fm>0?`:${String(fm).padStart(2,'0')}`:''} שעות חופשיות עכשיו</div>`;
-    }
-  } else if(isNow){
-    // Show remaining time in current task
-    const endMin=taskMin+task._dur;
-    const remMin=endMin-nowMin;
-    if(remMin>0) freeHtml=`<div style="font-size:11px;color:var(--txt3);margin-top:5px">נותרו ${remMin} דק' למשימה</div>`;
+  let html='';
+  currentAll.forEach((task,i)=>{
+    html+=_whatNowTaskCard(task,'עכשיו','var(--green)','rgba(56,214,138,.07)','rgba(56,214,138,.25)',nowMin,toMin,i===0);
+  });
+  if(next&&!currentAll.length){
+    html+=_whatNowTaskCard(next,'הבא','var(--blue)','rgba(91,141,248,.06)','rgba(91,141,248,.2)',nowMin,toMin,true);
+  } else if(next){
+    html+=_whatNowTaskCard(next,'הבא','var(--blue)','rgba(91,141,248,.06)','rgba(91,141,248,.2)',nowMin,toMin,false);
   }
-  const accent=isNow?'var(--green)':'var(--blue)';
-  const bg=isNow?'rgba(56,214,138,.07)':'rgba(91,141,248,.06)';
-  const br=isNow?'rgba(56,214,138,.25)':'rgba(91,141,248,.2)';
-  card.innerHTML=`<div style="background:${bg};border:1px solid ${br};border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:12px">
-    <div style="flex:1;min-width:0">
-      <div style="font-size:10px;font-weight:800;color:${accent};text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">${isNow?'● עכשיו':'▷ הבא'}</div>
-      <div style="font-size:14px;font-weight:900;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px">${task.text}</div>
-      <div style="font-size:11px;color:var(--txt3)">${task._time}${task._dur!==30?` · ${task._dur} דק'`:''} <span style="color:${timeColor};font-weight:700;margin-right:4px">${timeLabel}</span></div>
-      ${freeHtml}
-    </div>
-    <button onclick="toggleTask('${task.id}',${task.pts})"
-      style="flex-shrink:0;width:40px;height:40px;border-radius:50%;background:${accent};border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2)">
-      <svg width="18" height="18" viewBox="0 0 20 20" fill="white"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-    </button>
-  </div>`;
+  card.innerHTML=html;
 }
 
 function openDayModifiers(){
@@ -2885,6 +2935,8 @@ try{
         style="${B}rgba(240,192,64,.35);background:rgba(240,192,64,.08);color:var(--gold)">${snoozed?'↩️ בטל דחייה':'⏭ לא היום'}</button>
       <button onclick="toggleStar('${safeId}',null);openTaskPanel('${safeId}',${occIdxN<0?'undefined':occIdxN})"
         style="${B}var(--brd2);background:var(--bg3);color:var(--gold)">${starred?'⭐ הסר':'☆ עדיפות'}</button>
+      <button onclick="closeModal('task-panel');openEditGroupModal('${grpId}')"
+        style="${B}var(--brd2);background:var(--bg3);color:var(--txt2);grid-column:span 2">✏️ ערוך משימה</button>
     </div>
     <button onclick="closeModal('task-panel')" style="width:100%;padding:11px;background:var(--bg3);border:1px solid var(--brd);border-radius:10px;color:var(--txt3);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">סגור</button>
   `;

@@ -102,8 +102,10 @@
       </button>
     </div>
 
-    <!-- WHAT'S NOW CARD -->
-    <div id="what-now-card" style="margin-bottom:12px"></div>
+    <!-- WHAT'S NOW CARD (sticky below header) -->
+    <div id="sticky-whatnow" style="position:sticky;z-index:190;background:var(--bg);padding-bottom:4px">
+      <div id="what-now-card"></div>
+    </div>
 
     <!-- SHABBAT / FOCUS DAY / BOOST DAY -->
     <div id="shabbat-mode-wrap"></div>
@@ -138,6 +140,7 @@
         <button class="hide-done-btn" id="tv-slot" onclick="setTodayView('slot')">&#128204; סלוט</button>
         <button class="hide-done-btn" id="tv-time" onclick="setTodayView('time')">&#9201; זמן</button>
         <button class="hide-done-btn" id="tv-cat"  onclick="setTodayView('cat')">&#127991; קטגוריה</button>
+        <button class="hide-done-btn" id="sort-mode-btn" onclick="toggleSortMode()">&#8645; סדר</button>
       </div>
       <div id="today-content"></div>
     </div>
