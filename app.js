@@ -2823,6 +2823,7 @@ const advLevelBtnHtml = getTaskDisplayLevel(_taskBid) >= MAX_LVL
       <div class="tn" ondblclick="inlineEditTask('${safeId}',this)">${stepText}</div>
       <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
         ${occBadge || timeTag}<span class="tcat">${CATS[t.cat]||t.cat}</span>${levelBadgeHtml}
+        ${t.duration ? `<span style="font-size:10px;color:var(--txt3);background:var(--bg3);border-radius:4px;padding:1px 5px;font-weight:600">⏱ ${t.duration} דק'</span>` : ''}
         ${starred?'<span style="font-size:11px;margin-right:2px">&#11088;</span>':''}
       </div>
     </div>
@@ -4069,6 +4070,78 @@ async function fixPoints(){
   if(!await _customConfirm('לאפס את הנקודות הזמינות לפי ההיסטוריה בלבד? הנתונים ישמרו.', '✓ תקן'))return;
   recalcStreakAndProgress();
   save();renderActive();toast('✅ נקודות תוקנו לפי ההיסטוריה');
+}
+
+/* ══════════════ DOWNLOAD SCHEDULE ══════════════ */
+function openDownloadScheduleModal(){
+  const inp = document.getElementById('download-schedule-date');
+  if(inp){
+    const d = new Date();
+    inp.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+  openModal('modal-download-schedule');
+}
+
+function downloadSchedule(){
+  const inp = document.getElementById('download-schedule-date');
+  const dateStr = inp ? inp.value : '';
+  if(!dateStr){ toast('בחר תאריך'); return; }
+
+  const date = new Date(dateStr + 'T12:00:00');
+  const dow = date.getDay();
+  const dayType = dow===5 ? 'friday' : dow===6 ? 'shabbat' : 'weekday';
+  const dayNames = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+  const dayLabel = dow===6 ? 'שבת קודש' : `יום ${dayNames[dow]}`;
+  const months = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  const dateLabel = `${date.getDate()} ב${months[date.getMonth()]} ${date.getFullYear()}`;
+
+  const _boost = boostActiveToday();
+  const lvl = _boost ? _boost.level : S.level;
+  const tasks = getTasksForDay(lvl, dayType);
+
+  const SLOT_ICONS = ['📌','🌅','☀️','🌙'];
+  const SLOT_NAMES = ['משימות כלליות','משימות בוקר','משימות צהריים','משימות ערב ולילה'];
+
+  const sep = '══════════════════════════════════════';
+  let lines = [];
+  lines.push(sep);
+  lines.push(`העלייה שלי — לוח זמנים יומי`);
+  lines.push(`${dayLabel}, ${dateLabel} | רמה ${lvl}`);
+  lines.push(sep);
+  lines.push('');
+
+  for(let slot=0; slot<=3; slot++){
+    const slotTasks = slot===0
+      ? tasks.filter(t=>t.slot===0)
+      : tasks.filter(t=>t.slot===slot).sort((a,b)=>{
+          if(a.time && b.time) return a.time.localeCompare(b.time);
+          if(a.time) return -1; if(b.time) return 1; return 0;
+        });
+    if(!slotTasks.length) continue;
+    lines.push(`${SLOT_ICONS[slot]} ${SLOT_NAMES[slot]}`);
+    lines.push('─'.repeat(38));
+    for(const t of slotTasks){
+      const timeStr = t.time ? t.time + '  ' : '       ';
+      const durStr  = t.duration ? ` [${t.duration} דק']` : '';
+      lines.push(`  ${timeStr}${t.text}${durStr}`);
+    }
+    lines.push('');
+  }
+
+  lines.push(sep);
+  lines.push(`הלוז הופק מאפליקציית העלייה שלי`);
+  lines.push(sep);
+
+  const content = lines.join('\n');
+  const blob = new Blob(['﻿' + content], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const fn = `looz-${dateStr}.txt`;
+  a.href=url; a.download=fn;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  closeModal('modal-download-schedule');
+  toast('✅ לוח הזמנים הורד!');
 }
 
 /* ══════════════ BACKUP / RESTORE ══════════════ */
