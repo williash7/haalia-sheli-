@@ -626,9 +626,18 @@ async function _fetchGcalEvents(date){
     if(r.status===401){
       localStorage.removeItem(GCAL_TOKEN_KEY);
       localStorage.removeItem(GCAL_TOKEN_EXP_KEY);
+      if(typeof toast==='function')toast('⚠️ פג תוקף החיבור ל-Google Calendar — חבר מחדש');
+      _plBar();
       return[];
     }
-    if(!r.ok)return[];
+    if(r.status===403){
+      if(typeof toast==='function')toast('⚠️ אין הרשאה ל-Google Calendar — נסה לחבר מחדש');
+      return[];
+    }
+    if(!r.ok){
+      if(typeof toast==='function')toast('⚠️ שגיאה בטעינת אירועים מ-Google ('+r.status+')');
+      return[];
+    }
     const data=await r.json();
     const evs=(data.items||[])
       .filter(e=>e.start?.dateTime)
@@ -725,9 +734,11 @@ async function _gcalConnect(){
     if(typeof firebase==='undefined')throw new Error('Firebase לא נטען');
     const provider=new firebase.auth.GoogleAuthProvider();
     provider.addScope('https://www.googleapis.com/auth/calendar.readonly');
+    // force consent screen so Firebase always returns a fresh accessToken
+    provider.setCustomParameters({prompt:'consent'});
     const result=await firebase.auth().signInWithPopup(provider);
     const token=result.credential?.accessToken;
-    if(!token)throw new Error('לא התקבל token');
+    if(!token)throw new Error('לא התקבל token מ-Google — נסה שוב');
     localStorage.setItem(GCAL_TOKEN_KEY,token);
     localStorage.setItem(GCAL_TOKEN_EXP_KEY,String(Date.now()+3600*1000));
     _gcalEvCache={};
@@ -737,7 +748,10 @@ async function _gcalConnect(){
     _plBar();
   }catch(e){
     if(btn){btn.textContent='🔗 חבר Google Calendar';btn.disabled=false;}
-    const msg=e.code==='auth/popup-closed-by-user'?'החלון נסגר — נסה שוב':(e.message||'שגיאה בחיבור');
+    let msg='שגיאה בחיבור';
+    if(e.code==='auth/popup-closed-by-user')msg='החלון נסגר — נסה שוב';
+    else if(e.code==='auth/popup-blocked')msg='חלון נחסם — אפשר popups לאתר';
+    else if(e.message)msg=e.message;
     if(typeof toast==='function')toast('⚠️ '+msg);
   }
 }
