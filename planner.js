@@ -757,24 +757,45 @@ function _gcalConnect(){
           _plBar();
         },
       });
-      client.requestToken();
+      client.requestAccessToken();
     }catch(e){
       if(btn){btn.textContent='🔗 חבר Google Calendar';btn.disabled=false;}
       if(typeof toast==='function')toast('⚠️ שגיאה: '+e.message);
     }
   };
 
-  if(window.google?.accounts?.oauth2){
+  const _loadAndConnect=()=>{
+    if(window.google?.accounts?.oauth2?.initTokenClient){
+      _doConnect();
+    }else{
+      setTimeout(()=>{
+        if(window.google?.accounts?.oauth2?.initTokenClient){_doConnect();}
+        else{
+          if(btn){btn.textContent='🔗 חבר Google Calendar';btn.disabled=false;}
+          if(typeof toast==='function')toast('⚠️ GIS לא נטען — נסה שוב');
+        }
+      },800);
+    }
+  };
+
+  if(window.google?.accounts?.oauth2?.initTokenClient){
     _doConnect();
   }else{
-    const s=document.createElement('script');
-    s.src='https://accounts.google.com/gsi/client';
-    s.onload=_doConnect;
-    s.onerror=()=>{
-      if(btn){btn.textContent='🔗 חבר Google Calendar';btn.disabled=false;}
-      if(typeof toast==='function')toast('⚠️ שגיאת טעינת Google');
-    };
-    document.head.appendChild(s);
+    const existing=document.getElementById('gsi-script');
+    if(!existing){
+      const s=document.createElement('script');
+      s.id='gsi-script';
+      s.src='https://accounts.google.com/gsi/client';
+      s.async=true;
+      s.onload=_loadAndConnect;
+      s.onerror=()=>{
+        if(btn){btn.textContent='🔗 חבר Google Calendar';btn.disabled=false;}
+        if(typeof toast==='function')toast('⚠️ שגיאת טעינת Google');
+      };
+      document.head.appendChild(s);
+    }else{
+      _loadAndConnect();
+    }
   }
 }
 
