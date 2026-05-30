@@ -650,7 +650,10 @@ async function _fetchGcalEvents(date){
       }));
     _gcalEvCache[ds]=evs;
     return evs;
-  }catch(e){return[];}
+  }catch(e){
+    if(typeof toast==='function')toast('⚠️ שגיאת רשת: '+e.message);
+    return[];
+  }
 }
 
 async function _loadAndRenderGcal(){
@@ -659,6 +662,7 @@ async function _loadAndRenderGcal(){
   const grid=document.getElementById('pl-grid');
   if(!grid)return;
   grid.querySelectorAll('.pl-blk-gcal').forEach(b=>b.remove());
+  if(typeof toast==='function')toast('📅 נמצאו '+evs.length+' אירועים ב-Google Calendar');
   if(!evs.length)return;
   const bW=Math.min(window.innerWidth,500)-56;
   evs.forEach(ev=>{
