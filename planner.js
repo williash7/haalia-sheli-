@@ -731,32 +731,50 @@ function _plGcal(){
   }),50);
 }
 
-async function _gcalConnect(){
+const GCAL_CLIENT_ID='333950847812-rcasbnva97pg6h10jk8fklkbadktrf0f.apps.googleusercontent.com';
+
+function _gcalConnect(){
   const btn=document.getElementById('gcal-connect-btn');
   if(btn){btn.textContent='⏳ מתחבר...';btn.disabled=true;}
-  try{
-    if(typeof firebase==='undefined')throw new Error('Firebase לא נטען');
-    const provider=new firebase.auth.GoogleAuthProvider();
-    provider.addScope('https://www.googleapis.com/auth/calendar.readonly');
-    // force consent screen so Firebase always returns a fresh accessToken
-    provider.setCustomParameters({prompt:'consent'});
-    const result=await firebase.auth().signInWithPopup(provider);
-    const token=result.credential?.accessToken;
-    if(!token)throw new Error('לא התקבל token מ-Google — נסה שוב');
-    localStorage.setItem(GCAL_TOKEN_KEY,token);
-    localStorage.setItem(GCAL_TOKEN_EXP_KEY,String(Date.now()+3600*1000));
-    _gcalEvCache={};
-    document.getElementById('gcal-modal')?.remove();
-    if(typeof toast==='function')toast('✅ Google Calendar מחובר!');
-    _loadAndRenderGcal();
-    _plBar();
-  }catch(e){
-    if(btn){btn.textContent='🔗 חבר Google Calendar';btn.disabled=false;}
-    let msg='שגיאה בחיבור';
-    if(e.code==='auth/popup-closed-by-user')msg='החלון נסגר — נסה שוב';
-    else if(e.code==='auth/popup-blocked')msg='חלון נחסם — אפשר popups לאתר';
-    else if(e.message)msg=e.message;
-    if(typeof toast==='function')toast('⚠️ '+msg);
+
+  const _doConnect=()=>{
+    try{
+      const client=google.accounts.oauth2.initTokenClient({
+        client_id:GCAL_CLIENT_ID,
+        scope:'https://www.googleapis.com/auth/calendar.readonly',
+        callback:(resp)=>{
+          if(resp.error){
+            if(btn){btn.textContent='🔗 חבר Google Calendar';btn.disabled=false;}
+            if(typeof toast==='function')toast('⚠️ '+(resp.error_description||resp.error));
+            return;
+          }
+          localStorage.setItem(GCAL_TOKEN_KEY,resp.access_token);
+          localStorage.setItem(GCAL_TOKEN_EXP_KEY,String(Date.now()+(resp.expires_in||3600)*1000));
+          _gcalEvCache={};
+          document.getElementById('gcal-modal')?.remove();
+          if(typeof toast==='function')toast('✅ Google Calendar מחובר!');
+          _loadAndRenderGcal();
+          _plBar();
+        },
+      });
+      client.requestToken();
+    }catch(e){
+      if(btn){btn.textContent='🔗 חבר Google Calendar';btn.disabled=false;}
+      if(typeof toast==='function')toast('⚠️ שגיאה: '+e.message);
+    }
+  };
+
+  if(window.google?.accounts?.oauth2){
+    _doConnect();
+  }else{
+    const s=document.createElement('script');
+    s.src='https://accounts.google.com/gsi/client';
+    s.onload=_doConnect;
+    s.onerror=()=>{
+      if(btn){btn.textContent='🔗 חבר Google Calendar';btn.disabled=false;}
+      if(typeof toast==='function')toast('⚠️ שגיאת טעינת Google');
+    };
+    document.head.appendChild(s);
   }
 }
 
